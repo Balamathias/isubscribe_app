@@ -144,7 +144,7 @@ const LoginForm = () => {
           </TouchableOpacity>
         </View>
         <TouchableOpacity className="items-center mt-2">
-          <Text className="font-semibold text-base">Forgot password? <Text className="text-primary">Reset password</Text></Text>
+          <Text className="font-semibold text-base">Forgot password? <Link href={`/auth/forgot-password`} className="text-primary">Reset password</Link></Text>
         </TouchableOpacity>
 
         <Text className="text-muted-foreground text-center text-xs mt-8 px-4">

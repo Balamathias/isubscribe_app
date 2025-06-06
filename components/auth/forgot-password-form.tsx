@@ -26,7 +26,7 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
 }) => {
   return (
     <View className="mb-4">
-      <View className="flex-row items-center bg-input border border-secondary rounded-xl px-4 py-2 shadow-sm">
+      <View className="flex-row items-center bg-input border border-secondary rounded-xl px-4 py-2 shadow-sm w-full">
         <Ionicons name={icon} size={20} color="gray" className="mr-3" />
         <TextInput
           className="flex-1 text-base text-foreground"
@@ -70,12 +70,12 @@ const ForgotPasswordForm = () => {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-background justify-center items-center px-4">
+    <SafeAreaView className="flex-1 bg-background justify-center px-4 w-full">
       <IsubscribeLogo />
 
-      <View className="w-full max-w-sm items-center">
+      <View className="w-full max-w-sm ">
         <Text className="text-foreground text-2xl font-bold mb-4">Forgot Password?</Text>
-        <Text className="text-muted-foreground text-center mb-8">
+        <Text className="text-muted-foreground mb-8">
           Enter your registered email address to receive a verification code.
         </Text>
 

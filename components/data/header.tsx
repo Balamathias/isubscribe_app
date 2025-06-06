@@ -4,7 +4,6 @@ import { router, Tabs } from 'expo-router'
 import React from 'react'
 import { Text, TouchableOpacity, useColorScheme, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import Avatar from '../ui/avatar'
 
 const Header = () => {
   const colorScheme = useColorScheme()
@@ -16,23 +15,22 @@ const Header = () => {
     <Tabs.Screen 
         options={{
             headerShown: true,
-            header: () => (
+            header: ({navigation}) => (
                 <View className={`${theme} flex-row bg-background`}>
                     <SafeAreaView edges={['top']} className="flex-row items-center justify-between px-4 w-full py-4">
                         <View className="flex-row items-center gap-x-1.5">
-                            <Avatar 
-                                source={require('@/assets/images/people/gogo.png')}
-                                size={32}
-                            />
-                            <Text className="text-xl font-medium text-foreground">Hi, Mathias.</Text>
+                            <TouchableOpacity onPress={() => navigation.goBack()}>
+                                <Ionicons name="arrow-back" color={colors.foreground} size={24} />
+                            </TouchableOpacity>
+                            <Text className="text-xl font-medium text-foreground">Data Plans</Text>
                         </View>
 
                         <View className="flex-row items-center gap-x-4">
                             <TouchableOpacity onPress={() => router.push(`/auth/login`)}>
                                 <Ionicons name="headset-outline" color={colors.foreground} size={24} />
                             </TouchableOpacity>
-                            <TouchableOpacity onPress={() => router.push(`/auth/verify-otp`)}>
-                                <Ionicons name="notifications-outline" color={colors.foreground} size={24} />
+                            <TouchableOpacity onPress={() => router.push(`/settings`)}>
+                                <Ionicons name="settings-outline" color={colors.foreground} size={24} />
                             </TouchableOpacity>
                         </View>
                     </SafeAreaView>

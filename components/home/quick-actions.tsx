@@ -1,17 +1,19 @@
+import { COLORS } from '@/constants/colors';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import React from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { Text, TouchableOpacity, useColorScheme, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 
 const actions = [
-  { name: 'Data', icon: 'wifi' },
-  { name: 'Airtime', icon: 'call' },
-  { name: 'Electricity', icon: 'bulb-outline' },
-  { name: 'TV Cable', icon: 'tv' },
-  { name: 'Education', icon: 'school' },
-  { name: 'Inter-Send', icon: 'swap-vertical' },
-  { name: 'Share & Earn', icon: 'gift' },
-  { name: 'More', icon: 'ellipsis-horizontal' },
+  { name: 'Data', icon: 'wifi-outline', href: `/services/data` },
+  { name: 'Airtime', icon: 'call-outline', href: `/services/airtime` },
+  { name: 'Electricity', icon: 'bulb-outline', href: `/services/electricity` },
+  { name: 'TV Cable', icon: 'tv-outline', href: `/services/tv` },
+  { name: 'Education', icon: 'school-outline', href: `/services/education` },
+  { name: 'Inter-Send', icon: 'swap-vertical-outline', href: `/services/transfer` },
+  { name: 'Share & Earn', icon: 'gift-outline', href: `/services/share` },
+  { name: 'More', icon: 'ellipsis-horizontal-outline', href: `/more` },
 ];
 
 const QuickActions = () => {
@@ -31,11 +33,15 @@ const QuickActions = () => {
 }
 
 interface ActionItemProps {
-  action: { name: string; icon: any };
+  action: { name: string; icon: any, href: any };
 }
 
 const ActionItem: React.FC<ActionItemProps> = ({ action }) => {
   const scale = useSharedValue(1);
+  const colorScheme = useColorScheme()
+
+  const theme = colorScheme === 'dark' ? 'dark' : 'light'
+  const colors = COLORS[theme]
 
   const animatedStyle = useAnimatedStyle(() => {
     return {
@@ -58,8 +64,9 @@ const ActionItem: React.FC<ActionItemProps> = ({ action }) => {
         activeOpacity={0.7}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
+        onPress={() => router.push(action?.href)}
       >
-        <Ionicons name={action.icon} size={20} color="#B294F8" />
+        <Ionicons name={action.icon} size={20} color={colors.primary} />
       </TouchableOpacity>
       <Text className="text-foreground text-xs font-medium text-center">{action.name}</Text>
     </Animated.View>

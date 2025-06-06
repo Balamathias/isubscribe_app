@@ -1,26 +1,24 @@
-/**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
- */
-
-const tintColorLight = '#0a7ea4';
-const tintColorDark = '#fff';
-
-export const Colors = {
-  light: {
-    text: '#11181C',
-    background: '#fff',
-    tint: tintColorLight,
-    icon: '#687076',
-    tabIconDefault: '#687076',
-    tabIconSelected: tintColorLight,
-  },
-  dark: {
-    text: '#ECEDEE',
-    background: '#151718',
-    tint: tintColorDark,
-    icon: '#9BA1A6',
-    tabIconDefault: '#9BA1A6',
-    tabIconSelected: tintColorDark,
-  },
-};
+export const COLORS = {
+    light: {
+        primary: 'hsl(263.4 70% 50.4%)',
+        foreground: 'hsl(210 20% 10%)',
+        background: 'hsl(210 20% 98%)',
+        card: 'hsl(210 20% 98%)',
+        cardForeground: 'hsl(210 20% 98%)',
+        popover: 'hsl(210 20% 98%)',
+        popoverForeground: 'hsl(210 20% 98%)',
+        border: 'hsl(210 20% 98%)',
+        input: 'hsl(210 20% 98%)',
+    },
+    dark: {
+        primary: 'hsl(263.4 70% 60.4%)',
+        foreground: 'hsl(210 20% 98%)',
+        background: 'hsl(210 20% 98%)',
+        card: 'hsl(210 20% 98%)',
+        cardForeground: 'hsl(210 20% 98%)',
+        popover: 'hsl(210 20% 98%)',
+        popoverForeground: 'hsl(210 20% 98%)',
+        border: 'hsl(210 20% 98%)',
+        input: 'hsl(210 20% 98%)',
+    },
+}

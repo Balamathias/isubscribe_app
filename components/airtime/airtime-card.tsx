@@ -2,9 +2,8 @@ import { formatNigerianNaira } from '@/utils/format-naira';
 import React from 'react';
 import { Text, TouchableOpacity } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
-import Toast from 'react-native-toast-message';
 
-interface Airtime {
+export interface Airtime {
   id: string;
   size: string;
   price: number;
@@ -15,8 +14,8 @@ interface AirtimeCardProps {
   plan: Airtime;
   onSelectPlan: (plan: Airtime) => void;
   isSelected: boolean;
-  onPress: () => void,
-  phoneNumber: string
+  onPress: () => void;
+  phoneNumber: string;
 }
 
 const AirtimeCard: React.FC<AirtimeCardProps> = ({
@@ -36,19 +35,12 @@ const AirtimeCard: React.FC<AirtimeCardProps> = ({
 
   return (
     <TouchableOpacity onPress={() => {
-        // if (phoneNumber) {
-            onSelectPlan(plan)
-            onPress()
-        // } else {
-        //     Toast.show({
-        //         type: 'info',
-        //         text1: `Please provide your Phone Number to continue.`
-        //     })
-        // }
+        onSelectPlan(plan);
+        onPress();
     }} className="flex w-[31%]">
       <Animated.View
         style={animatedStyle}
-        className={`bg-input rounded-xl rounded-tr-3xl p-4 items-center justify-center shadow-sm h-36
+        className={`bg-input rounded-xl rounded-tr-3xl p-4 items-center justify-center shadow-sm h-28
           ${isSelected ? 'border-2 border-primary' : 'border border-border'}`}
       >
         <Text className="text-foreground text-lg font-bold mb-1">{plan.size}</Text>

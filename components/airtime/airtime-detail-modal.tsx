@@ -8,6 +8,8 @@ import { Alert, Text, TouchableOpacity, useColorScheme, View } from 'react-nativ
 import PinPad from '../pin-pad';
 import { networks } from './buy-airtime';
 import Avatar from '../ui/avatar';
+import { useSession } from '../session-context';
+import { router } from 'expo-router';
 
 interface AirtimeDetailsModalProps {
   isVisible: boolean;
@@ -30,6 +32,8 @@ const AirtimeDetailsModal: React.FC<AirtimeDetailsModalProps> = ({
   const colorScheme = useColorScheme();
   const theme = colorScheme === 'dark' ? 'dark' : 'light';
   const colors = COLORS[theme];
+
+  const { user } = useSession()
 
   const handlePinSubmit = async (pin: string) => {
     console.log('PIN submitted:', pin);
@@ -86,24 +90,25 @@ const AirtimeDetailsModal: React.FC<AirtimeDetailsModalProps> = ({
             <Ionicons name="wallet-outline" size={24} color={colors.primary} />
             <View className="ml-3">
               <Text className="text-foreground font-bold text-lg">Wallet Balance <Text className="text-muted-foreground text-sm font-normal">• Selected</Text></Text>
-              <Text className="text-foreground font-bold text-xl">{formatNigerianNaira(207)}</Text>
+              <Text className="text-foreground font-bold text-xl">{formatNigerianNaira(user ? 207 : 0)}</Text>
             </View>
           </View>
           <Ionicons name="checkmark-circle" size={24} color={colors.primary} />
         </View>
 
         <TouchableOpacity
-          className="rounded-xl py-4 items-center overflow-hidden bg-primary"
-          onPress={() => setPinPadVisible(true)}
-          activeOpacity={0.5}
+            className="rounded-xl py-4 overflow-hidden bg-primary flex flex-row items-center justify-center gap-x-1"
+            onPress={() => user ? setPinPadVisible(true) : router.push(`/auth/login`)}
+            activeOpacity={0.5}
         >
-          <LinearGradient
-            colors={[colors.primary, '#e65bf8']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            className="absolute inset-0"
-          />
-          <Text className="text-primary-foreground text-lg font-bold">Proceed</Text>
+            <LinearGradient
+                colors={[colors.primary, '#e65bf8']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                className="absolute inset-0"
+            />
+            {!user && <Ionicons size={20} name='log-in-outline' color={'white'} />}
+            <Text className="text-primary-foreground text-lg font-bold">{user ? 'Proceed' : 'Login'}</Text>
         </TouchableOpacity>
 
         <PinPad

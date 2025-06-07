@@ -61,6 +61,19 @@ const toastConfig = {
       </View>
     </View>
   ),
+  warning: ({ text1, text2 }: CustomToastProps) => (
+    <View className="flex-row items-center gap-2 w-[90%] h-[52px] border border-[#FEF3C7] bg-[#FFFBEB] p-3 rounded-lg">
+      <Ionicons name="warning" size={20} color="#92400E" />
+      <View className="flex-col gap-1">
+        {text1 && (
+          <Text className="text-[#92400E] text-[12px] font-semibold">
+            {text1}
+          </Text>
+        )}
+        {text2 && <Text className="text-foreground">{text2}</Text>}
+      </View>
+    </View>
+  ),
 };
 
 export default toastConfig;

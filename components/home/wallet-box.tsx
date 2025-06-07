@@ -6,6 +6,7 @@ import { Text, TouchableOpacity, View } from 'react-native'
 import FundWalletBottomSheet from './fund-wallet-sheet'
 import { useSession } from '../session-context'
 import { Link, router } from 'expo-router'
+import { useGetAccount } from '@/services/account-hooks'
 
 const WalletBox = () => {
   const [showBalance, setShowBalance] = useState(true)
@@ -13,6 +14,7 @@ const WalletBox = () => {
   const [showFundWalletBottomSheet, setShowFundWalletBottomSheet] = useState(false);
 
   const { user } = useSession()
+  const { data: account } = useGetAccount()
 
   const toggleBalance = () => setShowBalance(!showBalance)
   const toggleBonus = () => setShowBonus(!showBonus)
@@ -47,7 +49,7 @@ const WalletBox = () => {
       <View className="flex-1">
         <Text className="text-white/80 text-xs mb-1">Wallet Balance</Text>
         <View className="flex-row items-center mb-4">
-          <Text className="text-white font-bold text-2xl mr-1">{formatNumber(67)}</Text>
+          <Text className="text-white font-bold text-2xl mr-1">{formatNumber(user ? 1044 : 0)}</Text>
           <TouchableOpacity onPress={toggleBalance}>
             <Ionicons 
               name={showBalance ? "eye-outline" : "eye-off-outline"} 
@@ -78,7 +80,7 @@ const WalletBox = () => {
       <View className="flex-1 items-end justify-between">
         <Text className="text-white/80 text-xs mb-1">Data Bonus</Text>
         <View className="flex-row items-center mb-4">
-          <Text className="text-white font-bold text-xl mr-1">{formatBonus('354.92 MB')}</Text>
+          <Text className="text-white font-bold text-xl mr-1">{formatBonus(user ? '354.92 MB' : '0.00 MB')}</Text>
           <TouchableOpacity onPress={toggleBonus}>
             <Ionicons 
               name={showBonus ? "eye-outline" : "eye-off-outline"} 
@@ -112,7 +114,7 @@ const WalletBox = () => {
         }
       </View>
 
-      <FundWalletBottomSheet isVisible={showFundWalletBottomSheet} onClose={handleCloseBottomSheet} />
+      <FundWalletBottomSheet account={account?.data} isVisible={showFundWalletBottomSheet} onClose={handleCloseBottomSheet} />
     </LinearGradient>
   )
 }

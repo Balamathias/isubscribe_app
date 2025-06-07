@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Contacts from 'expo-contacts';
 import React, { useState } from 'react';
 import { Platform, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useSession } from '../session-context';
 
 interface PhoneNumberInputProps {
   value: string;
@@ -14,6 +15,7 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
   value, onChange, error, onSelectContact
 }) => {
   const [isFocused, setIsFocused] = useState(false);
+  const { user } = useSession()
 
   const handleContactPicking = async () => {
     if (Platform.OS === 'web') {
@@ -56,6 +58,7 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
           keyboardType="phone-pad"
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
+          defaultValue={user?.user_metadata?.phone || ''}
         />
         <TouchableOpacity onPress={handleContactPicking} className="p-1 ml-2">
           <Ionicons name="person-add-outline" size={20} color="gray" />

@@ -1,3 +1,4 @@
+import { formatNigerianNaira } from '@/utils/format-naira';
 import React from 'react';
 import { Text, TouchableOpacity } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
@@ -14,11 +15,12 @@ interface DataBundleCardProps {
   bundle: DataBundle;
   onSelectBundle: (bundle: DataBundle) => void;
   isSelected: boolean;
-  onPress: () => void
+  onPress: () => void;
+  phoneNumber: string;
 }
 
 const DataBundleCard: React.FC<DataBundleCardProps> = ({
-  bundle, onSelectBundle, isSelected, onPress
+  bundle, onSelectBundle, isSelected, onPress, phoneNumber
 }) => {
   const scale = useSharedValue(1);
 
@@ -34,8 +36,8 @@ const DataBundleCard: React.FC<DataBundleCardProps> = ({
 
   return (
     <TouchableOpacity onPress={() => {
-        onSelectBundle(bundle)
-        onPress()
+        onSelectBundle(bundle);
+        onPress();
     }} className="flex w-[31%]">
       <Animated.View
         style={animatedStyle}
@@ -44,7 +46,7 @@ const DataBundleCard: React.FC<DataBundleCardProps> = ({
       >
         <Text className="text-foreground text-lg font-bold mb-1">{bundle.size}</Text>
         <Text className="text-muted-foreground text-sm mb-2">{bundle.duration}</Text>
-        <Text className="text-primary text-xl font-bold mb-2">₦{bundle.price.toLocaleString()}</Text>
+        <Text className="text-primary text-xl font-bold mb-2">{formatNigerianNaira(bundle.price)}</Text>
         {bundle.bonusMb > 0 && (
           <Text className="text-muted-foreground text-xs">+{bundle.bonusMb} MB</Text>
         )}

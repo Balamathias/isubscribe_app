@@ -1,48 +1,78 @@
-import DataBundleCard from '@/components/data/data-bundle-card';
-import DataBundleCategorySelector from '@/components/data/data-bundle-category-selector';
-import DataBundleDetailsModal from '@/components/data/data-bundle-details-modal';
 import NetworkSelector from '@/components/data/network-selector';
 import PhoneNumberInput from '@/components/data/phone-number-input';
+import { COLORS } from '@/constants/colors';
+import { formatNigerianNaira } from '@/utils/format-naira';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { ScrollView, Text, View } from 'react-native';
-import * as z from 'zod';
+import { ScrollView, Text, TextInput, TouchableOpacity, useColorScheme, View } from 'react-native';
 import Toast from 'react-native-toast-message';
-import AirtimeCard from './airtime-card';
-import Header from './header';
+import * as z from 'zod';
+import AirtimeCard, { Airtime } from './airtime-card';
 import AirtimeDetailsModal from './airtime-detail-modal';
+import Header from './header';
 
-const buyDataSchema = z.object({
+const buyAirtimeSchema = z.object({
   phoneNumber: z.string().min(10, 'Phone number must be at least 10 digits').regex(/^[0-9]+$/, 'Phone number must contain only digits'),
+  customAirtimeAmount: z.string().optional().refine(val => {
+    if (val === undefined || val === '') return true; // Allow empty
+    const num = Number(val);
+    return !isNaN(num) && num > 0;
+  }, { message: 'Please enter a valid amount' }),
 });
 
-type BuyDataFormInputs = z.infer<typeof buyDataSchema>;
+type BuyAirtimeFormInputs = z.infer<typeof buyAirtimeSchema>;
 
 const BuyAirtimeScreen = () => {
   const [selectedNetworkId, setSelectedNetworkId] = useState<string | null>('mtn');
-  const [selectedPlan, setSelectedPlan] = useState<number | null>(null);
+  const [selectedPlanPrice, setSelectedPlanPrice] = useState<number | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
 
-  const { control, handleSubmit, formState: { errors }, setValue, getValues } = useForm<BuyDataFormInputs>({
-    resolver: zodResolver(buyDataSchema),
+  const colorScheme = useColorScheme();
+  const theme = colorScheme === 'dark' ? 'dark' : 'light';
+  const colors = COLORS[theme];
+
+  const { control, handleSubmit, formState: { errors }, setValue, getValues, trigger } = useForm<BuyAirtimeFormInputs>({
+    resolver: zodResolver(buyAirtimeSchema),
     defaultValues: {
       phoneNumber: '',
+      customAirtimeAmount: '',
     },
   });
 
   const handleSelectNetwork = (networkId: string) => {
     setSelectedNetworkId(networkId);
-    // Optionally, reset selectedPlan if network changes
-    setSelectedPlan(null);
+    setSelectedPlanPrice(null);
+    setValue('customAirtimeAmount', '');
   };
 
-  const handleSelectPlan = (bundle: any) => {
-    setSelectedPlan(bundle);
+  const handleSelectPlan = (plan: Airtime) => {
+    setSelectedPlanPrice(plan.price);
+    setValue('customAirtimeAmount', '');
   };
 
-  const handleCardPress = (bundle: any) => {
+  const handleCardPress = (plan: Airtime) => {
     setIsModalVisible(true);
+  };
+
+  const handleCustomAmountChange = (text: string) => {
+    setSelectedPlanPrice(null); 
+    setValue('customAirtimeAmount', text, { shouldValidate: true }); 
+  };
+
+  const handleAirtimeCardPress = async (plan: Airtime) => {
+    const isValidPhoneNumber = await trigger('phoneNumber');
+    
+    if (isValidPhoneNumber) {
+      handleCardPress(plan);
+    } else {
+      if (errors.phoneNumber?.message) {
+        Toast.show({ type: 'error', text1: errors.phoneNumber.message });
+      } else {
+        Toast.show({ type: 'warning', text1: 'Please provide a valid phone number to continue.' });
+      }
+    }
   };
 
   const closeModal = () => {
@@ -53,24 +83,37 @@ const BuyAirtimeScreen = () => {
     setValue('phoneNumber', text);
   };
 
-  const onSubmit = (data: BuyDataFormInputs) => {
+  const onSubmit = (data: BuyAirtimeFormInputs) => {
     if (!selectedNetworkId) {
       alert('Please select a network.');
       return;
     }
-    if (!selectedPlan) {
-      Toast.show({text1: 'Please select a data bundle.', type: 'info'});
+
+    const customAmountNum = Number(data.customAirtimeAmount);
+    let finalAmount: number | null = selectedPlanPrice;
+
+    if (data.customAirtimeAmount && !isNaN(customAmountNum) && customAmountNum > 0) {
+        finalAmount = customAmountNum;
+    }
+
+    if (!finalAmount || finalAmount <= 0) {
+      Toast.show({text1: 'Please select an airtime plan or enter a valid custom amount.', type: 'info'});
       return;
     }
 
     const payload = {
       phoneNumber: data.phoneNumber,
       networkId: selectedNetworkId,
-      dataBundle: selectedPlan,
+      airtimeAmount: finalAmount,
     };
-    console.log('Buy Data Payload:', payload);
-    alert('Data purchase initiated! Check console for payload.');
+    console.log('Buy Airtime Payload:', payload);
+    alert('Airtime purchase initiated! Check console for payload.');
   };
+
+  const customAmountNum = Number(getValues('customAirtimeAmount'));
+  const finalAmountForModal = (getValues('customAirtimeAmount') && !isNaN(customAmountNum) && customAmountNum > 0)
+    ? customAmountNum
+    : selectedPlanPrice;
 
   return (
     <View className="flex-1 bg-background h-full">
@@ -103,29 +146,99 @@ const BuyAirtimeScreen = () => {
 
         <Text className="text-foreground text-xl font-bold mt-8 mb-4 ml-2">Quick Plans</Text>
         <View className="flex flex-1 flex-row flex-wrap gap-x-3 gap-y-3 pb-6">
-          {quickPlans.map((plan) => (
+          {quickPlans.map((planPrice) => (
             <AirtimeCard
               phoneNumber={getValues('phoneNumber')}
-              key={plan}
+              key={planPrice}
               plan={{
-                bonusMb: (plan * 0.02),
-                id: String(plan),
-                price: plan,
-                size: String(plan),
+                bonusMb: (planPrice * 0.02),
+                id: String(planPrice),
+                price: planPrice,
+                size: String(planPrice),
               }}
               onSelectPlan={handleSelectPlan}
-              isSelected={selectedPlan === plan}
-              onPress={() => handleCardPress(plan)}
+              isSelected={selectedPlanPrice === planPrice && !getValues('customAirtimeAmount')}
+              onPress={() => handleAirtimeCardPress({
+                bonusMb: (planPrice * 0.02),
+                id: String(planPrice),
+                price: planPrice,
+                size: String(planPrice),
+              })}
             />
           ))}
         </View>
+
+        <Controller
+          control={control}
+          name="customAirtimeAmount"
+          render={({ field: { onChange, value } }) => (
+            <View className="mb-4">
+              <Text className="text-foreground text-xl font-medium mb-4 ml-2">Enter Amount</Text>
+              <TextInput
+                className="w-full p-5 rounded-xl bg-input text-foreground text-base"
+                placeholder="Enter amount (e.g., 250)"
+                placeholderTextColor={colors.mutedForeground}
+                keyboardType="numeric"
+                value={value}
+                onChangeText={(text) => {
+                  onChange(text);
+                  handleCustomAmountChange(text);
+                }}
+                onFocus={() => setSelectedPlanPrice(null)}
+              />
+              {errors.customAirtimeAmount && (
+                <Text className="text-destructive text-sm mt-1 ml-2">{errors.customAirtimeAmount.message}</Text>
+              )}
+            </View>
+          )}
+        />
+
+        <TouchableOpacity
+            className="rounded-xl py-4 items-center overflow-hidden bg-primary flex flex-row justify-center gap-x-1 mb-4"
+            onPress={async () => {
+                const isValidPhoneNumber = await trigger('phoneNumber');
+                const isValidCustomAmount = await trigger('customAirtimeAmount');
+
+                if (isValidPhoneNumber && isValidCustomAmount) {
+                    const customAmountValue = Number(getValues('customAirtimeAmount'));
+                    if (customAmountValue > 0) {
+                        handleCardPress({
+                            bonusMb: (customAmountValue * 0.02),
+                            id: String(customAmountValue),
+                            price: customAmountValue,
+                            size: String(customAmountValue),
+                        });
+                    }
+                } else {
+                  if (errors.phoneNumber?.message) {
+                    Toast.show({ type: 'error', text1: errors.phoneNumber.message });
+                  } else if (errors.customAirtimeAmount?.message) {
+                    Toast.show({ type: 'error', text1: errors.customAirtimeAmount.message });
+                  } else {
+                    Toast.show({ type: 'warning', text1: 'Please provide a valid phone number and custom amount to continue.' });
+                  }
+                }
+            }}
+            activeOpacity={0.5}
+            disabled={!getValues('customAirtimeAmount') || !!errors.customAirtimeAmount || Number(getValues('customAirtimeAmount')) <= 0}
+        >
+            <LinearGradient
+                colors={[colors.primary, '#e65bf8']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                className="absolute inset-0"
+            />
+            <Text className="text-primary-foreground text-lg font-bold">Buy {formatNigerianNaira(customAmountNum)}</Text>
+        </TouchableOpacity>
+
+        <View className='mt-5' />
 
         <AirtimeDetailsModal
             networkId={selectedNetworkId || 'mtn'}
             isVisible={isModalVisible}
             onClose={closeModal}
             phoneNumber={getValues('phoneNumber')}
-            selectedPlan={selectedPlan}
+            selectedPlan={finalAmountForModal ? { id: String(finalAmountForModal), price: finalAmountForModal, size: String(finalAmountForModal), bonusMb: finalAmountForModal * 0.02 } : null}
             onSubmit={handleSubmit(onSubmit)}
         />
       </ScrollView>
@@ -149,7 +262,6 @@ export const quickPlans = [
     500,
     1000,
     2000,
-    5000
 ]
     
 

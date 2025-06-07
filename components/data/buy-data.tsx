@@ -7,6 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import React, { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { ScrollView, Text, View } from 'react-native';
+import Toast from 'react-native-toast-message';
 import * as z from 'zod';
 import Header from './header';
 
@@ -23,7 +24,7 @@ const BuyDataScreen = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedBundleDetails, setSelectedBundleDetails] = useState<any | null>(null);
 
-  const { control, handleSubmit, formState: { errors }, setValue } = useForm<BuyDataFormInputs>({
+  const { control, handleSubmit, formState: { errors }, setValue, getValues, trigger } = useForm<BuyDataFormInputs>({
     resolver: zodResolver(buyDataSchema),
     defaultValues: {
       phoneNumber: '',
@@ -48,6 +49,20 @@ const BuyDataScreen = () => {
   const handleCardPress = (bundle: any) => {
     setSelectedBundleDetails(bundle);
     setIsModalVisible(true);
+  };
+
+  const handleBundleCardPress = async (bundle: any) => {
+    const isValid = await trigger('phoneNumber');
+    
+    if (isValid) {
+      handleCardPress(bundle);
+    } else {
+      if (errors.phoneNumber?.message) {
+        Toast.show({ type: 'error', text1: errors.phoneNumber.message });
+      } else {
+        Toast.show({ type: 'warning', text1: 'Please provide a valid phone number to continue.' });
+      }
+    }
   };
 
   const closeModal = () => {
@@ -91,7 +106,10 @@ const BuyDataScreen = () => {
           render={({ field: { onChange, value } }) => (
             <PhoneNumberInput
               value={value}
-              onChange={onChange}
+              onChange={(e) => {
+                onChange(e)
+                setValue('phoneNumber', e)
+              }}
               error={errors.phoneNumber?.message}
               onSelectContact={(number) => {
                 setValue('phoneNumber', number);
@@ -119,7 +137,8 @@ const BuyDataScreen = () => {
               bundle={bundle}
               onSelectBundle={handleSelectBundle}
               isSelected={selectedDataBundle?.id === bundle.id}
-              onPress={() => handleCardPress(bundle)}
+              onPress={() => handleBundleCardPress(bundle)}
+              phoneNumber={getValues('phoneNumber')}
             />
           ))}
         </View>
@@ -129,6 +148,8 @@ const BuyDataScreen = () => {
             onClose={closeModal}
             selectedBundleDetails={selectedBundleDetails}
             onSubmit={handleSubmit(onSubmit)}
+            networkId={selectedNetworkId || 'mtn'}
+            phoneNumber={getValues('phoneNumber')}
         />
       </ScrollView>
 

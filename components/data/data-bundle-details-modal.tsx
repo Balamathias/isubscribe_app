@@ -6,12 +6,18 @@ import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
 import { Alert, Text, TouchableOpacity, useColorScheme, View } from 'react-native';
 import PinPad from '../pin-pad';
+import { networks } from './buy-data';
+import Avatar from '../ui/avatar';
+import { useSession } from '../session-context';
+import { router } from 'expo-router';
 
 interface DataBundleDetailsModalProps {
   isVisible: boolean;
   onClose: () => void;
   selectedBundleDetails: any;
   onSubmit: () => void;
+  networkId: string,
+  phoneNumber: string
 }
 
 const DataBundleDetailsModal: React.FC<DataBundleDetailsModalProps> = ({
@@ -19,9 +25,13 @@ const DataBundleDetailsModal: React.FC<DataBundleDetailsModalProps> = ({
   onClose,
   selectedBundleDetails,
   onSubmit,
+  networkId,
+  phoneNumber
 }) => {
 
     const [isPinPadVisible, setPinPadVisible] = useState(false);
+
+    const { user } = useSession()
 
     const colorSheme = useColorScheme()
     const theme = colorSheme === 'dark' ? 'dark' : 'light'
@@ -49,6 +59,8 @@ const DataBundleDetailsModal: React.FC<DataBundleDetailsModalProps> = ({
     }
     console.log('Selected Bundle Details:', selectedBundleDetails);
 
+    const network = networks.find(n => n.id === networkId);
+
   return (
     <BottomSheet
       isVisible={isVisible}
@@ -60,15 +72,16 @@ const DataBundleDetailsModal: React.FC<DataBundleDetailsModalProps> = ({
             <View className="flex-row justify-between mb-2">
             <Text className="text-muted-foreground text-base">Product</Text>
             <View className="flex-row items-center">
-                <Text className="text-foreground font-semibold text-base mr-2">GLO</Text>
-                <View className="w-6 h-6 rounded-full bg-primary items-center justify-center">
-                <Text className="text-primary-foreground text-xs font-bold">glo</Text>
-                </View>
+                <Text className="text-foreground font-semibold text-base mr-2">{network?.name}</Text>
+                <Avatar 
+                    size={18} 
+                    source={network?.logo}
+                />
             </View>
             </View>
             <View className="flex-row justify-between mb-2">
             <Text className="text-muted-foreground text-base">Phone Number</Text>
-            <Text className="text-foreground font-semibold text-base">09154029724</Text>
+            <Text className="text-foreground font-semibold text-base">{phoneNumber}</Text>
             </View>
             <View className="flex-row justify-between mb-2">
             <Text className="text-muted-foreground text-base">Price</Text>
@@ -101,15 +114,15 @@ const DataBundleDetailsModal: React.FC<DataBundleDetailsModalProps> = ({
             <Ionicons name="wallet-outline" size={24} color={colors.primary} />
             <View className="ml-3">
                 <Text className="text-foreground font-bold text-lg">Wallet Balance <Text className="text-muted-foreground text-sm font-normal">• Selected</Text></Text>
-                <Text className="text-foreground font-bold text-xl">{formatNigerianNaira(207)}</Text>
+                <Text className="text-foreground font-bold text-xl">{formatNigerianNaira(user ? 207 : 0)}</Text>
             </View>
             </View>
             <Ionicons name="checkmark-circle" size={24} color={colors.primary} />
         </View>
 
         <TouchableOpacity
-            className="rounded-xl py-4 items-center overflow-hidden bg-primary"
-            onPress={() => setPinPadVisible(true)}
+            className="rounded-xl py-4 overflow-hidden bg-primary flex flex-row items-center justify-center gap-x-1"
+            onPress={() => user ? setPinPadVisible(true) : router.push(`/auth/login`)}
             activeOpacity={0.5}
         >
             <LinearGradient
@@ -118,7 +131,8 @@ const DataBundleDetailsModal: React.FC<DataBundleDetailsModalProps> = ({
                 end={{ x: 1, y: 0 }}
                 className="absolute inset-0"
             />
-            <Text className="text-primary-foreground text-lg font-bold">Proceed</Text>
+            {!user && <Ionicons size={20} name='log-in-outline' color={'white'} />}
+            <Text className="text-primary-foreground text-lg font-bold">{user ? 'Proceed' : 'Login'}</Text>
         </TouchableOpacity>
 
         <PinPad

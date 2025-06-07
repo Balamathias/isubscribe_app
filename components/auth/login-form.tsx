@@ -3,11 +3,14 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { Image, KeyboardTypeOptions, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Image, KeyboardTypeOptions, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as z from 'zod';
 import IsubscribeLogo from './logo-isubscribe';
 import { Link, router } from 'expo-router';
+import { performOAuth } from '@/services/auth';
+import { useSignIn } from '@/services/auth-hooks';
+import Toast from 'react-native-toast-message';
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address').min(1, 'Email is required'),
@@ -59,6 +62,8 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
 const LoginForm = () => {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
+  const { mutate: signIn, isPending } = useSignIn()
+
   const { control, handleSubmit, formState: { errors } } = useForm<LoginFormInputs>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -72,15 +77,29 @@ const LoginForm = () => {
   };
 
   const onSubmit = (data: LoginFormInputs) => {
-    console.log('Login data:', data);
-    // Here you would typically send data to your API backend
+    signIn(data, {
+      onSuccess: () => {
+        router.replace(`/`)
+        Toast.show({
+          type: `success`,
+          text1: `Signed in successfully.`
+        })
+      },
+      onError: (error) => {
+        Toast.show({
+          type: `error`,
+          text1: `Sign In failed!`,
+          text2: error?.message
+        })
+      }
+    })
   };
 
   return (
     <SafeAreaView className="flex-1 bg-background justify-center items-center px-4 mt-auto">
       <IsubscribeLogo />
 
-      <TouchableOpacity className="flex-row items-center bg-input border border-secondary rounded-xl px-6 py-4 shadow-sm w-full max-w-sm justify-center mb-8">
+      <TouchableOpacity onPress={performOAuth} className="flex-row items-center bg-input border border-secondary rounded-xl px-6 py-4 shadow-sm w-full max-w-sm justify-center mb-8">
         <Image source={require('@/assets/images/google-icon.png')} className="w-6 h-6 mr-3" />
         <Text className="text-foreground font-semibold text-base">Continue with Google</Text>
       </TouchableOpacity>
@@ -99,7 +118,7 @@ const LoginForm = () => {
           render={({ field: { onChange, value } }) => (
             <CustomTextInput
               icon="mail-outline"
-              placeholder="salmathias05@gmail.com"
+              placeholder="e.g: your-email@gmail.com"
               value={value}
               onChange={onChange}
               keyboardType="email-address"
@@ -126,14 +145,22 @@ const LoginForm = () => {
           )}
         />
 
-        <TouchableOpacity onPress={handleSubmit(onSubmit)} className="w-full rounded-xl overflow-hidden mt-4">
+        <TouchableOpacity 
+          onPress={handleSubmit(onSubmit)} 
+          disabled={isPending}
+          className="w-full rounded-xl overflow-hidden mt-4"
+        >
           <LinearGradient
             colors={['#7B2FF2', '#F357A8']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             className="py-4 items-center justify-center rounded-xl"
           >
-            <Text className="text-white font-bold text-lg">Log In</Text>
+            {isPending ? (
+              <ActivityIndicator color="white" />
+            ) : (
+              <Text className="text-white font-bold text-lg">Log In</Text>
+            )}
           </LinearGradient>
         </TouchableOpacity>
 

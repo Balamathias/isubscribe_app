@@ -1,10 +1,11 @@
-import { View, Text } from 'react-native'
+import BuyAirtimeScreen from '@/components/airtime/buy-airtime'
 import React from 'react'
+import { Text, View } from 'react-native'
 
 const AirtimeScreen = () => {
   return (
-    <View>
-      <Text>AirtimeScreen</Text>
+    <View className='flex flex-1 bg-background relative'>
+        <BuyAirtimeScreen />
     </View>
   )
 }

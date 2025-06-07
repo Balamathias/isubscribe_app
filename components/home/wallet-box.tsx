@@ -4,11 +4,15 @@ import { LinearGradient } from 'expo-linear-gradient'
 import React, { useState } from 'react'
 import { Text, TouchableOpacity, View } from 'react-native'
 import FundWalletBottomSheet from './fund-wallet-sheet'
+import { useSession } from '../session-context'
+import { Link, router } from 'expo-router'
 
 const WalletBox = () => {
   const [showBalance, setShowBalance] = useState(true)
   const [showBonus, setShowBonus] = useState(true)
   const [showFundWalletBottomSheet, setShowFundWalletBottomSheet] = useState(false);
+
+  const { user } = useSession()
 
   const toggleBalance = () => setShowBalance(!showBalance)
   const toggleBonus = () => setShowBonus(!showBonus)
@@ -62,14 +66,16 @@ const WalletBox = () => {
             shadowRadius: 2,
             elevation: 1,
           }}
-          onPress={handleFundWalletPress}
+          onPress={
+            user ? handleFundWalletPress : () => router.push(`/auth/login`)
+          }
         >
-          <Ionicons name="add-outline" size={18} color="#7B2FF2" style={{ marginRight: 2 }} />
-          <Text className="text-[#7B2FF2] font-semibold text-base">Fund Wallet</Text>
+          <Ionicons name={user ? "add-outline" : "log-in-outline"} size={18} color="#7B2FF2" style={{ marginRight: 2 }} />
+          <Text className="text-[#7B2FF2] font-semibold text-base">{user ? 'Fund Wallet' : 'Login'}</Text>
         </TouchableOpacity>
       </View>
 
-      <View className="flex-1 items-end">
+      <View className="flex-1 items-end justify-between">
         <Text className="text-white/80 text-xs mb-1">Data Bonus</Text>
         <View className="flex-row items-center mb-4">
           <Text className="text-white font-bold text-xl mr-1">{formatBonus('354.92 MB')}</Text>
@@ -82,16 +88,28 @@ const WalletBox = () => {
             />
           </TouchableOpacity>
         </View>
-        <TouchableOpacity
-          className="rounded-full px-4 py-2 flex-row items-center self-end opacity-60"
-          style={{
-            backgroundColor: 'rgba(255,255,255,0.18)',
-          }}
-          disabled
-        >
-          <Text className="text-white font-semibold text-base">Use bonus</Text>
-          <Ionicons name="chevron-forward-outline" size={18} color="#fff" style={{ marginLeft: 2 }} />
-        </TouchableOpacity>
+
+        {
+            user ? (
+                <TouchableOpacity
+                    className="rounded-full px-4 py-2 flex-row items-center self-end opacity-60"
+                    style={{
+                        backgroundColor: 'rgba(255,255,255,0.18)',
+                    }}
+                    disabled
+                    >
+                    <Text className="text-white font-semibold text-base">Use bonus</Text>
+                    <Ionicons name="chevron-forward-outline" size={18} color="#fff" style={{ marginLeft: 2 }} />
+                </TouchableOpacity>
+            ): (
+                <Link 
+                    href={`/auth/register`}
+                    className='self-end mt-2 text-white font-medium'
+                >
+                    Register
+                </Link>
+            )
+        }
       </View>
 
       <FundWalletBottomSheet isVisible={showFundWalletBottomSheet} onClose={handleCloseBottomSheet} />

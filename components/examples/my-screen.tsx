@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import PinPad from '@/components/pin-pad';
-import { Button, Alert, View } from 'react-native';
+import { Alert, View } from 'react-native';
+import { Button } from '@react-navigation/elements';
 
 const MyScreen = () => {
   const [isPinPadVisible, setPinPadVisible] = useState(false);

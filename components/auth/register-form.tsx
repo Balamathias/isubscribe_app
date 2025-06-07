@@ -8,6 +8,7 @@ import { Image, KeyboardTypeOptions, Text, TextInput, TouchableOpacity, View } f
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as z from 'zod';
 import IsubscribeLogo from './logo-isubscribe';
+import { performOAuth } from '@/services/auth';
 
 interface CustomTextInputProps {
   icon: keyof typeof Ionicons.glyphMap;
@@ -94,7 +95,7 @@ const RegisterForm = () => {
     <SafeAreaView className="flex-1 bg-background justify-center items-center px-4">
       <IsubscribeLogo />
 
-      <TouchableOpacity className="flex-row items-center bg-input border border-secondary rounded-xl px-6 py-4 shadow-sm w-full max-w-sm justify-center mb-8">
+      <TouchableOpacity onPress={performOAuth} className="flex-row items-center bg-input border border-secondary rounded-xl px-6 py-4 shadow-sm w-full max-w-sm justify-center mb-8">
         <Image source={require('../../assets/images/google-icon.png')} className="w-6 h-6 mr-3" />
         <Text className="text-foreground font-semibold text-base">Sign up with Google</Text>
       </TouchableOpacity>

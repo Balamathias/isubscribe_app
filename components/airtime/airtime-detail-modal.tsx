@@ -7,6 +7,7 @@ import React, { useState } from 'react';
 import { Alert, Text, TouchableOpacity, useColorScheme, View } from 'react-native';
 import PinPad from '../pin-pad';
 import { networks } from './buy-airtime';
+import Avatar from '../ui/avatar';
 
 interface AirtimeDetailsModalProps {
   isVisible: boolean;
@@ -55,7 +56,7 @@ const AirtimeDetailsModal: React.FC<AirtimeDetailsModalProps> = ({
     <BottomSheet
       isVisible={isVisible}
       onClose={onClose}
-      title={`${formatNigerianNaira(selectedPlan).split('.')[0]} Airtime`}
+      title={`${formatNigerianNaira(selectedPlan?.price).split('.')[0]} Airtime`}
     >
       <View className="flex flex-col gap-4 w-full">
         <View className="p-4 bg-secondary rounded-xl mb-4 w-full">
@@ -63,9 +64,7 @@ const AirtimeDetailsModal: React.FC<AirtimeDetailsModalProps> = ({
             <Text className="text-muted-foreground text-base">Product</Text>
             <View className="flex-row items-center">
               <Text className="text-foreground font-semibold text-base mr-2">{network?.name}</Text>
-              <View className="w-6 h-6 rounded-full bg-primary items-center justify-center">
-                <Text className="text-primary-foreground text-xs font-bold">{network?.id}</Text>
-              </View>
+              <Avatar source={network?.logo} size={18} fallback={network?.id}/>
             </View>
           </View>
           <View className="flex-row justify-between mb-2">
@@ -74,11 +73,11 @@ const AirtimeDetailsModal: React.FC<AirtimeDetailsModalProps> = ({
           </View>
           <View className="flex-row justify-between mb-2">
             <Text className="text-muted-foreground text-base">Amount</Text>
-            <Text className="text-foreground font-semibold text-base">₦{selectedPlan}.00</Text>
+            <Text className="text-foreground font-semibold text-base">{formatNigerianNaira(selectedPlan?.price)}</Text>
           </View>
           <View className="flex-row justify-between mb-2">
             <Text className="text-muted-foreground text-base">Bonus</Text>
-            <Text className="text-primary font-semibold text-base">+{formatNigerianNaira(selectedPlan * 0.02)}</Text>
+            <Text className="text-primary font-semibold text-base">+{formatNigerianNaira(selectedPlan?.price * 0.02)}</Text>
           </View>
         </View>
 

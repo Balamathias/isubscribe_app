@@ -36,15 +36,15 @@ const AirtimeCard: React.FC<AirtimeCardProps> = ({
 
   return (
     <TouchableOpacity onPress={() => {
-        if (phoneNumber) {
+        // if (phoneNumber) {
             onSelectPlan(plan)
             onPress()
-        } else {
-            Toast.show({
-                type: 'info',
-                text1: `Please provide your Phone Number to continue.`
-            })
-        }
+        // } else {
+        //     Toast.show({
+        //         type: 'info',
+        //         text1: `Please provide your Phone Number to continue.`
+        //     })
+        // }
     }} className="flex w-[31%]">
       <Animated.View
         style={animatedStyle}

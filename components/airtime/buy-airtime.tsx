@@ -83,7 +83,10 @@ const BuyAirtimeScreen = () => {
           render={({ field: { onChange, value } }) => (
             <PhoneNumberInput
               value={value}
-              onChange={onChange}
+              onChange={(e) => {
+                onChange(e)
+                setValue('phoneNumber', e)
+              }}
               error={errors.phoneNumber?.message}
               onSelectContact={(number) => {
                 setValue('phoneNumber', number);

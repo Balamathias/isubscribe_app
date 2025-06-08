@@ -12,6 +12,7 @@ import * as z from 'zod';
 import AirtimeCard, { Airtime } from './airtime-card';
 import AirtimeDetailsModal from './airtime-detail-modal';
 import Header from './header';
+import { useSession } from '../session-context';
 
 const buyAirtimeSchema = z.object({
   phoneNumber: z.string().min(10, 'Phone number must be at least 10 digits').regex(/^[0-9]+$/, 'Phone number must contain only digits'),
@@ -29,6 +30,8 @@ const BuyAirtimeScreen = () => {
   const [selectedPlanPrice, setSelectedPlanPrice] = useState<number | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
 
+  const { user } = useSession()
+
   const colorScheme = useColorScheme();
   const theme = colorScheme === 'dark' ? 'dark' : 'light';
   const colors = COLORS[theme];
@@ -36,7 +39,7 @@ const BuyAirtimeScreen = () => {
   const { control, handleSubmit, formState: { errors }, setValue, getValues, trigger } = useForm<BuyAirtimeFormInputs>({
     resolver: zodResolver(buyAirtimeSchema),
     defaultValues: {
-      phoneNumber: '',
+      phoneNumber: user?.user_metadata?.phone || '',
       customAirtimeAmount: '',
     },
   });

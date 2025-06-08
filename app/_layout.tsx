@@ -36,18 +36,18 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <SessionProvider>
-        <QueryClientProvider client={client}>
-          <Stack>
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="auth" options={{ headerShown: false }} />
-            <Stack.Screen name="services" options={{ headerShown: false }} />
-            <Stack.Screen name="+not-found" options={{ headerShown: false }} />
-          </Stack>
-          <StatusBar style="auto" />
-          <Toast config={toastConfig} />
-        </QueryClientProvider>
-      </SessionProvider>
+      <QueryClientProvider client={client}>
+        <SessionProvider>
+            <Stack>
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="auth" options={{ headerShown: false }} />
+              <Stack.Screen name="services" options={{ headerShown: false }} />
+              <Stack.Screen name="+not-found" options={{ headerShown: false }} />
+            </Stack>
+            <StatusBar style="auto" />
+            <Toast config={toastConfig} />
+        </SessionProvider>
+      </QueryClientProvider>
     </ThemeProvider>
   );
 }

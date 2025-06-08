@@ -1,7 +1,9 @@
 import { supabase } from '@/lib/supabase';
 import axios from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_AI_MS_API_URL || 'http://127.0.0.1:8000/api/v1';
+const API_URL = 'https://d259-102-91-102-90.ngrok-free.app/api/v1';
+    // process.env.NEXT_PUBLIC_AI_MS_API_URL || 
+    
 
 
 const client = axios.create({

@@ -1,6 +1,17 @@
+import { Tables } from '@/types/database';
+import { EVENT_TYPE } from '@/utils/events';
+import { formatNigerianNaira } from '@/utils/format-naira';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
+import Animated, { 
+  useAnimatedStyle, 
+  withRepeat, 
+  withTiming,
+  useSharedValue,
+  withSequence
+} from 'react-native-reanimated';
 
 interface TransactionItemProps {
   icon: string;
@@ -11,7 +22,45 @@ interface TransactionItemProps {
   amount: string;
 }
 
-const TransactionItem: React.FC<TransactionItemProps> = ({
+const TransactionSkeleton = () => {
+  const opacity = useSharedValue(0.5);
+
+  React.useEffect(() => {
+    opacity.value = withRepeat(
+      withSequence(
+        withTiming(1, { duration: 1000 }),
+        withTiming(0.5, { duration: 1000 })
+      ),
+      -1,
+      true
+    );
+  }, []);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+  }));
+
+  return (
+    <Animated.View 
+      style={animatedStyle}
+      className="bg-card p-4 rounded-xl mb-3 flex-row items-center justify-between shadow-sm"
+    >
+      <View className="flex-row items-center">
+        <View className="w-10 h-10 rounded-full bg-muted mr-3" />
+        <View>
+          <View className="w-32 h-4 bg-muted rounded-md mb-2" />
+          <View className="w-24 h-3 bg-muted rounded-md" />
+        </View>
+      </View>
+      <View className="items-end">
+        <View className="w-16 h-5 bg-muted rounded-full mb-2" />
+        <View className="w-20 h-4 bg-muted rounded-md" />
+      </View>
+    </Animated.View>
+  );
+};
+
+export const TransactionItem: React.FC<TransactionItemProps> = ({
   icon, iconColor, title, date, status, amount
 }) => {
   return (
@@ -38,62 +87,140 @@ const TransactionItem: React.FC<TransactionItemProps> = ({
   );
 };
 
-const RecentTransactions = () => {
-  const transactions = [
-    {
-      type: 'transaction',
-      icon: 'gift',
-      iconColor: '#FF6347',
-      title: 'Data Bonus',
-      date: '05/06/25, 7:10 pm.',
-      status: 'success',
-      amount: '11.03 MB',
-    },
-    {
-      type: 'transaction',
-      icon: 'phone-portrait',
-      iconColor: '#32CD32',
-      title: 'Data Subscription',
-      date: '05/06/25, 7:10 pm.',
-      status: 'success',
-      amount: '₦365.00',
-    },
-    {
-      type: 'transaction',
-      icon: 'gift',
-      iconColor: '#FF6347',
-      title: 'Data Bonus',
-      date: '04/06/25, 10:16 pm.',
-      status: 'success',
-      amount: '11.03 MB',
-    },
-  ];
+interface TransactionProps {
+  transactions: Tables<'history'>[] | null,
+  loadingTransactions: boolean
+}
+
+const RecentTransactions = ({ loadingTransactions, transactions: loadedTransactions }: TransactionProps) => {
 
   return (
     <View className="mt-6">
       <View className="flex-row justify-between items-center mb-4">
         <Text className="text-foreground font-bold text-lg">Recent Transactions</Text>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => router.push(`/history`)}>
           <Text className="text-primary font-semibold text-sm">See All</Text>
         </TouchableOpacity>
       </View>
       <View>
-        {transactions.map((item, index) => (
-          item.type === 'transaction' ? (
+        {loadingTransactions ? (
+          Array(3).fill(0).map((_, index) => (
+            <TransactionSkeleton key={index} />
+          ))
+        ) : (
+          loadedTransactions?.map((item) => (
             <TransactionItem
-              key={index}
-              icon={item.icon}
-              iconColor={item.iconColor}
-              title={item.title}
-              date={item.date}
-              status={item.status}
-              amount={item.amount}
+              key={item.id}
+              icon={getItemConfig(item).icon}
+              iconColor={getItemConfig(item).iconColor}
+              title={item.title || ''}
+              date={formatDate(item.created_at)}
+              status={item.status || ''}
+              amount={formatNigerianNaira(item?.amount || 0)}
             />
-          ) : null
-        ))}
+          ))
+        )}
       </View>
     </View>
   );
 };
 
 export default RecentTransactions;
+
+export const formatDate = (date: string) => {
+  const d = new Date(date);
+  const day = d.getDate().toString().padStart(2, '0');
+  const month = (d.getMonth() + 1).toString().padStart(2, '0');
+  const year = d.getFullYear().toString().slice(-2);
+  const hours = d.getHours();
+  const minutes = d.getMinutes().toString().padStart(2, '0');
+  const ampm = hours >= 12 ? 'pm' : 'am';
+  const formattedHours = hours % 12 || 12;
+
+  return `${day}/${month}/${year}, ${formattedHours}:${minutes} ${ampm}`;
+};
+
+export const getItemConfig = (item: Tables<'history'>) => {
+  if (item.type === EVENT_TYPE.airtime_topup) {
+    return {
+      icon: 'wifi',
+      iconColor: '#328fcd'
+    }
+  }
+
+  if (item.type === EVENT_TYPE.data_topup) {
+    return {
+      icon: 'phone-portrait',
+      iconColor: '#32CD32'
+    }
+  }
+
+  if (item.type === EVENT_TYPE.tv_topup) {
+    return {
+      icon: 'tv',
+      iconColor: '#FF6347'
+    }
+  }
+
+  if (item.type === EVENT_TYPE.meter_topup) {
+    return {
+      icon: 'flash',
+      iconColor: '#FFD700'
+    }
+  }
+
+  if (item.type === EVENT_TYPE.education_topup) {
+    return {
+      icon: 'school',
+      iconColor: '#4169E1'
+    }
+  }
+
+  if (item.type === EVENT_TYPE.wallet_fund) {
+    return {
+      icon: 'wallet',
+      iconColor: '#32CD32'
+    }
+  }
+
+  if (item.type === EVENT_TYPE.debit_funds) {
+    return {
+      icon: 'cash-outline',
+      iconColor: '#FF6347'
+    }
+  }
+
+  if (item.type === EVENT_TYPE.wallet_fund_failed) {
+    return {
+      icon: 'close-circle',
+      iconColor: '#FF0000'
+    }
+  }
+
+  if (item.type === EVENT_TYPE.cashback) {
+    return {
+      icon: 'gift',
+      iconColor: '#FF6347'
+    }
+  }
+
+  if (item.type === EVENT_TYPE.reverse_transaction) {
+    return {
+      icon: 'refresh',
+      iconColor: '#FF6347'
+    }
+  }
+
+  if (item.type === EVENT_TYPE.money_transfer) {
+    return {
+      icon: 'swap-horizontal',
+      iconColor: '#4169E1'
+    }
+  }
+
+  // Default case
+  return {
+    icon: 'help-circle',
+    iconColor: '#808080'
+  }
+}

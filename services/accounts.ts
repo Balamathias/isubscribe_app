@@ -1,6 +1,7 @@
 import { supabase } from "@/lib/supabase";
 import { microservice } from "./ai.ms";
 import { Response } from "@/types/ai-ms.generics";
+import { Tables } from "@/types/database";
 
 
 export const getUserProfile = async () => {
@@ -102,3 +103,80 @@ export const generatePalmpayAccount = async () => {
         return { data: null, error: { message: 'Palmpay account already exists, please refresh.' } }
     }
 }
+
+export interface WalletBalance {
+    balance: number,
+    cashback_balance: number,
+    data_bonus: string,
+}
+
+export const getWalletBalance = async (): Promise<Response<WalletBalance | null>> => {
+    try {
+        const { data, status } = await microservice.get('/mobile/wallets/')
+        return data
+    } catch (error: any) {
+        return {
+            data: null,
+            error: {
+                message: error?.response?.data?.message || error?.message
+            },
+            status: error?.response?.status,
+            message: error?.response?.data?.message || error?.message
+        }
+    }
+}
+
+export const getLatestTransactions = async (): Promise<Response<Tables<'history'>[]>> => {
+    try {
+        const { data, status } = await microservice.get('/mobile/transactions/latest/')
+        return data
+    } catch (error: any) {
+        return {
+            data: [],
+            error: {
+                message: error?.response?.data?.message || error?.message
+            },
+            status: error?.response?.status,
+            message: error?.response?.data?.message || error?.message
+        }
+    }
+}
+
+export const getTransactions = async (limit: number = 30, offset: number = 0): Promise<Response<Tables<'wallet'>[]>> => {
+    try {
+        const { data, status } = await microservice.get('/mobile/transactions/', {
+            params: {
+                limit,
+                offset
+            }
+        })
+        return data
+    } catch (error: any) {
+        return {
+            data: null,
+            error: {
+                message: error?.response?.data?.message || error?.message
+            },
+            status: error?.response?.status,
+            message: error?.response?.data?.message || error?.message
+        }
+    }
+}
+
+export const processTransaction = async (transactionData: Record<string, any>): Promise<Response<Tables<'history'>>> => {
+    try {
+        const { data, status } = await microservice.post('/mobile/process-transactions/', transactionData)
+        console.log('DATAAAAAAAA', data)
+        return data
+    } catch (error: any) {
+        return {
+            data: null,
+            error: {
+                message: error?.response?.data?.message || error?.message
+            },
+            status: error?.response?.status,
+            message: error?.response?.data?.message || error?.message
+        }
+    }
+}
+

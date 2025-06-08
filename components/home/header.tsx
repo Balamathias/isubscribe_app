@@ -15,9 +15,6 @@ const Header = () => {
 
   const { user, session } = useSession()
 
-  console.log(`, User: `, user)
-  console.log(`, Session: `, user)
-
   const getUserInitials = () => user?.user_metadata?.full_name?.split(' ')[0] || user?.email?.split(`@`)[0]
 
   return (

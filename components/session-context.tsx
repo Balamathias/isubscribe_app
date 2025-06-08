@@ -3,8 +3,8 @@ import { Session, User } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
 import { Text } from 'react-native'
 import SplashScreen from './splash-screen'
-import { useGetLatestTransactions, useGetWalletBalance } from '@/services/account-hooks'
-import { WalletBalance } from '@/services/accounts'
+import { useGetLatestTransactions, useGetWalletBalance, useListDataPlans } from '@/services/account-hooks'
+import { ListDataPlans, WalletBalance } from '@/services/accounts'
 
 interface SessionContextType {
   session: Session | null
@@ -16,6 +16,9 @@ interface SessionContextType {
   latestTransactions: any[] | null,
   refetchTransactions: () => void,
   loadingTransactions: boolean,
+  dataPlans: ListDataPlans | null,
+  refetchDataPlans: () => void,
+  loadingDataPlans: boolean,
 }
 
 const SessionContext = createContext<SessionContextType>({
@@ -28,6 +31,9 @@ const SessionContext = createContext<SessionContextType>({
   latestTransactions: null,
   refetchTransactions: () => {},
   loadingTransactions: false,
+  dataPlans: null,
+  refetchDataPlans: () => {},
+  loadingDataPlans: false,
 })
 
 export const SessionProvider = ({ children }: { children: React.ReactNode }) => {
@@ -36,6 +42,7 @@ export const SessionProvider = ({ children }: { children: React.ReactNode }) => 
   const [isLoading, setIsLoading] = useState(true)
   const { data: walletBalance, isPending: loadingBalance, refetch: refetchBalance } = useGetWalletBalance()
   const { data: latestTransactions, isPending: loadingTransactions, refetch: refetchTransactions } = useGetLatestTransactions()
+  const { data: dataPlans, isPending: loadingDataPlans, refetch: refetchDataPlans } = useListDataPlans()
 
   useEffect(() => {
     const initializeSession = async () => {
@@ -70,6 +77,7 @@ export const SessionProvider = ({ children }: { children: React.ReactNode }) => 
         session, user, isLoading,
         walletBalance: walletBalance?.data || null, refetchBalance, loadingBalance,
         latestTransactions: latestTransactions?.data || null, refetchTransactions, loadingTransactions,
+        dataPlans: dataPlans?.data || null, refetchDataPlans, loadingDataPlans,
       }}
     >
       {children}

@@ -10,11 +10,13 @@ import { networks } from './buy-data';
 import Avatar from '../ui/avatar';
 import { useSession } from '../session-context';
 import { router } from 'expo-router';
+import { Tables } from '@/types/database';
+import { SuperPlansMB } from '@/services/accounts';
 
 interface DataBundleDetailsModalProps {
   isVisible: boolean;
   onClose: () => void;
-  selectedBundleDetails: any;
+  selectedBundleDetails: SuperPlansMB;
   onSubmit: () => void;
   networkId: string,
   phoneNumber: string
@@ -65,7 +67,7 @@ const DataBundleDetailsModal: React.FC<DataBundleDetailsModalProps> = ({
     <BottomSheet
       isVisible={isVisible}
       onClose={onClose}
-      title={`${selectedBundleDetails?.size} - ${selectedBundleDetails?.duration}(Corporate Gifting)`}
+      title={`${selectedBundleDetails?.quantity} - ${selectedBundleDetails?.duration}(Corporate Gifting)`}
     >
       <View className="flex flex-col gap-4 w-full">
         <View className="p-4 bg-secondary rounded-xl mb-4 w-full">
@@ -89,7 +91,7 @@ const DataBundleDetailsModal: React.FC<DataBundleDetailsModalProps> = ({
             </View>
             <View className="flex-row justify-between mb-2">
             <Text className="text-muted-foreground text-base">Amount</Text>
-            <Text className="text-foreground font-semibold text-base">{selectedBundleDetails?.size}</Text>
+            <Text className="text-foreground font-semibold text-base">{selectedBundleDetails?.quantity}</Text>
             </View>
             <View className="flex-row justify-between mb-2">
             <Text className="text-muted-foreground text-base">Duration</Text>
@@ -97,15 +99,15 @@ const DataBundleDetailsModal: React.FC<DataBundleDetailsModalProps> = ({
             </View>
             <View className="flex-row justify-between mb-2">
             <Text className="text-muted-foreground text-base">Data Bonus</Text>
-            <Text className="text-primary font-semibold text-base">+<Text>{selectedBundleDetails?.bonusMb}</Text> MB</Text>
+            <Text className="text-primary font-semibold text-base">+<Text>{selectedBundleDetails?.data_bonus}</Text></Text>
             </View>
             <View className="flex-row justify-between mb-2">
             <Text className="text-muted-foreground text-base">Plan Name</Text>
-            <Text className="text-foreground font-semibold text-base">{selectedBundleDetails?.size} - {selectedBundleDetails?.duration}(Corporate Gifting)</Text>
+            <Text className="text-foreground font-semibold text-base">{selectedBundleDetails?.quantity} - {selectedBundleDetails?.duration}(Corporate Gifting)</Text>
             </View>
             <View className="flex-row justify-between">
             <Text className="text-muted-foreground text-base">Plan Type</Text>
-            <Text className="text-foreground font-semibold text-base">glo data</Text>
+            <Text className="text-foreground font-semibold text-base">{selectedBundleDetails?.name}</Text>
             </View>
         </View>
 

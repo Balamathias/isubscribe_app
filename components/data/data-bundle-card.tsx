@@ -1,19 +1,13 @@
+import { SuperPlansMB } from '@/services/accounts';
 import { formatNigerianNaira } from '@/utils/format-naira';
 import React from 'react';
 import { Text, TouchableOpacity } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
-interface DataBundle {
-  id: string;
-  size: string;
-  duration: string;
-  price: number;
-  bonusMb: number;
-}
 
 interface DataBundleCardProps {
-  bundle: DataBundle;
-  onSelectBundle: (bundle: DataBundle) => void;
+  bundle: SuperPlansMB;
+  onSelectBundle: (bundle: SuperPlansMB) => void;
   isSelected: boolean;
   onPress: () => void;
   phoneNumber: string;
@@ -42,13 +36,13 @@ const DataBundleCard: React.FC<DataBundleCardProps> = ({
       <Animated.View
         style={animatedStyle}
         className={`bg-input rounded-xl rounded-tr-3xl p-4 items-center justify-center shadow-sm h-36
-          ${isSelected ? 'border-2 border-primary' : 'border border-border'}`}
+          ${isSelected ? 'border-2 border-border' : 'border border-border'}`}
       >
-        <Text className="text-foreground text-lg font-bold mb-1">{bundle.size}</Text>
-        <Text className="text-muted-foreground text-sm mb-2">{bundle.duration}</Text>
-        <Text className="text-primary text-xl font-bold mb-2">{formatNigerianNaira(bundle.price)}</Text>
-        {bundle.bonusMb > 0 && (
-          <Text className="text-muted-foreground text-xs">+{bundle.bonusMb} MB</Text>
+        <Text className="text-foreground text-lg font-bold mb-1">{bundle?.quantity}</Text>
+        <Text className="text-muted-foreground text-sm mb-2">{bundle?.duration}</Text>
+        <Text className="text-primary text-xl font-bold mb-2">{formatNigerianNaira(bundle?.price)}</Text>
+        {bundle?.data_bonus && (
+          <Text className="text-muted-foreground text-xs">+{bundle?.data_bonus}</Text>
         )}
       </Animated.View>
     </TouchableOpacity>

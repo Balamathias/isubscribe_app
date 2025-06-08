@@ -10,6 +10,7 @@ import { ScrollView, Text, View } from 'react-native';
 import Toast from 'react-native-toast-message';
 import * as z from 'zod';
 import Header from './header';
+import { useSession } from '../session-context';
 
 const buyDataSchema = z.object({
   phoneNumber: z.string().min(10, 'Phone number must be at least 10 digits').regex(/^[0-9]+$/, 'Phone number must contain only digits'),
@@ -24,12 +25,15 @@ const BuyDataScreen = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedBundleDetails, setSelectedBundleDetails] = useState<any | null>(null);
 
+  const { user, dataPlans} = useSession()
+
   const { control, handleSubmit, formState: { errors }, setValue, getValues, trigger } = useForm<BuyDataFormInputs>({
     resolver: zodResolver(buyDataSchema),
     defaultValues: {
-      phoneNumber: '',
+      phoneNumber: user?.user_metadata?.phone || '',
     },
   });
+
 
   const handleSelectNetwork = (networkId: string) => {
     setSelectedNetworkId(networkId);
@@ -95,6 +99,8 @@ const BuyDataScreen = () => {
 
   const currentBundles = dataBundles[activeCategory] || [];
 
+  const bundles = (dataPlans?.[activeCategory] || [])?.filter(plan => plan?.network === (selectedNetworkId === '9mobile' ? 'etisalat' : selectedNetworkId))
+
   return (
     <View className="flex-1 bg-background h-full">
       <Header />
@@ -131,7 +137,7 @@ const BuyDataScreen = () => {
 
         <Text className="text-foreground text-xl font-bold mt-8 mb-4 ml-2">{activeCategory} Bundles</Text>
         <View className="flex flex-1 flex-row flex-wrap gap-x-3 gap-y-3 pb-6">
-          {currentBundles.map((bundle) => (
+          {bundles?.map((bundle: any) => (
             <DataBundleCard
               key={bundle.id}
               bundle={bundle}

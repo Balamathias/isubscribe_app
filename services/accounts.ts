@@ -179,6 +179,36 @@ export const processTransaction = async (transactionData: Record<string, any>): 
     }
 }
 
+export interface SuperPlansMB extends Tables<'n3t'> {
+    data_bonus: string
+}
+
+export interface BestPlansMB extends Tables<'gsub'> {
+    data_bonus: string
+}
+
+export interface ListDataPlans {
+    Super: SuperPlansMB[],
+    Best: BestPlansMB,
+    Regular: any[]
+}
+
+export const listDataPlans = async (): Promise<Response<ListDataPlans | null>> => {
+    try {
+        const { data, status } = await microservice.get('/mobile/list-plans/')
+        return data
+    } catch (error: any) {
+        return {
+            data: null,
+            error: {
+                message: error?.response?.data?.message || error?.message
+            },
+            status: error?.response?.status,
+            message: error?.response?.data?.message || error?.message
+        }
+    }
+}
+
 export const verifyPin = async (transactionData: Record<string, any>): Promise<Response<{is_valid: boolean} | null>> => {
     try {
         const { data, status } = await microservice.post('/mobile/verify-pin/', transactionData)

@@ -1,5 +1,15 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { getAccount, generatePalmpayAccount, getUserProfile, getWalletBalance, getLatestTransactions, getTransactions, processTransaction, verifyPin } from "./accounts";
+import { 
+    getAccount, 
+    generatePalmpayAccount, 
+    getUserProfile,
+    getWalletBalance, 
+    getLatestTransactions, 
+    getTransactions, 
+    processTransaction, 
+    verifyPin, 
+    listDataPlans 
+} from "./accounts";
 
 export const QUERY_KEYS = {
     getAccount: 'getAccount',
@@ -10,6 +20,7 @@ export const QUERY_KEYS = {
     getTransactions: 'getTransactions',
     processTransaction: 'processTransaction',
     verifyPin: 'verifyPin',
+    listDataPlans: 'listDataPlans',
 } as const
 
 export const useGetAccount = (id?: string) => useQuery({
@@ -50,4 +61,9 @@ export const useProcessTransaction = () => useMutation({
 export const useVerifyPin = () => useMutation({
     mutationKey: [QUERY_KEYS.verifyPin],
     mutationFn: verifyPin,
+})
+
+export const useListDataPlans = () => useQuery({
+    queryKey: [QUERY_KEYS.listDataPlans],
+    queryFn: listDataPlans,
 })

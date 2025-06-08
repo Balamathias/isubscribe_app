@@ -61,7 +61,7 @@ const AirtimeDetailsModal: React.FC<AirtimeDetailsModalProps> = ({
         channel: 'airtime',
         amount: selectedPlan?.price,
         network: networkId,
-        payment_mathod: 'wallet',
+        payment_method: 'wallet',
         phone: phoneNumber,
       }, {
         onSuccess: (data) => {
@@ -81,18 +81,15 @@ const AirtimeDetailsModal: React.FC<AirtimeDetailsModalProps> = ({
 
       if (result?.data) {
         if (result?.data?.status === 'success') {
-          // Toast.show({type: 'success', text1: result?.data?.description || ''})
           return true
         }
   
         if (result?.data?.status === 'pending') {
-          // Toast.show({type: 'warning', text1: result?.data?.description || ''})
           return true
         }
       }
 
       if (result?.error) {
-        // Toast.show({type: 'error', text1: result?.message || ''})
         return true
       }
 

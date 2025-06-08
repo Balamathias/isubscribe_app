@@ -1,16 +1,16 @@
+import { supabase } from '@/lib/supabase'
+import { useGetAccount } from '@/services/account-hooks'
+import { Tables } from '@/types/database'
 import { formatNigerianNaira } from '@/utils/format-naira'
 import { Ionicons } from '@expo/vector-icons'
+import * as Haptics from 'expo-haptics'
 import { LinearGradient } from 'expo-linear-gradient'
+import { Link, router } from 'expo-router'
 import React, { useEffect, useState } from 'react'
 import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native'
-import FundWalletBottomSheet from './fund-wallet-sheet'
-import { useSession } from '../session-context'
-import { Link, router } from 'expo-router'
-import { useGetAccount, useGetWalletBalance } from '@/services/account-hooks'
-import { supabase } from '@/lib/supabase'
-import { Tables } from '@/types/database'
 import Toast from 'react-native-toast-message'
-import * as Haptics from 'expo-haptics'
+import { useSession } from '../session-context'
+import FundWalletBottomSheet from './fund-wallet-sheet'
 
 interface Props {
 }
@@ -21,8 +21,6 @@ const WalletBox = ({}: Props) => {
   const [showFundWalletBottomSheet, setShowFundWalletBottomSheet] = useState(false);
 
   const { user, walletBalance: wallet, loadingBalance: isPending } = useSession()
-
-  const [walletBalance, setWalletBalance] = useState(wallet?.balance ?? 0)
 
   const { data: account } = useGetAccount()
 
@@ -49,36 +47,12 @@ const WalletBox = ({}: Props) => {
     setShowFundWalletBottomSheet(false);
   };
 
-  useEffect(() => {
-      const walletChannel = supabase.channel('wallet-update-channel')
-      .on(
-          'postgres_changes',
-          { event: 'UPDATE', schema: 'public', table: 'wallet', filter: `user=eq.${user?.id}` },
-          (payload) => {
-              if (payload.new) {
-                  const response = payload?.new as Tables<'wallet'>
-                  
-                  if (response?.balance && (response.balance > walletBalance)) {
-                    Toast.show({ type: 'success', text1: 'Wallet funded successfully.' })
-                    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
-                  }
-
-                  setWalletBalance(response.balance ?? 0)
-                  // TODO: Any Necessary refetch, like invalidating transaction history
-              }
-          }
-      )
-      .subscribe()
-
-      return () => { supabase.removeChannel(walletChannel) }
-  }, [user, walletBalance])
-
   return (
     <LinearGradient
       colors={['#7B2FF2', '#8667f7', '#F357A8']}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
-      className={"rounded-2xl p-5 my-2 flex-row justify-between items-start min-h-[120px] overflow-hidden mt-6"}
+      className={"rounded-2xl p-5 my-2 flex-row justify-between items-start min-h-[120px] overflow-hidden mt-6 shadow-sm"}
     >
       <View className="flex-1">
         <Text className="text-white/80 text-xs mb-1">Wallet Balance</Text>
@@ -86,7 +60,7 @@ const WalletBox = ({}: Props) => {
           {isPending ? (
             <ActivityIndicator size={13} color="#fff" style={{ marginRight: 2}} />
           ) : (
-            <Text className="text-white font-bold text-2xl mr-1">{formatNumber(user ? (walletBalance || wallet?.balance || 0) : 0)}</Text>
+            <Text className="text-white font-bold text-2xl mr-1">{formatNumber(user ? (wallet?.balance || 0) : 0)}</Text>
           )}
           <TouchableOpacity onPress={toggleBalance}>
             <Ionicons 

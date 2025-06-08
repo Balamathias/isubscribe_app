@@ -12,7 +12,7 @@ export default function Index() {
   const colorScheme = useColorScheme()
   const theme = colorScheme === 'dark' ? 'dark' : 'light'
 
-  const { refetchBalance, loadingBalance, refetchTransactions, loadingTransactions, latestTransactions } = useSession()
+  const { refetchBalance, loadingBalance, refetchTransactions, loadingTransactions } = useSession()
 
   const handleRefresh = () => {
     refetchTransactions()
@@ -39,10 +39,7 @@ export default function Index() {
 
         <QuickActions />
 
-        <RecentTransactions 
-          transactions={latestTransactions || []}
-          loadingTransactions={loadingTransactions}
-        />
+        <RecentTransactions />
 
         <SocialHandles />
       </View>

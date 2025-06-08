@@ -3,7 +3,7 @@ import { View, Image, Text } from 'react-native';
 import { useSession } from './session-context';
 
 const SplashScreen = () => {
-  const { isLoading } = useSession();
+  const { isLoading, user } = useSession();
 
   if (!isLoading) return null;
 

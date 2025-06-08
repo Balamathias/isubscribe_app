@@ -12,6 +12,7 @@ import Animated, {
   useSharedValue,
   withSequence
 } from 'react-native-reanimated';
+import { useSession } from '../session-context';
 
 interface TransactionItemProps {
   icon: string;
@@ -88,11 +89,42 @@ export const TransactionItem: React.FC<TransactionItemProps> = ({
 };
 
 interface TransactionProps {
-  transactions: Tables<'history'>[] | null,
-  loadingTransactions: boolean
+  
 }
 
-const RecentTransactions = ({ loadingTransactions, transactions: loadedTransactions }: TransactionProps) => {
+const EmptyState = ({ isAuthenticated }: { isAuthenticated: boolean }) => {
+  if (!isAuthenticated) {
+    return (
+      <View className="bg-card shadow-sm p-6 rounded-xl items-center justify-center">
+        <Ionicons name="log-in-outline" size={48} color="#6b7280" />
+        <Text className="text-muted-foreground text-lg font-semibold mt-4 mb-2">Sign in to view transactions</Text>
+        <Text className="text-muted-foreground text-center mb-4 hidden">
+          Please sign in to your account to view your transaction history
+        </Text>
+        <TouchableOpacity 
+          onPress={() => router.push('/auth/login')}
+          className="bg-primary px-6 py-3 rounded-lg flex flex-row gap-x-1 items-center"
+        >
+          <Ionicons name='log-in-outline' color={'white'} size={18} />
+          <Text className="text-white font-semibold">Sign In</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  return (
+    <View className="bg-card p-6 rounded-xl items-center justify-center">
+      <Ionicons name="receipt-outline" size={48} color="#6b7280" />
+      <Text className="text-foreground text-lg font-semibold mt-4 mb-2">No transactions yet</Text>
+      <Text className="text-muted-foreground text-center">
+        Your transaction history will appear here once you start making transactions
+      </Text>
+    </View>
+  );
+};
+
+const RecentTransactions = ({}: TransactionProps) => {
+  const { user, latestTransactions: loadedTransactions, loadingTransactions } = useSession();
 
   return (
     <View className="mt-6">
@@ -107,8 +139,10 @@ const RecentTransactions = ({ loadingTransactions, transactions: loadedTransacti
           Array(3).fill(0).map((_, index) => (
             <TransactionSkeleton key={index} />
           ))
+        ) : !loadedTransactions || loadedTransactions.length === 0 ? (
+          <EmptyState isAuthenticated={!!user} />
         ) : (
-          loadedTransactions?.map((item) => (
+          loadedTransactions.map((item) => (
             <TransactionItem
               key={item.id}
               icon={getItemConfig(item).icon}
@@ -179,7 +213,7 @@ export const getItemConfig = (item: Tables<'history'>) => {
   if (item.type === EVENT_TYPE.wallet_fund) {
     return {
       icon: 'wallet',
-      iconColor: '#32CD32'
+      iconColor: '#FF6347'
     }
   }
 

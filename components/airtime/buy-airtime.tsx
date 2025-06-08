@@ -149,7 +149,7 @@ const BuyAirtimeScreen = () => {
 
         <Text className="text-foreground text-xl font-bold mt-8 mb-4 ml-2">Quick Plans</Text>
         <View className="flex flex-1 flex-row flex-wrap gap-x-3 gap-y-3 pb-6">
-          {quickPlans.map((planPrice) => (
+          {quickPlans?.map((planPrice) => (
             <AirtimeCard
               phoneNumber={getValues('phoneNumber')}
               key={planPrice}
@@ -223,7 +223,7 @@ const BuyAirtimeScreen = () => {
                 }
             }}
             activeOpacity={0.5}
-            disabled={!getValues('customAirtimeAmount') || !!errors.customAirtimeAmount || Number(getValues('customAirtimeAmount')) <= 0}
+            disabled={!getValues('customAirtimeAmount') || !!errors.customAirtimeAmount || Number(getValues('customAirtimeAmount')) < 50 || Number(getValues('customAirtimeAmount')) > 50000}
         >
             <LinearGradient
                 colors={[colors.primary, '#e65bf8']}
@@ -231,7 +231,12 @@ const BuyAirtimeScreen = () => {
                 end={{ x: 1, y: 0 }}
                 className="absolute inset-0"
             />
-            <Text className="text-primary-foreground text-lg font-bold">Buy {formatNigerianNaira(customAmountNum)}</Text>
+            <Text className="text-primary-foreground text-lg font-bold">
+                {Number(getValues('customAirtimeAmount')) < 50 || Number(getValues('customAirtimeAmount')) > 50000 
+                    ? 'Between ₦50 - ₦50,000'
+                    : `Buy ${formatNigerianNaira(customAmountNum)}`
+                }
+            </Text>
         </TouchableOpacity>
 
         <View className='mt-5' />
@@ -241,7 +246,7 @@ const BuyAirtimeScreen = () => {
             isVisible={isModalVisible}
             onClose={closeModal}
             phoneNumber={getValues('phoneNumber')}
-            selectedPlan={finalAmountForModal ? { id: String(finalAmountForModal), price: finalAmountForModal, size: String(finalAmountForModal), bonusMb: finalAmountForModal * 0.02 } : null}
+            selectedPlan={finalAmountForModal ? { id: String(finalAmountForModal), price: finalAmountForModal, size: String(finalAmountForModal), bonusMb: finalAmountForModal * 0.01 } : null}
             onSubmit={handleSubmit(onSubmit)}
         />
       </ScrollView>

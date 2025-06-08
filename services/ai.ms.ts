@@ -1,7 +1,7 @@
 import { supabase } from '@/lib/supabase';
 import axios from 'axios';
 
-const API_URL = 'https://d259-102-91-102-90.ngrok-free.app/api/v1';
+const API_URL = 'https://0658-102-91-93-6.ngrok-free.app/api/v1';
     // process.env.NEXT_PUBLIC_AI_MS_API_URL || 
     
 

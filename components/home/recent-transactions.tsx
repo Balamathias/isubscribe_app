@@ -21,6 +21,8 @@ interface TransactionItemProps {
   date: string;
   status: string;
   amount: string;
+  type: string | null;
+  data_bonus?: string;
 }
 
 const TransactionSkeleton = () => {
@@ -62,7 +64,7 @@ const TransactionSkeleton = () => {
 };
 
 export const TransactionItem: React.FC<TransactionItemProps> = ({
-  icon, iconColor, title, date, status, amount
+  icon, iconColor, title, date, status, amount, type, data_bonus
 }) => {
   return (
     <TouchableOpacity 
@@ -82,7 +84,7 @@ export const TransactionItem: React.FC<TransactionItemProps> = ({
         <View className="bg-green-100 dark:bg-green-900 px-3 py-1 rounded-full">
           <Text className="text-green-600 dark:text-green-300 text-xs font-medium capitalize">{status}</Text>
         </View>
-        <Text className="text-foreground font-semibold text-sm mt-1">{amount}</Text>
+        <Text className="text-foreground font-semibold text-sm mt-1">{type === 'cashback' ? (data_bonus || amount) : amount }</Text>
       </View>
     </TouchableOpacity>
   );
@@ -151,6 +153,8 @@ const RecentTransactions = ({}: TransactionProps) => {
               date={formatDate(item.created_at)}
               status={item.status || ''}
               amount={formatNigerianNaira(item?.amount || 0)}
+              type={item.type}
+              data_bonus={(item?.meta_data as any)?.data_bonus}
             />
           ))
         )}

@@ -23,6 +23,8 @@ interface StatusModalProps {
   description?: string;
   onAction?: () => void;
   actionText?: string;
+  quantity?: string,
+  data_bonus?: string
 }
 
 const StatusModal: React.FC<StatusModalProps> = ({
@@ -33,7 +35,9 @@ const StatusModal: React.FC<StatusModalProps> = ({
   size,
   description,
   onAction,
-  actionText = 'Done'
+  actionText = 'Done',
+  data_bonus,
+  quantity
 }) => {
   const colorScheme = useColorScheme();
   const theme = colorScheme === 'dark' ? 'dark' : 'light';
@@ -110,6 +114,24 @@ const StatusModal: React.FC<StatusModalProps> = ({
               <Text className="text-foreground font-semibold">
                 {amount ? formatNigerianNaira(amount) : size}
               </Text>
+            </View>
+          </View>
+        )}
+
+        {quantity && (
+          <View className="rounded-xl p-4 mb-6 w-full">
+            <View className="flex-row justify-between items-center">
+              <Text className="text-muted-foreground">Quantity</Text>
+              <Text className="text-foreground font-semibold">{quantity}</Text>
+            </View>
+          </View>
+        )}
+
+        {data_bonus && (
+          <View className="rounded-xl p-4 mb-6 w-full">
+            <View className="flex-row justify-between items-center">
+              <Text className="text-muted-foreground">Data Bonus</Text>
+              <Text className="text-primary font-semibold">+{data_bonus}</Text>
             </View>
           </View>
         )}

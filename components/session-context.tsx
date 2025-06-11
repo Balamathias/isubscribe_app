@@ -5,6 +5,7 @@ import { Text } from 'react-native'
 import SplashScreen from './splash-screen'
 import { useGetLatestTransactions, useGetWalletBalance, useListDataPlans } from '@/services/account-hooks'
 import { ListDataPlans, WalletBalance } from '@/services/accounts'
+import { Tables } from '@/types/database'
 
 interface SessionContextType {
   session: Session | null
@@ -13,7 +14,7 @@ interface SessionContextType {
   walletBalance: WalletBalance | null,
   refetchBalance: () => void,
   loadingBalance: boolean,
-  latestTransactions: any[] | null,
+  latestTransactions: Tables<'history'>[] | null,
   refetchTransactions: () => void,
   loadingTransactions: boolean,
   dataPlans: ListDataPlans | null,

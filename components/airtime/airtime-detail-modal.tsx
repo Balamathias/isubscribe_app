@@ -41,10 +41,42 @@ const AirtimeDetailsModal: React.FC<AirtimeDetailsModalProps> = ({
   const queryClient = useQueryClient()
 
   const { user, walletBalance } = useSession()
-  const { mutateAsync: processAirtime, isPending, data: transaction } = useProcessTransaction()
+  const { mutateAsync: processTransaction, isPending, data: transaction } = useProcessTransaction()
   const { mutateAsync: verifyPin, isPending: verifyingPin } = useVerifyPin()
 
   const [openStatusModal, setOpenStatusModal] = useState(false)
+
+  const handleProcessRequest = async () => {
+    setLoadingText('Processing...')
+    const result = await processTransaction({
+      channel: 'airtime',
+      amount: selectedPlan?.price,
+      network: networkId,
+      payment_method: 'wallet',
+      phone: phoneNumber,
+    }, {
+      onSuccess: (data) => {
+        if (!data?.error) {
+          setOpenStatusModal(true)
+          onClose()
+          queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.getWalletBalance]})
+          queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.getLatestTransactions]})
+        } else {
+          setOpenStatusModal(true)
+          onClose()
+          setPinPadVisible(false)
+        }
+      },
+      onError: (error) => {
+        console.error(error?.message)
+        setOpenStatusModal(false)
+        onClose()
+        setPinPadVisible(false)
+        alert(error?.message)
+      }
+    })
+  }
+
 
   const handlePinSubmit = async (pin: string) => {
 
@@ -52,50 +84,12 @@ const AirtimeDetailsModal: React.FC<AirtimeDetailsModalProps> = ({
 
     const pinRequest = await verifyPin({ pin })
 
-    if (!pinRequest.data?.is_valid) return false
-
     if (pinRequest.data?.is_valid) {
-      setLoadingText('Processing...')
-
-      const result = await processAirtime({
-        channel: 'airtime',
-        amount: selectedPlan?.price,
-        network: networkId,
-        payment_method: 'wallet',
-        phone: phoneNumber,
-      }, {
-        onSuccess: (data) => {
-          if (!data?.error) {
-            setOpenStatusModal(true)
-            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.getWalletBalance]})
-            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.getLatestTransactions]})
-          } else {
-            setOpenStatusModal(true)
-            onClose()
-            setPinPadVisible(false)
-          }
-        }
-      })
-
-      console.log(`Result: `, result)
-
-      if (result?.data) {
-        if (result?.data?.status === 'success') {
-          return true
-        }
-  
-        if (result?.data?.status === 'pending') {
-          return true
-        }
-      }
-
-      if (result?.error) {
-        return true
-      }
-
-      else {
-        return false
-      }
+      setLoadingText('Verified.')
+      return true
+    } else {
+      setLoadingText('Pin verification failed.')
+      return false
     }
   };
 
@@ -180,10 +174,10 @@ const AirtimeDetailsModal: React.FC<AirtimeDetailsModalProps> = ({
         handler={handlePinSubmit}
         title="Confirm Transaction"
         description="Enter your 4-digit PIN to complete the payment."
-        onSuccess={() => onClose()}
-        onError={(transaction?.error) ? () => {onClose(); setPinPadVisible(false)} : () => {}}
+        onSuccess={async () => await handleProcessRequest()}
+        onError={() => {console.error('PIN could not be verified.')}}
         loadingText={loadingText}
-        successMessage='Transactioon successful.'
+        successMessage='PIN Verified.'
       />
 
       <StatusModal 

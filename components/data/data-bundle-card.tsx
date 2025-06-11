@@ -35,8 +35,7 @@ const DataBundleCard: React.FC<DataBundleCardProps> = ({
     }} className="flex w-[31%]">
       <Animated.View
         style={animatedStyle}
-        className={`bg-input rounded-xl rounded-tr-3xl p-4 items-center justify-center shadow-sm h-36
-          ${isSelected ? 'border-2 border-border' : 'border border-border'}`}
+        className={`bg-input rounded-xl rounded-tr-3xl p-4 items-center justify-center shadow-sm h-36 border-none`}
       >
         <Text className="text-foreground text-lg font-bold mb-1">{bundle?.quantity}</Text>
         <Text className="text-muted-foreground text-sm mb-2">{bundle?.duration}</Text>

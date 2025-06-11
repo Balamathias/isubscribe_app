@@ -367,6 +367,7 @@ export type Database = {
           cash_back: number
           commission: number
           duration: string
+          id: number
           is_active: boolean
           is_hidden: boolean | null
           name: string
@@ -381,6 +382,7 @@ export type Database = {
           cash_back: number
           commission: number
           duration: string
+          id?: number
           is_active: boolean
           is_hidden?: boolean | null
           name: string
@@ -395,6 +397,7 @@ export type Database = {
           cash_back?: number
           commission?: number
           duration?: string
+          id?: number
           is_active?: boolean
           is_hidden?: boolean | null
           name?: string
@@ -672,6 +675,23 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      charge_cashback_balance: {
+        Args: { user_id: string; amount: number }
+        Returns: undefined
+      }
+      charge_wallet: {
+        Args: {
+          user_id: string
+          amount: number
+          cashback?: number
+          charge_from?: string
+        }
+        Returns: undefined
+      }
+      charge_wallet_balance: {
+        Args: { user_id: string; amount: number }
+        Returns: undefined
+      }
       get_total_cashback_amount: {
         Args: { start_date?: string; end_date?: string }
         Returns: number

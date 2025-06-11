@@ -184,6 +184,7 @@ const AirtimeDetailsModal: React.FC<AirtimeDetailsModalProps> = ({
         status={
           transaction?.error ? 'error' : transaction?.data?.status as any
         }
+        data_bonus={(transaction?.data?.meta_data as any)?.data_bonus}
         isVisible={openStatusModal}
         description={transaction?.data?.description || transaction?.message || ''}
         actionText={

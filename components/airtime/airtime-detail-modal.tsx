@@ -111,7 +111,6 @@ const AirtimeDetailsModal: React.FC<AirtimeDetailsModalProps> = ({
           {(verifyingPin || isPending) && (
               <View className='bg-transparent inset-0 absolute flex justify-center items-center z-10 right-0 left-0 bottom-0 top-0'>
                 <ActivityIndicator size="large" color={colors.primary} />
-                <Text className="text-foreground mt-2">{'Processing...'}</Text>
               </View>
           )}
 

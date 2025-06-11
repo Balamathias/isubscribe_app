@@ -107,34 +107,36 @@ const StatusModal: React.FC<StatusModalProps> = ({
           <Text className="text-muted-foreground text-center mb-6">{description}</Text>
         )}
 
-        {(amount || size) && (
-          <View className="rounded-xl p-4 mb-6 w-full">
-            <View className="flex-row justify-between items-center">
-              <Text className="text-muted-foreground">Amount</Text>
-              <Text className="text-foreground font-semibold">
-                {amount ? formatNigerianNaira(amount) : size}
-              </Text>
+        <View className="flex flex-col gap-6 w-full p-4">
+          {(amount || size) && (
+            <View className="rounded-xl w-full">
+              <View className="flex-row justify-between items-center">
+                <Text className="text-muted-foreground">Amount</Text>
+                <Text className="text-foreground font-semibold">
+                  {amount ? formatNigerianNaira(amount) : size}
+                </Text>
+              </View>
             </View>
-          </View>
-        )}
+          )}
 
-        {quantity && (
-          <View className="rounded-xl p-4 mb-6 w-full">
-            <View className="flex-row justify-between items-center">
-              <Text className="text-muted-foreground">Quantity</Text>
-              <Text className="text-foreground font-semibold">{quantity}</Text>
+          {quantity && (
+            <View className="rounded-xl w-full">
+              <View className="flex-row justify-between items-center">
+                <Text className="text-muted-foreground">Quantity</Text>
+                <Text className="text-foreground font-semibold">{quantity}</Text>
+              </View>
             </View>
-          </View>
-        )}
+          )}
 
-        {data_bonus && (
-          <View className="rounded-xl p-4 mb-6 w-full">
-            <View className="flex-row justify-between items-center">
-              <Text className="text-muted-foreground">Data Bonus</Text>
-              <Text className="text-primary font-semibold">+{data_bonus}</Text>
+          {data_bonus && (
+            <View className="rounded-xl w-full">
+              <View className="flex-row justify-between items-center">
+                <Text className="text-muted-foreground">Data Bonus</Text>
+                <Text className="text-primary font-semibold">+{data_bonus}</Text>
+              </View>
             </View>
-          </View>
-        )}
+          )}
+        </View>
 
         <TouchableOpacity
           className="w-full rounded-xl py-4 overflow-hidden"

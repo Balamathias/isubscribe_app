@@ -62,20 +62,20 @@ const DataBundleDetailsModal: React.FC<DataBundleDetailsModalProps> = ({
         phone: phoneNumber,
       }, {
         onSuccess: (data) => {
-          if (!data?.error) {
-            setOpenStatusModal(true)
+          setOpenStatusModal(true)
+          if (data?.error) {
+            onClose()
+            setPinPadVisible(false)
+          } else {
+            // setOpenStatusModal(true)
             onClose()
             queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.getWalletBalance]})
             queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.getLatestTransactions]})
-          } else {
-            setOpenStatusModal(true)
-            onClose()
-            setPinPadVisible(false)
           }
         },
         onError: (error) => {
           console.error(error?.message)
-          setOpenStatusModal(false)
+          // setOpenStatusModal(false)
           onClose()
           setPinPadVisible(false)
           alert(error?.message)
@@ -98,9 +98,9 @@ const DataBundleDetailsModal: React.FC<DataBundleDetailsModalProps> = ({
       }
     };
     
-    if (!selectedBundleDetails) {
-        return null;
-    }
+    // if (!selectedBundleDetails) {
+    //     return null;
+    // }
     console.log('Selected Bundle Details:', selectedBundleDetails);
 
     const network = networks.find(n => n.id === networkId);
@@ -148,10 +148,6 @@ const DataBundleDetailsModal: React.FC<DataBundleDetailsModalProps> = ({
               <View className="flex-row justify-between mb-2">
               <Text className="text-muted-foreground text-base">Data Bonus</Text>
               <Text className="text-primary font-semibold text-base">+<Text>{selectedBundleDetails?.data_bonus}</Text></Text>
-              </View>
-              <View className="flex-row justify-between mb-2">
-              <Text className="text-muted-foreground text-base">Plan Name</Text>
-              <Text className="text-foreground font-semibold text-base">{selectedBundleDetails?.quantity} - {selectedBundleDetails?.duration}(Corporate Gifting)</Text>
               </View>
               <View className="flex-row justify-between">
               <Text className="text-muted-foreground text-base">Plan Type</Text>

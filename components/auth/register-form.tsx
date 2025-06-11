@@ -4,11 +4,13 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { Image, KeyboardTypeOptions, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Image, KeyboardTypeOptions, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as z from 'zod';
 import IsubscribeLogo from './logo-isubscribe';
 import { performOAuth } from '@/services/auth';
+import { useSignUp } from '@/services/auth-hooks';
+import Toast from 'react-native-toast-message';
 
 interface CustomTextInputProps {
   icon: keyof typeof Ionicons.glyphMap;
@@ -67,7 +69,9 @@ const RegisterForm = () => {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] = useState(false);
 
-  const { control, handleSubmit, formState: { errors } } = useForm<RegisterFormInputs>({
+  const { mutate: register, isPending } = useSignUp()
+
+  const { control, handleSubmit, formState: { errors }, getValues } = useForm<RegisterFormInputs>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
       fullName: '',
@@ -87,8 +91,35 @@ const RegisterForm = () => {
   };
 
   const onSubmit = (data: RegisterFormInputs) => {
-    console.log('Register data:', data);
-    // Here you would typically send data to your API backend
+    register({
+      email: data.email,
+      password: data.password,
+      metadata: {
+        phone: data.phoneNumber,
+        full_name: data.fullName,
+      }
+    }, {
+      onSuccess: (data) => {
+        if (data?.error) {
+          throw new Error(data?.message)
+        } else {
+          Toast.show({
+            type: 'success',
+            text1: 'Success',
+            text2: 'Account created successfully!',
+          })
+
+          router.replace(`/auth/verify-otp?email=${data?.data?.user?.email || getValues('email')}`)
+        }
+      },
+      onError: (error) => {
+        Toast.show({
+          type: 'error',
+          text1: 'Error!',
+          text2: error?.message
+        })
+      }
+    })
   };
 
   return (
@@ -190,14 +221,22 @@ const RegisterForm = () => {
           )}
         />
 
-        <TouchableOpacity onPress={handleSubmit(onSubmit)} className="w-full rounded-xl overflow-hidden mt-4">
+        <TouchableOpacity 
+          onPress={handleSubmit(onSubmit)} 
+          className="w-full rounded-xl overflow-hidden mt-4"
+          disabled={isPending}
+        >
           <LinearGradient
             colors={['#7B2FF2', '#F357A8']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             className="py-4 items-center justify-center rounded-xl"
           >
-            <Text className="text-white font-bold text-lg">Sign Up</Text>
+            {isPending ? (
+              <ActivityIndicator color="white" />
+            ) : (
+              <Text className="text-white font-bold text-lg">Sign Up</Text>
+            )}
           </LinearGradient>
         </TouchableOpacity>
 

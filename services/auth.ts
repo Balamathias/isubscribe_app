@@ -84,3 +84,52 @@ export const signOut = async () => {
 
   if (error) throw error
 }
+
+export const validateResetPasswordOTP = async (token: string, email: string) => {
+
+  const { data, error } = await supabase.auth.verifyOtp({token, email, type: 'recovery'})
+
+  console.error(error, token, email)
+
+  
+  if (error || !data) return { data: null, error: { message: error?.message } }
+  
+  await supabase.auth.setSession({ access_token: data?.session?.access_token!, refresh_token: data?.session?.refresh_token! })
+
+  return { data, error: null }
+}
+
+export async function verifyOtp(payload: { email: string, otp: string}) {
+
+  const { data, error } = await supabase.auth.verifyOtp({
+    email: payload?.email,
+    token: payload?.otp,
+    type: 'email'
+  })
+
+  if (error) {
+    throw error
+  }
+
+  return { data: data || null, error: error || null }
+}
+
+
+
+export async function resendOtp(payload: { email: string }) {
+
+  const { error, data  } = await supabase.auth.resend({
+    type: 'signup',
+    email: payload?.email,
+   
+  })
+
+  if (error) {
+    throw error
+  }
+
+  return { data: data || null, error: error || null }
+}
+
+
+

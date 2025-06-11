@@ -1,12 +1,14 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { LinearGradient } from 'expo-linear-gradient';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as z from 'zod';
 import IsubscribeLogo from './logo-isubscribe';
+import { useResendOtp, useVerifyOtp } from '@/services/auth-hooks';
+import Toast from 'react-native-toast-message';
 
 interface OtpInputProps {
   length: number;
@@ -16,6 +18,8 @@ interface OtpInputProps {
 }
 
 const OtpInput: React.FC<OtpInputProps> = ({ length, value, onChange, error }) => {
+
+
   const inputRefs = useRef<TextInput[]>([]);
   const otpDigits = value.padEnd(length, ' ').split('');
 
@@ -70,6 +74,11 @@ const verifyOtpSchema = z.object({
 type VerifyOtpFormInputs = z.infer<typeof verifyOtpSchema>;
 
 const VerifyOtpForm = () => {
+
+  const { email } = useLocalSearchParams()
+  const { mutate: verifyOTP, isPending } = useVerifyOtp()
+  const { mutate: resendOTP, isPending: isResending } = useResendOtp()
+
   const [resendTimer, setResendTimer] = useState(60);
   const [canResend, setCanResend] = useState(false);
 
@@ -81,7 +90,7 @@ const VerifyOtpForm = () => {
   });
 
   useEffect(() => {
-    let timerInterval: NodeJS.Timeout;
+    let timerInterval: ReturnType<typeof setInterval>;
     if (resendTimer > 0) {
       timerInterval = setInterval(() => {
         setResendTimer((prev) => prev - 1);
@@ -93,16 +102,48 @@ const VerifyOtpForm = () => {
   }, [resendTimer]);
 
   const handleResendOtp = () => {
-    console.log('Resending OTP...');
-    // Here you would trigger your resend OTP API call
+    resendOTP({ email: email as string }, {
+      onSuccess: (data) => {
+        Toast.show({
+          type: 'success',
+          text1: 'Success',
+          text2: 'OTP resent successfully!',
+        })
+      },
+      onError: (error) => {
+        Toast.show({
+          type: 'error',
+          text1: 'Error!',
+          text2: error?.message || 'Failed to resend OTP'
+        })
+      }
+    })
     setResendTimer(60);
     setCanResend(false);
     setValue('otp', ''); // Clear OTP input on resend
   };
 
   const onSubmit = (data: VerifyOtpFormInputs) => {
-    console.log('Verify OTP data:', data);
-    // Here you would typically send data to your API backend for verification
+    verifyOTP({
+      otp: data?.otp,
+      email:  email as string
+    }, {
+      onSuccess: (data) => {
+        Toast.show({
+          type: 'success',
+          text1: 'Success',
+          text2: 'Phone number verified successfully!',
+        })
+        router.replace('/auth/onboarding')
+      },
+      onError: (error) => {
+        Toast.show({
+          type: 'error',
+          text1: 'Error!',
+          text2: error?.message || 'Failed to verify OTP'
+        })
+      }
+    })
   };
 
   return (
@@ -128,22 +169,37 @@ const VerifyOtpForm = () => {
           )}
         />
 
-        <TouchableOpacity onPress={handleSubmit(onSubmit)} className="w-full rounded-xl overflow-hidden mt-4">
+        <TouchableOpacity 
+          onPress={handleSubmit(onSubmit)} 
+          className="w-full rounded-xl overflow-hidden mt-4"
+          disabled={isPending}
+        >
           <LinearGradient
             colors={['#7B2FF2', '#F357A8']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             className="py-4 items-center justify-center rounded-xl"
           >
-            <Text className="text-white font-bold text-lg">Verify</Text>
+            {isPending ? (
+              <ActivityIndicator color="white" />
+            ) : (
+              <Text className="text-white font-bold text-lg">Verify</Text>
+            )}
           </LinearGradient>
         </TouchableOpacity>
 
         <View className="flex-row justify-center mt-6">
           <Text className="text-muted-foreground text-base">Didn't receive code? </Text>
-          <TouchableOpacity onPress={handleResendOtp} disabled={!canResend}>
+          <TouchableOpacity 
+            onPress={handleResendOtp} 
+            disabled={!canResend || isResending}
+          >
             <Text className={`font-semibold text-base ${canResend ? 'text-primary' : 'text-gray-500'}`}>
-              Resend {resendTimer > 0 ? `in ${resendTimer}s` : ''}
+              {isResending ? (
+                <ActivityIndicator color="#7B2FF2" />
+              ) : (
+                `Resend ${resendTimer > 0 ? `in ${resendTimer}s` : ''}`
+              )}
             </Text>
           </TouchableOpacity>
         </View>

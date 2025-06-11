@@ -209,7 +209,7 @@ export const listDataPlans = async (): Promise<Response<ListDataPlans | null>> =
     }
 }
 
-export const verifyPin = async (transactionData: Record<string, any>): Promise<Response<{is_valid: boolean} | null>> => {
+export const verifyPin = async (transactionData: Record<string, any>): Promise<Response<{is_valid: boolean, pin_set?: boolean} | null>> => {
     try {
         const { data, status } = await microservice.post('/mobile/verify-pin/', transactionData)
         return data

@@ -14,6 +14,7 @@ import { QUERY_KEYS, useProcessTransaction, useVerifyPin } from '@/services/acco
 import Toast from 'react-native-toast-message';
 import StatusModal from '../status-modal';
 import { useQueryClient } from '@tanstack/react-query';
+import { useLocalAuth } from '@/hooks/useLocalAuth';
 
 interface AirtimeDetailsModalProps {
   isVisible: boolean;
@@ -39,6 +40,7 @@ const AirtimeDetailsModal: React.FC<AirtimeDetailsModalProps> = ({
   const [loadingText, setLoadingText] = useState<string>('')
 
   const queryClient = useQueryClient()
+  const { authenticate, isBiometricEnabled } = useLocalAuth();
 
   const { user, walletBalance } = useSession()
   const { mutateAsync: processTransaction, isPending, data: transaction } = useProcessTransaction()
@@ -77,9 +79,7 @@ const AirtimeDetailsModal: React.FC<AirtimeDetailsModalProps> = ({
     })
   }
 
-
   const handlePinSubmit = async (pin: string) => {
-
     setLoadingText('Verifying Pin...')
 
     const pinRequest = await verifyPin({ pin })
@@ -92,6 +92,29 @@ const AirtimeDetailsModal: React.FC<AirtimeDetailsModalProps> = ({
       return false
     }
   };
+
+  const handleProceed = async () => {
+    if (!user) {
+      router.push(`/auth/login`)
+      return
+    }
+
+    if (isBiometricEnabled) {
+      try {
+        const authenticated = await authenticate()
+        if (authenticated) {
+          await handleProcessRequest()
+        } else {
+          setPinPadVisible(true)
+        }
+      } catch (error) {
+        console.error('Local auth failed:', error)
+        setPinPadVisible(true)
+      }
+    } else {
+      setPinPadVisible(true)
+    }
+  }
 
   if (!selectedPlan) {
     return null;
@@ -149,7 +172,7 @@ const AirtimeDetailsModal: React.FC<AirtimeDetailsModalProps> = ({
 
           <TouchableOpacity
               className="rounded-xl py-4 overflow-hidden bg-primary flex flex-row items-center justify-center gap-x-1"
-              onPress={() => user ? setPinPadVisible(true) : router.push(`/auth/login`)}
+              onPress={handleProceed}
               activeOpacity={0.5}
               disabled={(selectedPlan?.price > (walletBalance?.balance!))}
           >
@@ -162,7 +185,6 @@ const AirtimeDetailsModal: React.FC<AirtimeDetailsModalProps> = ({
               {!user && <Ionicons size={20} name='log-in-outline' color={'white'} />}
               <Text className="text-primary-foreground text-lg font-bold">{user ? 'Proceed' : 'Login'}</Text>
           </TouchableOpacity>
-
 
         </View>
       </BottomSheet>
@@ -184,7 +206,7 @@ const AirtimeDetailsModal: React.FC<AirtimeDetailsModalProps> = ({
         status={
           transaction?.error ? 'error' : transaction?.data?.status as any
         }
-        data_bonus={(transaction?.data?.meta_data as any)?.data_bonus}
+        data_bonus={(transaction?.data as any)?.data_bonus}
         isVisible={openStatusModal}
         description={transaction?.data?.description || transaction?.message || ''}
         actionText={

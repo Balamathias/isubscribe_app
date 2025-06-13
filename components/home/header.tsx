@@ -28,7 +28,7 @@ const Header = () => {
                             {
                                 user ? (
                                     <Avatar 
-                                        source={{ uri: user?.user_metadata?.picture}}
+                                        source={ user?.user_metadata?.picture ? { uri: user?.user_metadata?.picture}: undefined }
                                         size={32}
                                     />
                                 ): (

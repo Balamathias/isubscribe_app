@@ -38,7 +38,7 @@ const DataBundleCard: React.FC<DataBundleCardProps> = ({
         className={`bg-input rounded-xl rounded-tr-3xl p-4 items-center justify-center shadow-sm h-36 border-none`}
       >
         <Text className="text-foreground text-lg font-bold mb-1" numberOfLines={1}>{bundle?.quantity}</Text>
-        <Text className="text-muted-foreground text-sm mb-2">{bundle?.duration}</Text>
+        <Text className="text-muted-foreground text-sm mb-2">{bundle?.duration === 'N/A' ? '' : bundle?.duration}</Text>
         <Text className="text-primary text-xl font-bold mb-2">{formatNigerianNaira(bundle?.price)?.split('.')[0]}</Text>
         {bundle?.data_bonus && (
           <Text className="text-muted-foreground text-xs">+{bundle?.data_bonus}</Text>

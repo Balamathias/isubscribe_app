@@ -132,7 +132,7 @@ const VerifyOtpForm = () => {
         Toast.show({
           type: 'success',
           text1: 'Success',
-          text2: 'Phone number verified successfully!',
+          text2: 'Email verified successfully!',
         })
         router.replace('/auth/onboarding')
       },
@@ -151,9 +151,9 @@ const VerifyOtpForm = () => {
       <IsubscribeLogo />
 
       <View className="w-full max-w-sm items-center">
-        <Text className="text-foreground text-2xl font-bold mb-4">Verify your phone number</Text>
+        <Text className="text-foreground text-2xl font-bold mb-4">Verify your Email</Text>
         <Text className="text-muted-foreground text-center mb-8">
-          Enter the 6-digit code sent to your phone number
+          Enter the 6-digit code sent to your Email
         </Text>
 
         <Controller

@@ -5,7 +5,11 @@ import React from 'react'
 import { Text, TouchableOpacity, useColorScheme, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
-const Header = () => {
+interface Props {
+    title?: string | null
+}
+
+const Header = ({ title }: Props) => {
   const colorScheme = useColorScheme()
   const theme = colorScheme === 'dark' ? 'dark' : 'light'
 
@@ -22,7 +26,7 @@ const Header = () => {
                             <TouchableOpacity onPress={() => navigation.goBack()}>
                                 <Ionicons name="arrow-back" color={colors.foreground} size={24} />
                             </TouchableOpacity>
-                            <Text className="text-xl font-medium text-foreground">Data Plans</Text>
+                            <Text className="text-xl font-medium text-foreground">{title || 'Transaction'}</Text>
                         </View>
 
                         <View className="flex-row items-center gap-x-4">

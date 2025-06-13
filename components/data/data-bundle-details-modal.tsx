@@ -14,6 +14,7 @@ import { SuperPlansMB } from '@/services/accounts';
 import { useQueryClient } from '@tanstack/react-query';
 import { QUERY_KEYS, useProcessTransaction, useVerifyPin } from '@/services/account-hooks';
 import StatusModal from '../status-modal';
+import { useLocalAuth } from '@/hooks/useLocalAuth';
 
 interface DataBundleDetailsModalProps {
   isVisible: boolean;
@@ -24,6 +25,8 @@ interface DataBundleDetailsModalProps {
   phoneNumber: string,
   catgory: string
 }
+
+type PaymentMethod = 'wallet' | 'cashback';
 
 const DataBundleDetailsModal: React.FC<DataBundleDetailsModalProps> = ({
   isVisible,
@@ -36,29 +39,36 @@ const DataBundleDetailsModal: React.FC<DataBundleDetailsModalProps> = ({
 }) => {
 
     const [isPinPadVisible, setPinPadVisible] = useState(false);
-
     const { user, walletBalance } = useSession()
+    const { authenticate, isBiometricEnabled } = useLocalAuth();
 
     const colorSheme = useColorScheme()
     const theme = colorSheme === 'dark' ? 'dark' : 'light'
     const colors = COLORS[theme]
     const [loadingText, setLoadingText] = useState('')
     
-    
     const queryClient = useQueryClient()
+
+    const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod>('wallet');
 
     const { mutateAsync: processTransaction, isPending, data: transaction } = useProcessTransaction()
     const { mutateAsync: verifyPin, isPending: verifyingPin } = useVerifyPin()
 
     const [openStatusModal, setOpenStatusModal] = useState(false)
 
+    const currentBalance = selectedPaymentMethod === 'wallet' 
+      ? (walletBalance?.balance || 0) 
+      : (walletBalance?.cashback_balance || 0);
+
+    const isInsufficientFunds = selectedBundleDetails?.price > currentBalance;
+
     const handleProcessRequest = async () => {
       setLoadingText('Processing...')
-      const result = await processTransaction({
+      await processTransaction({
         channel: 'data_bundle',
         plan_id: selectedBundleDetails?.id,
         category: catgory,
-        payment_method: 'wallet',
+        payment_method: selectedPaymentMethod,
         phone: phoneNumber,
       }, {
         onSuccess: (data) => {
@@ -67,7 +77,6 @@ const DataBundleDetailsModal: React.FC<DataBundleDetailsModalProps> = ({
             onClose()
             setPinPadVisible(false)
           } else {
-            // setOpenStatusModal(true)
             onClose()
             queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.getWalletBalance]})
             queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.getLatestTransactions]})
@@ -75,18 +84,15 @@ const DataBundleDetailsModal: React.FC<DataBundleDetailsModalProps> = ({
         },
         onError: (error) => {
           console.error(error?.message)
-          // setOpenStatusModal(false)
           onClose()
           setPinPadVisible(false)
-          alert(error?.message)
+          Alert.alert("Transaction Error", error?.message || "An unexpected error occurred.");
         }
       })
     }
 
     const handlePinSubmit = async (pin: string) => {
-
       setLoadingText('Verifying Pin...')
-
       const pinRequest = await verifyPin({ pin })
 
       if (pinRequest.data?.is_valid) {
@@ -97,11 +103,35 @@ const DataBundleDetailsModal: React.FC<DataBundleDetailsModalProps> = ({
         return false
       }
     };
-    
-    // if (!selectedBundleDetails) {
-    //     return null;
-    // }
-    console.log('Selected Bundle Details:', selectedBundleDetails);
+
+    const handleProceed = async () => {
+      if (!user) {
+        router.push(`/auth/login`)
+        return
+      }
+
+      if (isInsufficientFunds) {
+        const paymentMethodName = selectedPaymentMethod === 'wallet' ? 'wallet' : 'Data Bonus';
+        Alert.alert("Insufficient Funds", `You do not have enough funds in your ${paymentMethodName} to complete this transaction.`);
+        return;
+      }
+
+      if (isBiometricEnabled) {
+        try {
+          const authenticated = await authenticate()
+          if (authenticated) {
+            await handleProcessRequest()
+          } else {
+            setPinPadVisible(true)
+          }
+        } catch (error) {
+          console.error('Local auth failed:', error)
+          setPinPadVisible(true)
+        }
+      } else {
+        setPinPadVisible(true)
+      }
+    }
 
     const network = networks.find(n => n.id === networkId);
 
@@ -155,22 +185,61 @@ const DataBundleDetailsModal: React.FC<DataBundleDetailsModalProps> = ({
               </View>
           </View>
 
-          <TouchableOpacity disabled={(walletBalance?.balance || 0) < selectedBundleDetails?.price} activeOpacity={0.7} className={"bg-primary/10 rounded-xl p-4 flex-row justify-between items-center mb-4" + ((walletBalance?.balance || 0) < selectedBundleDetails?.price && " bg-red-500/10")}>
+          <TouchableOpacity 
+              disabled={(walletBalance?.balance || 0) < selectedBundleDetails?.price} 
+              activeOpacity={0.7} 
+              className={`bg-primary/10 rounded-xl p-4 flex-row justify-between items-center mb-2 
+                          ${selectedPaymentMethod === 'wallet' ? 'border border-primary' : ''} 
+                          ${((walletBalance?.balance || 0) < selectedBundleDetails?.price) ? ' bg-red-500/10' : ''}`}
+              onPress={() => setSelectedPaymentMethod('wallet')}
+          >
             <View className="flex-row items-center">
               <Ionicons name="wallet-outline" size={24} color={colors.primary} />
               <View className="ml-3">
-                <Text className="text-foreground font-bold text-lg">Wallet Balance <Text className="text-muted-foreground text-sm font-normal">• {(walletBalance?.balance || 0) < selectedBundleDetails?.price ? 'Insufficient Funds' : 'Selected' }</Text></Text>
-                <Text className="text-foreground font-bold text-xl">{formatNigerianNaira(user ? (walletBalance?.balance || 0) : 0)}</Text>
+                <Text className="text-foreground font-bold text-lg">
+                  Wallet Balance <Text className="text-muted-foreground text-sm font-normal">• 
+                  {((walletBalance?.balance || 0) < selectedBundleDetails?.price) ? ' Insufficient Funds' : ' Available' }
+                  </Text>
+                </Text>
+                <Text className="text-foreground font-bold text-xl">
+                  {formatNigerianNaira(user ? (walletBalance?.balance || 0) : 0)}
+                </Text>
               </View>
             </View>
-            <Ionicons name="checkmark-circle" size={24} color={colors.primary} />
+            {selectedPaymentMethod === 'wallet' && <Ionicons name="checkmark-circle" size={24} color={colors.primary} />}
           </TouchableOpacity>
+
+          {walletBalance?.cashback_balance !== undefined && (
+            <TouchableOpacity 
+                disabled={(walletBalance?.cashback_balance || 0) < selectedBundleDetails?.price} 
+                activeOpacity={0.7} 
+                className={`bg-primary/10 rounded-xl p-4 flex-row justify-between items-center mb-4 
+                            ${selectedPaymentMethod === 'cashback' ? 'border border-primary' : ''} 
+                            ${((walletBalance?.cashback_balance || 0) < selectedBundleDetails?.price) ? ' bg-red-500/10' : ''}`}
+                onPress={() => setSelectedPaymentMethod('cashback')}
+            >
+              <View className="flex-row items-center">
+                <Ionicons name="gift-outline" size={24} color={colors.primary} />
+                <View className="ml-3">
+                  <Text className="text-foreground font-bold text-lg">
+                    Data Bonus <Text className="text-muted-foreground text-sm font-normal">• 
+                    {((walletBalance?.cashback_balance || 0) < selectedBundleDetails?.price) ? ' Insufficient Funds' : ' Available' }
+                    </Text>
+                  </Text>
+                  <Text className="text-foreground font-bold text-xl">
+                    {user ? (walletBalance?.data_bonus || formatNigerianNaira(walletBalance?.cashback_balance || 0)) : formatNigerianNaira(0)}
+                  </Text>
+                </View>
+              </View>
+              {selectedPaymentMethod === 'cashback' && <Ionicons name="checkmark-circle" size={24} color={colors.primary} />}
+            </TouchableOpacity>
+          )}
 
           <TouchableOpacity
               className="rounded-xl py-4 overflow-hidden bg-primary flex flex-row items-center justify-center gap-x-1"
-              onPress={() => user ? setPinPadVisible(true) : router.push(`/auth/login`)}
+              onPress={handleProceed}
               activeOpacity={0.5}
-              disabled={(selectedBundleDetails?.price > (walletBalance?.balance!))}
+              disabled={!user || isInsufficientFunds} 
           >
               <LinearGradient
                   colors={[colors.primary, '#e65bf8']}
@@ -215,7 +284,6 @@ const DataBundleDetailsModal: React.FC<DataBundleDetailsModalProps> = ({
           })
         }}
         onClose={() => {
-          // onClose()
           setOpenStatusModal(false)
         }}
       />

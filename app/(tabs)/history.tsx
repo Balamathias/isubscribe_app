@@ -1,9 +1,12 @@
-import { View, Text } from 'react-native'
+import { View } from 'react-native'
+import ListTransactions from '../transactions/list-transactions'
+import Header from '@/components/transactions/header'
 
 const History = () => {
   return (
-    <View className='flex-1 items-center justify-center'>
-      <Text className='text-primary'>History</Text>
+    <View className='flex-1 bg-background/60'>
+      <Header title={'Transactions'} />
+      <ListTransactions />
     </View>
   )
 }

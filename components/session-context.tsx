@@ -3,7 +3,7 @@ import { Session, User } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
 import { Text } from 'react-native'
 import SplashScreen from './splash-screen'
-import { useGetLatestTransactions, useGetWalletBalance, useListDataPlans } from '@/services/account-hooks'
+import { useGeneratePalmpayAccount, useGetLatestTransactions, useGetWalletBalance, useListDataPlans } from '@/services/account-hooks'
 import { ListDataPlans, WalletBalance } from '@/services/accounts'
 import { Tables } from '@/types/database'
 

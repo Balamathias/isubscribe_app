@@ -26,11 +26,11 @@ const Header = () => {
                         </View>
 
                         <View className="flex-row items-center gap-x-4">
-                            <TouchableOpacity onPress={() => router.push(`/auth/login`)}>
+                            <TouchableOpacity onPress={() => router.push(`/help`)}>
                                 <Ionicons name="headset-outline" color={colors.foreground} size={24} />
                             </TouchableOpacity>
-                            <TouchableOpacity onPress={() => router.push(`/settings`)}>
-                                <Ionicons name="settings-outline" color={colors.foreground} size={24} />
+                            <TouchableOpacity onPress={() => router.push(`/history`)}>
+                                <Ionicons name="time-outline" color={colors.foreground} size={24} />
                             </TouchableOpacity>
                         </View>
                     </SafeAreaView>

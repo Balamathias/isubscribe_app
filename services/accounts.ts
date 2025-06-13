@@ -1,6 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import { microservice } from "./ai.ms";
-import { Response } from "@/types/ai-ms.generics";
+import { PaginatedResponse, Response } from "@/types/ai-ms.generics";
 import { Tables } from "@/types/database";
 
 
@@ -57,7 +57,7 @@ export const generatePalmpayAccount = async () => {
 
     if (!account || !account?.palmpay_account_number) {
         try {
-            const { data, status } = await microservice.post<Response<any>>('/palmpay/create_virtual_account/', {
+            const { data, status } = await microservice.post<Response<any>>('https://isubscribe-ai-microservice.onrender.com/api/v1/palmpay/create_virtual_account/', {
                 email: user.email || '',
                 customer_name: user?.full_name || '',
             })
@@ -142,7 +142,7 @@ export const getLatestTransactions = async (): Promise<Response<Tables<'history'
     }
 }
 
-export const getTransactions = async (limit: number = 30, offset: number = 0): Promise<Response<Tables<'wallet'>[]>> => {
+export const getTransactions = async (limit: number = 30, offset: number = 0): Promise<PaginatedResponse<Tables<'history'>[]>> => {
     try {
         const { data, status } = await microservice.get('/mobile/transactions/', {
             params: {
@@ -150,6 +150,25 @@ export const getTransactions = async (limit: number = 30, offset: number = 0): P
                 offset
             }
         })
+        return data
+    } catch (error: any) {
+        return {
+            data: [],
+            error: {
+                message: error?.response?.data?.message || error?.message
+            },
+            status: error?.response?.status,
+            message: error?.response?.data?.message || error?.message,
+            count: 0,
+            next: '',
+            previous: ''
+        }
+    }
+}
+
+export const getTransaction = async (id: string): Promise<Response<Tables<'history'>>> => {
+    try {
+        const { data, status } = await microservice.get(`/mobile/transactions/${id}/`)
         return data
     } catch (error: any) {
         return {

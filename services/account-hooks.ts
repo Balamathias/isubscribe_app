@@ -8,7 +8,8 @@ import {
     getTransactions, 
     processTransaction, 
     verifyPin, 
-    listDataPlans 
+    listDataPlans,
+    getTransaction
 } from "./accounts";
 
 export const QUERY_KEYS = {
@@ -18,6 +19,7 @@ export const QUERY_KEYS = {
     getWalletBalance: 'getWalletBalance',
     getLatestTransactions: 'getLatestTransactions',
     getTransactions: 'getTransactions',
+    getTransaction: 'getTransaction',
     processTransaction: 'processTransaction',
     verifyPin: 'verifyPin',
     listDataPlans: 'listDataPlans',
@@ -26,6 +28,7 @@ export const QUERY_KEYS = {
 export const useGetAccount = (id?: string) => useQuery({
     queryKey: [QUERY_KEYS.getAccount, id],
     queryFn: () => getAccount(id),
+    refetchOnMount: true
 })
 
 export const useGeneratePalmpayAccount = () => useMutation({
@@ -51,6 +54,11 @@ export const useGetLatestTransactions = () => useQuery({
 export const useGetTransactions = (limit: number = 30, offset: number = 0) => useQuery({
     queryKey: [QUERY_KEYS.getTransactions, limit, offset],
     queryFn: () => getTransactions(limit, offset),
+})
+
+export const useGetTransaction = (id: string) => useQuery({
+    queryKey: [QUERY_KEYS.getTransaction, id],
+    queryFn: () => getTransaction(id),
 })
 
 export const useProcessTransaction = () => useMutation({

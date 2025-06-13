@@ -37,9 +37,15 @@ const Layout = () => {
             name="subs" 
             options={{ 
                 title: 'Subs',
+                href: null,
                 tabBarIcon: ({ color, size }) => (
                     <Ionicons name="gift-outline" color={color} size={size} />
                 ),
+                headerShown: false,
+                    headerStyle: {
+                        shadowColor: 'transparent',
+                        borderBottomWidth: 0,
+                    },
             }} />
             <Tabs.Screen 
             name="history" 
@@ -48,6 +54,11 @@ const Layout = () => {
                 tabBarIcon: ({ color, size }) => (
                     <Ionicons name="time-outline" color={color} size={size} />
                 ),
+                headerShown: false,
+                    headerStyle: {
+                        shadowColor: 'transparent',
+                        borderBottomWidth: 0,
+                    },
             }} />
             <Tabs.Screen 
             name="settings" 
@@ -56,6 +67,11 @@ const Layout = () => {
                 tabBarIcon: ({ color, size }) => (
                     <Ionicons name="settings-outline" color={color} size={size} />
                 ),
+                headerShown: false,
+                    headerStyle: {
+                        shadowColor: 'transparent',
+                        borderBottomWidth: 0,
+                    },
             }} />
         </Tabs>
     </SessionProvider>

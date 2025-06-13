@@ -2,8 +2,10 @@ import { Tables } from '@/types/database';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
-import { Modal, Text, TouchableOpacity, View, Clipboard, ToastAndroid, Platform } from 'react-native';
+import { Modal, Text, TouchableOpacity, View, Clipboard, ToastAndroid, Platform, ActivityIndicator } from 'react-native';
 import Toast from 'react-native-toast-message';
+import { useGetAccount } from '@/services/account-hooks'
+import { COLORS } from '@/constants/colors'
 
 interface CreditCardProps {
   colors: string[];
@@ -13,7 +15,7 @@ interface CreditCardProps {
   onCopy?: () => void;
 }
 
-const CreditCard: React.FC<CreditCardProps> = ({
+export const CreditCard: React.FC<CreditCardProps> = ({
   colors,
   accountNumber,
   bankName,
@@ -61,11 +63,13 @@ const CreditCard: React.FC<CreditCardProps> = ({
 interface FundWalletBottomSheetProps {
   isVisible: boolean;
   onClose: () => void;
-  account?: Tables<'account'> | null
 }
 
-const FundWalletBottomSheet: React.FC<FundWalletBottomSheetProps> = ({ isVisible, onClose, account }) => {
+const FundWalletBottomSheet: React.FC<FundWalletBottomSheetProps> = ({ isVisible, onClose }) => {
   const [copiedText, setCopiedText] = useState<string | null>(null);
+  const { data: accountData, isPending } = useGetAccount()
+
+  const account = accountData?.data || null
 
   const handleCopy = async (text: string) => {
     try {
@@ -102,6 +106,9 @@ const FundWalletBottomSheet: React.FC<FundWalletBottomSheetProps> = ({ isVisible
           onPress={onClose}
           className="flex-1 justify-end bg-black/50"
         >
+          {
+            isPending && <ActivityIndicator color={COLORS.light.primary} />
+          }
           <TouchableOpacity 
             activeOpacity={1} 
             onPress={(e) => e.stopPropagation()}
@@ -116,7 +123,7 @@ const FundWalletBottomSheet: React.FC<FundWalletBottomSheetProps> = ({ isVisible
 
             <View className="flex-col md:flex-row justify-center items-center gap-4">
               <CreditCard
-                colors={['#17B98E', '#2EDAA4', '#2CD27F']}
+                colors={['#6017b9', '#af5eed', '#31033d']}
                 accountNumber={account?.palmpay_account_number || '**********'}
                 bankName={'Palmpay'}
                 accountName={account?.palmpay_account_name || '****** ******'}
@@ -124,7 +131,7 @@ const FundWalletBottomSheet: React.FC<FundWalletBottomSheetProps> = ({ isVisible
               />
 
               {account?.account_number && <CreditCard
-                colors={['#7B2FF2', '#8667f7', '#F357A8']}
+                colors={['#5f4808', '#4c0a2d', '#131d37']}
                 accountNumber={account?.account_number || ''}
                 bankName="Moniepoint"
                 accountName={"iSubscribe Network Technology.-" + account?.account_name}

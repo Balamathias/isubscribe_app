@@ -23,6 +23,7 @@ interface TransactionItemProps {
   amount: string;
   type: string | null;
   data_bonus?: string;
+  id: number
 }
 
 const TransactionSkeleton = () => {
@@ -64,12 +65,16 @@ const TransactionSkeleton = () => {
 };
 
 export const TransactionItem: React.FC<TransactionItemProps> = ({
-  icon, iconColor, title, date, status, amount, type, data_bonus
+  icon, iconColor, title, date, status, amount, type, data_bonus, id
 }) => {
   return (
     <TouchableOpacity 
         activeOpacity={0.7} 
         className="bg-card p-4 rounded-xl mb-3 flex-row items-center justify-between shadow-sm"
+        onPress={() => router.push({
+          pathname: '/transactions/[id]',
+          params: { id }
+      })}
     >
       <View className="flex-row items-center">
         <View className="w-10 h-10 rounded-full items-center justify-center mr-3" style={{ backgroundColor: iconColor + '20' }}>
@@ -155,6 +160,7 @@ const RecentTransactions = ({}: TransactionProps) => {
               amount={formatNigerianNaira(item?.amount || 0)}
               type={item.type}
               data_bonus={(item?.meta_data as any)?.data_bonus}
+              id={item.id}
             />
           ))
         )}

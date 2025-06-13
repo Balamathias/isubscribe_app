@@ -53,9 +53,14 @@ const WalletBox = ({}: Props) => {
           }
         }
       )
-      .subscribe()
 
-    return () => { supabase.removeChannel(walletChannel) }
+    // Remove any existing channel before subscribing
+    supabase.removeChannel(walletChannel)
+    walletChannel.subscribe()
+
+    return () => { 
+      supabase.removeChannel(walletChannel)
+    }
   }, [user?.id, wallet?.balance])
 
   const toggleBalance = () => setShowBalance(!showBalance)

@@ -9,7 +9,8 @@ import {
     processTransaction, 
     verifyPin, 
     listDataPlans,
-    getTransaction
+    getTransaction,
+    verifyPhone
 } from "./accounts";
 
 export const QUERY_KEYS = {
@@ -23,6 +24,7 @@ export const QUERY_KEYS = {
     processTransaction: 'processTransaction',
     verifyPin: 'verifyPin',
     listDataPlans: 'listDataPlans',
+    verifyPhone: 'verifyPhone'
 } as const
 
 export const useGetAccount = (id?: string) => useQuery({
@@ -74,4 +76,9 @@ export const useVerifyPin = () => useMutation({
 export const useListDataPlans = () => useQuery({
     queryKey: [QUERY_KEYS.listDataPlans],
     queryFn: listDataPlans,
+})
+
+export const useVerifyPhone = () => useMutation({
+    mutationKey: [QUERY_KEYS.verifyPhone],
+    mutationFn: verifyPhone,
 })

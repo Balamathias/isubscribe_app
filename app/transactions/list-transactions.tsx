@@ -32,11 +32,6 @@ const ListTransactions = () => {
         }
         return undefined
       },
-      initialData: {
-        pages: [],
-        pageParams: [],
-      },
-    
   });
 
   const transactions = data?.pages?.flatMap((page, index) => 

@@ -244,3 +244,18 @@ export const verifyPin = async (transactionData: Record<string, any>): Promise<R
     }
 }
 
+export const verifyPhone = async (phone: string): Promise<Response<{network: string} | null>> => {
+    try {
+        const { data, status } = await microservice.post('/mobile/verify-phone/', { phone })
+        return data
+    } catch (error: any) {
+        return {
+            data: null,
+            error: {
+                message: error?.response?.data?.message || error?.message
+            },
+            status: error?.response?.status,
+            message: error?.response?.data?.message || error?.message
+        }
+    }
+}

@@ -20,7 +20,7 @@ const QuickActions = () => {
   return (
     <View className="mt-6 bg-background p-4 rounded-xl shadow-sm flex flex-col gap-y-2 items-start">
       <View className="flex-row items-center mb-4">
-        <Text className="text-foreground font-bold text-lg">Quick Actions</Text>
+        <Text className="text-foreground font-bold text-lg" style={{fontFamily: 'Poppins'}}>Quick Actions</Text>
         <View className="w-2 h-2 rounded-full bg-primary ml-2" />
       </View>
       <View className="flex-row flex-wrap justify-between">

@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Image, Text, TouchableOpacity, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import { useVerifyPhone } from '../../services/account-hooks';
 
 interface Network {
   id: string;
@@ -13,13 +14,15 @@ interface NetworkSelectorProps {
   networks: Network[];
   selectedNetworkId: string | null;
   onSelectNetwork: (networkId: string) => void;
+  phoneNumber?: string
 }
 
 const NetworkSelector: React.FC<NetworkSelectorProps> = ({
-  networks, selectedNetworkId, onSelectNetwork
+  networks, selectedNetworkId, onSelectNetwork, phoneNumber
 }) => {
   const scale = useSharedValue(1);
   const opacity = useSharedValue(1);
+  const verifyPhone = useVerifyPhone();
 
   const animatedStyle = useAnimatedStyle(() => {
     return {
@@ -27,6 +30,26 @@ const NetworkSelector: React.FC<NetworkSelectorProps> = ({
       transform: [{ scale: scale.value }],
     };
   });
+
+  useEffect(() => {
+    const verifyPhoneNumber = async () => {
+      if (phoneNumber && phoneNumber.length >= 10) {
+        try {
+          const result = await verifyPhone.mutateAsync(phoneNumber);
+          if (result.data?.network) {
+            const matchingNetwork = networks.find(n => n.id.toLowerCase() === result?.data?.network.toLowerCase());
+            if (matchingNetwork) {
+              onSelectNetwork(matchingNetwork.id);
+            }
+          }
+        } catch (error) {
+          console.error('Error verifying phone number:', error);
+        }
+      }
+    };
+
+    verifyPhoneNumber();
+  }, [phoneNumber, networks]);
 
   return (
     <View className="w-full max-w-sm px-4">
@@ -69,4 +92,4 @@ const NetworkSelector: React.FC<NetworkSelectorProps> = ({
   );
 };
 
-export default NetworkSelector; 
+export default NetworkSelector;

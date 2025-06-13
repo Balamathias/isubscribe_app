@@ -29,7 +29,7 @@ const BuyDataScreen = () => {
 
   const { user, dataPlans, refetchDataPlans, loadingDataPlans } = useSession()
 
-  const { control, handleSubmit, formState: { errors }, setValue, getValues, trigger } = useForm<BuyDataFormInputs>({
+  const { control, handleSubmit, formState: { errors }, setValue, getValues, trigger, watch } = useForm<BuyDataFormInputs>({
     resolver: zodResolver(buyDataSchema),
     defaultValues: {
       phoneNumber: user?.user_metadata?.phone || '',
@@ -140,6 +140,7 @@ const BuyDataScreen = () => {
           networks={networks}
           selectedNetworkId={selectedNetworkId}
           onSelectNetwork={handleSelectNetwork}
+          phoneNumber={watch('phoneNumber')}
         />
 
         <DataBundleCategorySelector

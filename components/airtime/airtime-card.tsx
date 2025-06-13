@@ -40,8 +40,7 @@ const AirtimeCard: React.FC<AirtimeCardProps> = ({
     }} className="flex w-[31%]">
       <Animated.View
         style={animatedStyle}
-        className={`bg-input rounded-xl rounded-tr-3xl p-4 items-center justify-center shadow-sm h-28
-          ${isSelected ? 'border-2 border-primary' : 'border border-border'}`}
+        className={`bg-input rounded-xl rounded-tr-3xl p-4 items-center justify-center shadow-sm h-28`}
       >
         <Text className="text-foreground text-lg font-bold mb-1">{plan.size}</Text>
         <Text className="text-primary text-xl font-bold mb-2">{formatNigerianNaira(plan.price).split('.')[0]}</Text>

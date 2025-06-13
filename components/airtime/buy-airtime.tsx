@@ -36,7 +36,7 @@ const BuyAirtimeScreen = () => {
   const theme = colorScheme === 'dark' ? 'dark' : 'light';
   const colors = COLORS[theme];
 
-  const { control, handleSubmit, formState: { errors }, setValue, getValues, trigger } = useForm<BuyAirtimeFormInputs>({
+  const { control, watch, handleSubmit, formState: { errors }, setValue, getValues, trigger } = useForm<BuyAirtimeFormInputs>({
     resolver: zodResolver(buyAirtimeSchema),
     defaultValues: {
       phoneNumber: user?.user_metadata?.phone || '',
@@ -145,6 +145,7 @@ const BuyAirtimeScreen = () => {
           networks={networks}
           selectedNetworkId={selectedNetworkId}
           onSelectNetwork={handleSelectNetwork}
+          phoneNumber={watch('phoneNumber')}
         />
 
         <Text className="text-foreground text-xl font-bold mt-8 mb-4 ml-2">Quick Plans</Text>

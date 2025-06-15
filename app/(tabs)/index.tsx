@@ -15,10 +15,10 @@ export default function Index() {
 
   const { refetchBalance, loadingBalance, refetchTransactions, loadingTransactions, profile } = useSession()
 
-  const handleRefresh = useCallback(() => {
+  const handleRefresh = () => {
     refetchTransactions()
     refetchBalance()
-  }, [refetchTransactions, refetchBalance])
+  }
 
   useEffect(() => {
     handleRefresh()

@@ -54,9 +54,9 @@ const WalletBox = ({}: Props) => {
         }
       )
 
-    // Remove any existing channel before subscribing
-    supabase.removeChannel(walletChannel)
     walletChannel.subscribe()
+
+    // supabase.removeChannel(walletChannel)
 
     return () => { 
       supabase.removeChannel(walletChannel)

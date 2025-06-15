@@ -1,3 +1,4 @@
+import { formatDataAmount } from '@/utils';
 import { formatNigerianNaira } from '@/utils/format-naira';
 import React from 'react';
 import { Text, TouchableOpacity } from 'react-native';
@@ -45,7 +46,7 @@ const AirtimeCard: React.FC<AirtimeCardProps> = ({
         <Text className="text-foreground text-lg font-bold mb-1">{plan.size}</Text>
         <Text className="text-primary text-xl font-bold mb-2">{formatNigerianNaira(plan.price).split('.')[0]}</Text>
         {plan.bonusMb > 0 && (
-          <Text className="text-muted-foreground text-xs">+{plan.bonusMb} MB</Text>
+          <Text className="text-muted-foreground text-xs">+{formatDataAmount(plan?.price * 0.01)}</Text>
         )}
       </Animated.View>
     </TouchableOpacity>

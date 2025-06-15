@@ -86,8 +86,18 @@ export const TransactionItem: React.FC<TransactionItemProps> = ({
         </View>
       </View>
       <View className="items-end">
-        <View className="bg-green-100 dark:bg-green-900 px-3 py-1 rounded-full">
-          <Text className="text-green-600 dark:text-green-300 text-xs font-medium capitalize">{status}</Text>
+        <View className={`px-3 py-1 rounded-full ${
+          status === 'success' ? 'bg-green-100 dark:bg-green-900' :
+          status === 'failed' ? 'bg-red-100 dark:bg-red-900' :
+          status === 'pending' ? 'bg-yellow-100 dark:bg-yellow-900' :
+          'bg-gray-100 dark:bg-gray-900'
+        }`}>
+          <Text className={`text-xs font-medium capitalize ${
+            status === 'success' ? 'text-green-600 dark:text-green-300' :
+            status === 'failed' ? 'text-red-600 dark:text-red-300' :
+            status === 'pending' ? 'text-yellow-600 dark:text-yellow-300' :
+            'text-gray-600 dark:text-gray-300'
+          }`}>{status}</Text>
         </View>
         <Text className="text-foreground font-semibold text-sm mt-1">{type === 'cashback' ? (data_bonus || amount) : amount }</Text>
       </View>

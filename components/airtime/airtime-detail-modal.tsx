@@ -15,6 +15,7 @@ import Toast from 'react-native-toast-message';
 import StatusModal from '../status-modal';
 import { useQueryClient } from '@tanstack/react-query';
 import { useLocalAuth } from '@/hooks/useLocalAuth';
+import { formatDataAmount } from '@/utils';
 
 interface AirtimeDetailsModalProps {
   isVisible: boolean;
@@ -155,7 +156,7 @@ const AirtimeDetailsModal: React.FC<AirtimeDetailsModalProps> = ({
             </View>
             <View className="flex-row justify-between mb-2">
               <Text className="text-muted-foreground text-base">Bonus</Text>
-              <Text className="text-primary font-semibold text-base">+{formatNigerianNaira(selectedPlan?.price * 0.02)}</Text>
+              <Text className="text-primary font-semibold text-base">+{formatDataAmount(selectedPlan?.price * 0.01)}</Text>
             </View>
           </View>
 

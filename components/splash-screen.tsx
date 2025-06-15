@@ -19,7 +19,7 @@ const SplashScreen = () => {
           <Text className="text-[26px] font-semibold text-[#7B2FF2]">isubscribe</Text>
         </View>
       </View>
-      <Text className="text-xs text-muted-foreground mb-8">Subscribe and stay connected</Text>
+      <Text className="text-sm text-muted-foreground mb-8">Subscribe and stay connected</Text>
     </View>
   );
 };

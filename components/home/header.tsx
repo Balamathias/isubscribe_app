@@ -50,7 +50,7 @@ const Header = () => {
                           </View>
 
                           <View className="flex-row items-center gap-x-4">
-                              <TouchableOpacity>
+                              <TouchableOpacity onPress={() => router.push('/help')}>
                                   <Ionicons name="headset-outline" color={colors.foreground} size={24} />
                               </TouchableOpacity>
                               <TouchableOpacity onPress={() => setShowNotifications(true)}>
@@ -99,6 +99,15 @@ const Header = () => {
                   ))
               )}
           </ScrollView>
+
+          <TouchableOpacity 
+              onPress={() => router.navigate('https://chat.whatsapp.com/FtUv7tE95Bt4vPbZ3DbNLS' as any)}
+              className="mx-4 mb-4 bg-[#076d2c] rounded-2xl p-4 flex-row items-center justify-center gap-x-2 mt-4"
+              activeOpacity={0.6}
+          >
+              <Ionicons name="logo-whatsapp" size={24} color="white" />
+              <Text className="text-white font-semibold text-base">Join our WhatsApp group for updates</Text>
+          </TouchableOpacity>
       </BottomSheet>
     </>
   )

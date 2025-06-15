@@ -1,9 +1,8 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { Session, User } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
-import { Text } from 'react-native'
 import SplashScreen from './splash-screen'
-import { useGeneratePalmpayAccount, useGetLatestTransactions, useGetWalletBalance, useListDataPlans } from '@/services/account-hooks'
+import { useGetLatestTransactions, useGetWalletBalance, useListDataPlans, useGetUserProfile } from '@/services/account-hooks'
 import { ListDataPlans, WalletBalance } from '@/services/accounts'
 import { Tables } from '@/types/database'
 
@@ -20,6 +19,9 @@ interface SessionContextType {
   dataPlans: ListDataPlans | null,
   refetchDataPlans: () => void,
   loadingDataPlans: boolean,
+  profile: Tables<'profile'> | null,
+  refetchProfile: () => void,
+  loadingProfile: boolean,
 }
 
 const SessionContext = createContext<SessionContextType>({
@@ -35,6 +37,9 @@ const SessionContext = createContext<SessionContextType>({
   dataPlans: null,
   refetchDataPlans: () => {},
   loadingDataPlans: false,
+  profile: null,
+  refetchProfile: () => {},
+  loadingProfile: false,
 })
 
 export const SessionProvider = ({ children }: { children: React.ReactNode }) => {
@@ -44,6 +49,7 @@ export const SessionProvider = ({ children }: { children: React.ReactNode }) => 
   const { data: walletBalance, isPending: loadingBalance, refetch: refetchBalance } = useGetWalletBalance()
   const { data: latestTransactions, isPending: loadingTransactions, refetch: refetchTransactions } = useGetLatestTransactions()
   const { data: dataPlans, isPending: loadingDataPlans, refetch: refetchDataPlans } = useListDataPlans()
+  const { data: profile, isPending: loadingProfile, refetch: refetchProfile } = useGetUserProfile()
 
   useEffect(() => {
     const initializeSession = async () => {
@@ -79,6 +85,7 @@ export const SessionProvider = ({ children }: { children: React.ReactNode }) => 
         walletBalance: walletBalance?.data || null, refetchBalance, loadingBalance,
         latestTransactions: latestTransactions?.data || null, refetchTransactions, loadingTransactions,
         dataPlans: dataPlans?.data || null, refetchDataPlans, loadingDataPlans,
+        profile: profile?.data || null, refetchProfile, loadingProfile,
       }}
     >
       {children}

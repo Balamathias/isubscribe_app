@@ -1,4 +1,4 @@
-import { View, Text, Switch, Pressable, ScrollView } from 'react-native';
+import { View, Text, Switch, Pressable, ScrollView, ActivityIndicator } from 'react-native';
 import { useColorScheme } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalAuth } from '@/hooks/useLocalAuth';
@@ -8,6 +8,7 @@ import { QUERY_KEYS } from '@/services/account-hooks';
 import { router } from 'expo-router';
 import Toast from 'react-native-toast-message';
 import { COLORS } from '@/constants/colors';
+import { useSession } from '../session-context';
 
 export function SettingsList() {
   const colorScheme = useColorScheme();
@@ -15,6 +16,7 @@ export function SettingsList() {
   const { isBiometricSupported, isBiometricEnabled, toggleBiometric } = useLocalAuth();
   const { mutate: logout, isPending: loggingOut } = useSignOut();
   const queryClient = useQueryClient();
+  const { user } = useSession()
 
   const settings = [
     {
@@ -129,27 +131,47 @@ export function SettingsList() {
         ))}
       </ScrollView>
 
-      <Pressable
-        onPress={handleLogout}
-        className="flex-row items-center p-4 border-t border-border/80"
-      >
-        <View className="w-8 h-8 rounded-full bg-red-500/10 items-center justify-center mr-3">
-          <Ionicons 
-            name="log-out-outline" 
-            size={20} 
-            color="#ef4444" 
-          />
-        </View>
-        
-        <View className="flex-1">
-          <Text className="text-red-500 font-medium">Logout</Text>
-          <Text className="text-muted-foreground text-sm">Sign out of your account</Text>
-        </View>
+      {user ? (
+        <Pressable
+          onPress={handleLogout}
+          className="flex-row items-center p-4 border-t border-border/80"
+        >
+          <View className="w-8 h-8 rounded-full bg-red-500/10 items-center justify-center mr-3">
+            <Ionicons 
+              name="log-out-outline" 
+              size={20} 
+              color="#ef4444" 
+            />
+          </View>
+          
+          <View className="flex-1">
+            <Text className="text-red-500 font-medium">Logout</Text>
+            <Text className="text-muted-foreground text-sm">Sign out of your account</Text>
+          </View>
 
-        {loggingOut && (
-          <View className="w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full animate-spin" />
-        )}
-      </Pressable>
+          {loggingOut && (
+            <ActivityIndicator size="small" color="#ef4444" />
+          )}
+        </Pressable>
+      ) : (
+        <Pressable
+          onPress={() => router.push('/auth/login')}
+          className="flex-row items-center p-4 border-t border-border/80"
+        >
+          <View className="w-8 h-8 rounded-full bg-primary/10 items-center justify-center mr-3">
+            <Ionicons 
+              name="log-in-outline" 
+              size={20} 
+              color={COLORS.light.primary} 
+            />
+          </View>
+          
+          <View className="flex-1">
+            <Text className="text-primary font-medium">Login</Text>
+            <Text className="text-muted-foreground text-sm">Sign in to your account</Text>
+          </View>
+        </Pressable>
+      )}
     </View>
   );
 }

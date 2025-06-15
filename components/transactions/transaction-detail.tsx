@@ -24,18 +24,27 @@ const TransactionDetail = () => {
 
   const handleShareReceipt = async () => {
     try {
-      if (viewShotRef.current?.capture) {
-        const uri = await viewShotRef.current.capture();
-        
-        const shareOptions = {
-          title: 'Transaction Receipt',
-          message: Platform.OS === 'android' ? `Transaction Receipt for ${transaction?.title}` : undefined,
-          url: Platform.OS === 'android' ? `file://${uri}` : uri,
-          type: 'image/jpeg',
-        };
-
-        await Share.share(shareOptions);
+      if (!viewShotRef.current) return;
+  
+      const uri = await viewShotRef?.current?.capture?.();
+  
+      if (!uri) {
+        Alert.alert('Error', 'Could not capture the receipt. Try again.');
+        return;
       }
+  
+      const shareOptions: any = {
+        title: 'Transaction Receipt',
+        message: `Transaction Receipt for ${transaction?.title}`,
+      };
+  
+      if (Platform.OS === 'android') {
+        shareOptions.url = 'file://' + uri;
+      } else {
+        shareOptions.url = uri;
+      }
+  
+      await Share.share(shareOptions);
     } catch (error) {
       console.error('Error sharing receipt:', error);
       Alert.alert(
@@ -44,6 +53,7 @@ const TransactionDetail = () => {
       );
     }
   };
+  
 
   if (isLoading) {
     return (
@@ -105,85 +115,87 @@ const TransactionDetail = () => {
           <Header title={transaction.title} />
 
           <ViewShot ref={viewShotRef} options={{ format: 'jpg', quality: 0.9, result: 'tmpfile' }}>
-            <View className="items-center mb-8">
-              <View className="w-20 h-20 rounded-full bg-secondary items-center justify-center mb-4">
-                <Ionicons 
-                  name={getStatusIcon(transaction?.status || '')} 
-                  size={40} 
-                  color={getStatusColor(transaction?.status || '')} 
-                />
-              </View>
-              <Text className="text-2xl font-bold text-foreground mb-2">
-                {formatNigerianNaira(transaction?.amount || 0)}
-              </Text>
-              <Text className="text-muted-foreground capitalize">
-                {transaction.status}
-              </Text>
-            </View>
-
-            <View className="space-y-6">
-              <View className="bg-card rounded-xl p-6">
-                <Text className="text-lg font-semibold text-foreground mb-8">
-                  Transaction Details
+            <View>
+              <View className="items-center mb-8">
+                <View className="w-20 h-20 rounded-full bg-secondary items-center justify-center mb-4">
+                  <Ionicons 
+                    name={getStatusIcon(transaction?.status || '')} 
+                    size={40} 
+                    color={getStatusColor(transaction?.status || '')} 
+                  />
+                </View>
+                <Text className="text-2xl font-bold text-foreground mb-2">
+                  {formatNigerianNaira(transaction?.amount || 0)}
                 </Text>
-                
-                <View className="flex flex-col gap-6">
-                  {transaction.transaction_id && <View className="flex-row justify-between items-center">
-                    <Text className="text-muted-foreground text-sm">Reference</Text>
-                    <Text className="text-foreground font-medium">{transaction.transaction_id}</Text>
-                  </View>}
+                <Text className="text-muted-foreground capitalize">
+                  {transaction.status}
+                </Text>
+              </View>
 
-                  <View className="flex-row justify-between items-center">
-                    <Text className="text-muted-foreground text-sm">Transaction ID</Text>
-                    <Text className="text-foreground font-medium">{transaction.id}</Text>
+              <View className="space-y-6">
+                <View className="bg-card rounded-xl p-6">
+                  <Text className="text-lg font-semibold text-foreground mb-8">
+                    Transaction Details
+                  </Text>
+                  
+                  <View className="flex flex-col gap-6">
+                    {transaction.transaction_id && <View className="flex-row justify-between items-center">
+                      <Text className="text-muted-foreground text-sm">Reference</Text>
+                      <Text className="text-foreground font-medium">{transaction.transaction_id}</Text>
+                    </View>}
+
+                    <View className="flex-row justify-between items-center">
+                      <Text className="text-muted-foreground text-sm">Transaction ID</Text>
+                      <Text className="text-foreground font-medium">{transaction.id}</Text>
+                    </View>
+
+                    <View className="flex-row justify-between items-center">
+                      <Text className="text-muted-foreground text-sm">Date</Text>
+                      <Text className="text-foreground font-medium">
+                        {format(new Date(transaction.created_at), 'MMM dd, yyyy HH:mm')}
+                      </Text>
+                    </View>
+
+                    <View className="flex-row justify-between items-center">
+                      <Text className="text-muted-foreground text-sm">Amount</Text>
+                      <Text className="text-foreground font-medium">{formatNigerianNaira(transaction.amount || 0)}</Text>
+                    </View>
+
+                    {transaction.meta_data && typeof transaction.meta_data === 'object' && 'quantity' in transaction.meta_data && (
+                      <View className="flex-row justify-between items-center">
+                        <Text className="text-muted-foreground text-sm">Quantity</Text>
+                        <Text className="text-foreground font-medium">{String(transaction.meta_data.quantity)}</Text>
+                      </View>
+                    )}
+
+                    {transaction.meta_data && typeof transaction.meta_data === 'object' && 'data_bonus' in transaction.meta_data && (
+                      <View className="flex-row justify-between items-center">
+                        <Text className="text-muted-foreground text-sm">Data Bonus</Text>
+                        <Text className="text-foreground font-medium">{String(transaction.meta_data.data_bonus)}</Text>
+                      </View>
+                    )}
+
+                    {transaction.meta_data && typeof transaction.meta_data === 'object' && 'phone' in transaction.meta_data && (
+                      <View className="flex-row justify-between items-center">
+                        <Text className="text-muted-foreground text-sm">Phone Number</Text>
+                        <Text className="text-foreground font-medium">{String(transaction.meta_data.phone)}</Text>
+                      </View>
+                    )}
+
+                    {transaction.meta_data && typeof transaction.meta_data === 'object' && 'network' in transaction.meta_data && (
+                      <View className="flex-row justify-between items-center">
+                        <Text className="text-muted-foreground text-sm">Network</Text>
+                        <Text className="text-foreground font-medium">{String(transaction.meta_data.network)}</Text>
+                      </View>
+                    )}
+
+                    {transaction.description && (
+                      <View className="flex-row justify-between items-start">
+                        <Text className="text-muted-foreground text-sm">Description</Text>
+                        <Text className="text-foreground font-medium flex-1 text-right ml-4">{transaction.description}</Text>
+                      </View>
+                    )}
                   </View>
-
-                  <View className="flex-row justify-between items-center">
-                    <Text className="text-muted-foreground text-sm">Date</Text>
-                    <Text className="text-foreground font-medium">
-                      {format(new Date(transaction.created_at), 'MMM dd, yyyy HH:mm')}
-                    </Text>
-                  </View>
-
-                  <View className="flex-row justify-between items-center">
-                    <Text className="text-muted-foreground text-sm">Amount</Text>
-                    <Text className="text-foreground font-medium">{formatNigerianNaira(transaction.amount || 0)}</Text>
-                  </View>
-
-                  {transaction.meta_data && typeof transaction.meta_data === 'object' && 'quantity' in transaction.meta_data && (
-                    <View className="flex-row justify-between items-center">
-                      <Text className="text-muted-foreground text-sm">Quantity</Text>
-                      <Text className="text-foreground font-medium">{String(transaction.meta_data.quantity)}</Text>
-                    </View>
-                  )}
-
-                  {transaction.meta_data && typeof transaction.meta_data === 'object' && 'data_bonus' in transaction.meta_data && (
-                    <View className="flex-row justify-between items-center">
-                      <Text className="text-muted-foreground text-sm">Data Bonus</Text>
-                      <Text className="text-foreground font-medium">{String(transaction.meta_data.data_bonus)}</Text>
-                    </View>
-                  )}
-
-                  {transaction.meta_data && typeof transaction.meta_data === 'object' && 'phone' in transaction.meta_data && (
-                    <View className="flex-row justify-between items-center">
-                      <Text className="text-muted-foreground text-sm">Phone Number</Text>
-                      <Text className="text-foreground font-medium">{String(transaction.meta_data.phone)}</Text>
-                    </View>
-                  )}
-
-                  {transaction.meta_data && typeof transaction.meta_data === 'object' && 'network' in transaction.meta_data && (
-                    <View className="flex-row justify-between items-center">
-                      <Text className="text-muted-foreground text-sm">Network</Text>
-                      <Text className="text-foreground font-medium">{String(transaction.meta_data.network)}</Text>
-                    </View>
-                  )}
-
-                  {transaction.description && (
-                    <View className="flex-row justify-between items-start">
-                      <Text className="text-muted-foreground text-sm">Description</Text>
-                      <Text className="text-foreground font-medium flex-1 text-right ml-4">{transaction.description}</Text>
-                    </View>
-                  )}
                 </View>
               </View>
             </View>

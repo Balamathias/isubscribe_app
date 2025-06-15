@@ -3,8 +3,10 @@ import { router } from 'expo-router'
 import React, { useState } from 'react'
 import { ScrollView, Text, View } from 'react-native'
 import PinPad from '@/components/pin-pad'
-import { useVerifyPin } from '@/services/account-hooks'
+import { QUERY_KEYS, useVerifyPin } from '@/services/account-hooks'
 import Toast from 'react-native-toast-message'
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { useQueryClient } from '@tanstack/react-query'
 
 const OnboardingScreen = () => {
   const { session } = useSession()
@@ -13,6 +15,8 @@ const OnboardingScreen = () => {
   const { mutate: verifyPin, isPending } = useVerifyPin()
 
   if (!session) return router.replace(`/`)
+
+  const queryClient = useQueryClient()
 
   const handleFirstPin = async (pin: string) => {
     setFirstPin(pin)
@@ -40,6 +44,9 @@ const OnboardingScreen = () => {
             text1: 'Success',
             text2: 'PIN set successfully!'
           })
+          queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.getUserProfile] })
+          queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.getWalletBalance] })
+          queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.getLatestTransactions] })
           router.replace('/')
         }
       },
@@ -55,7 +62,7 @@ const OnboardingScreen = () => {
   }
 
   return (
-    <View className="flex flex-1 bg-background min-h-full justify-center items-center w-full py-4">
+    <SafeAreaView className="flex flex-1 bg-background min-h-full justify-center items-center w-full py-4">
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}>
         <View className="items-center px-4">
           <Text className="text-foreground text-2xl font-bold mb-4">Set Your PIN</Text>
@@ -85,7 +92,7 @@ const OnboardingScreen = () => {
           }}
         />
       </ScrollView>
-    </View>
+    </SafeAreaView>
   )
 }
 

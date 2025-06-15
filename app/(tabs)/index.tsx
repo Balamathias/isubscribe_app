@@ -5,6 +5,7 @@ import SocialHandles from "@/components/home/social-handles";
 import WalletBox from "@/components/home/wallet-box";
 import { useSession } from "@/components/session-context";
 import { COLORS } from "@/constants/colors";
+import { useEffect } from "react";
 import { RefreshControl, ScrollView, useColorScheme, View } from "react-native";
 
 export default function Index() {
@@ -18,6 +19,10 @@ export default function Index() {
     refetchTransactions()
     refetchBalance()
   }
+
+  useEffect(() => {
+    handleRefresh()
+  }, [handleRefresh])
 
   return (
     <ScrollView

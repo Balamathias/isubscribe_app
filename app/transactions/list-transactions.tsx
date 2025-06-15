@@ -9,7 +9,7 @@ import { useInfiniteQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { ActivityIndicator, FlatList, Text, TouchableOpacity, View } from 'react-native';
 
-const TRANSACTIONS_PER_PAGE = 20;
+const TRANSACTIONS_PER_PAGE = 40;
 
 const ListTransactions = () => {
   const { user } = useSession();

@@ -9,7 +9,7 @@ import PinPad from '../pin-pad';
 import { networks } from './buy-data';
 import Avatar from '../ui/avatar';
 import { useSession } from '../session-context';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { SuperPlansMB } from '@/services/accounts';
 import { useQueryClient } from '@tanstack/react-query';
 import { QUERY_KEYS, useProcessTransaction, useVerifyPin } from '@/services/account-hooks';
@@ -41,6 +41,7 @@ const DataBundleDetailsModal: React.FC<DataBundleDetailsModalProps> = ({
     const [isPinPadVisible, setPinPadVisible] = useState(false);
     const { user, walletBalance } = useSession()
     const { authenticate, isBiometricEnabled } = useLocalAuth();
+    const { use_bonus } = useLocalSearchParams()
 
     const colorSheme = useColorScheme()
     const theme = colorSheme === 'dark' ? 'dark' : 'light'
@@ -49,7 +50,7 @@ const DataBundleDetailsModal: React.FC<DataBundleDetailsModalProps> = ({
     
     const queryClient = useQueryClient()
 
-    const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod>('wallet');
+    const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod>(use_bonus === 'true' ? 'cashback' : 'wallet');
 
     const { mutateAsync: processTransaction, isPending, data: transaction } = useProcessTransaction()
     const { mutateAsync: verifyPin, isPending: verifyingPin } = useVerifyPin()
@@ -188,7 +189,7 @@ const DataBundleDetailsModal: React.FC<DataBundleDetailsModalProps> = ({
           <TouchableOpacity 
               disabled={(walletBalance?.balance || 0) < selectedBundleDetails?.price} 
               activeOpacity={0.7} 
-              className={`bg-primary/10 rounded-xl p-4 flex-row justify-between items-center mb-2 
+              className={`bg-primary/10 rounded-xl p-4 flex-row justify-between items-center
                           ${selectedPaymentMethod === 'wallet' ? 'border border-primary' : ''} 
                           ${((walletBalance?.balance || 0) < selectedBundleDetails?.price) ? ' bg-red-500/10' : ''}`}
               onPress={() => setSelectedPaymentMethod('wallet')}
@@ -213,7 +214,7 @@ const DataBundleDetailsModal: React.FC<DataBundleDetailsModalProps> = ({
             <TouchableOpacity 
                 disabled={(walletBalance?.cashback_balance || 0) < selectedBundleDetails?.price} 
                 activeOpacity={0.7} 
-                className={`bg-primary/10 rounded-xl p-4 flex-row justify-between items-center mb-4 
+                className={`bg-primary/10 rounded-xl p-4 flex-row justify-between items-center mb-2 
                             ${selectedPaymentMethod === 'cashback' ? 'border border-primary' : ''} 
                             ${((walletBalance?.cashback_balance || 0) < selectedBundleDetails?.price) ? ' bg-red-500/10' : ''}`}
                 onPress={() => setSelectedPaymentMethod('cashback')}

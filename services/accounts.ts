@@ -259,3 +259,12 @@ export const verifyPhone = async (phone: string): Promise<Response<{network: str
         }
     }
 }
+
+
+export const getNotifications = async () => {
+    const { data, error } = await supabase.from('announcements').select('*').eq('published', true).order('created_at', { ascending: false })
+
+    if (error) throw error
+
+    return { data }
+}

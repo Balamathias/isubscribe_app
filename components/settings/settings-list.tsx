@@ -100,7 +100,7 @@ export function SettingsList() {
             <View className="w-8 h-8 rounded-full bg-secondary items-center justify-center mr-3">
               <Ionicons 
                 name={setting.icon as any} 
-                size={12} 
+                size={15} 
                 color={isDark ? '#71717a' : '#71717a'} 
               />
             </View>

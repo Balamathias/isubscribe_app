@@ -10,7 +10,8 @@ import {
     verifyPin, 
     listDataPlans,
     getTransaction,
-    verifyPhone
+    verifyPhone,
+    getNotifications
 } from "./accounts";
 
 export const QUERY_KEYS = {
@@ -24,7 +25,8 @@ export const QUERY_KEYS = {
     processTransaction: 'processTransaction',
     verifyPin: 'verifyPin',
     listDataPlans: 'listDataPlans',
-    verifyPhone: 'verifyPhone'
+    verifyPhone: 'verifyPhone',
+    getNotifications: 'getNotifications'
 } as const
 
 export const useGetAccount = (id?: string) => useQuery({
@@ -46,11 +48,13 @@ export const useGetUserProfile = () => useQuery({
 export const useGetWalletBalance = () => useQuery({
     queryKey: [QUERY_KEYS.getWalletBalance],
     queryFn: getWalletBalance,
+    refetchOnMount: true
 })
 
 export const useGetLatestTransactions = () => useQuery({
     queryKey: [QUERY_KEYS.getLatestTransactions],
     queryFn: getLatestTransactions,
+    refetchOnMount: true
 })
 
 export const useGetTransactions = (limit: number = 30, offset: number = 0) => useQuery({
@@ -76,9 +80,16 @@ export const useVerifyPin = () => useMutation({
 export const useListDataPlans = () => useQuery({
     queryKey: [QUERY_KEYS.listDataPlans],
     queryFn: listDataPlans,
+    refetchOnMount: true
 })
 
 export const useVerifyPhone = () => useMutation({
     mutationKey: [QUERY_KEYS.verifyPhone],
     mutationFn: verifyPhone,
+})
+
+export const useGetNotifications = () => useQuery({
+    queryKey: [QUERY_KEYS.getNotifications],
+    queryFn: getNotifications,
+    refetchOnMount: true
 })

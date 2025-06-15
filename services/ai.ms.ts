@@ -1,7 +1,7 @@
 import { supabase } from '@/lib/supabase';
 import axios from 'axios';
 
-const API_URL = 'https://77c9-102-91-92-86.ngrok-free.app/api/v1';
+const API_URL = 'https://isubscribe-ai-microservice.vercel.app/api/v1';
     // process.env.NEXT_PUBLIC_AI_MS_API_URL || 
     
 
@@ -55,4 +55,4 @@ client.defaults.xsrfHeaderName = 'x-csrftoken';
 client.defaults.xsrfCookieName = 'csrftoken';
 client.defaults.withCredentials = true;
 
-export { client as microservice }
+export { client as microservice };

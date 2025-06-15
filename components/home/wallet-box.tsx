@@ -153,11 +153,12 @@ const WalletBox = ({}: Props) => {
         {
             user ? (
                 <TouchableOpacity
-                    className="rounded-full px-4 py-2 flex-row items-center self-end opacity-60"
+                    className="rounded-full px-4 py-2 flex-row items-center self-end"
                     style={{
                         backgroundColor: 'rgba(255,255,255,0.18)',
                     }}
-                    disabled
+                    disabled={!wallet || !wallet?.balance}
+                    onPress={() => router.push(`/services/data?use_bonus=true`)}
                     >
                     <Text className="text-white font-semibold text-base">Use bonus</Text>
                     <Ionicons name="chevron-forward-outline" size={18} color="#fff" style={{ marginLeft: 2 }} />

@@ -13,6 +13,7 @@ import Header from './header';
 import { useSession } from '../session-context';
 import { COLORS } from '@/constants/colors';
 import { Ionicons } from '@expo/vector-icons';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const buyDataSchema = z.object({
   phoneNumber: z.string().min(10, 'Phone number must be at least 10 digits').regex(/^[0-9]+$/, 'Phone number must contain only digits'),
@@ -104,7 +105,7 @@ const BuyDataScreen = () => {
   const bundles = ((dataPlans?.[activeCategory] || []) as any)?.filter((plan: any) => plan?.network === (selectedNetworkId === '9mobile' ? 'etisalat' : selectedNetworkId))
 
   return (
-    <View className="flex-1 bg-background h-full">
+    <SafeAreaView edges={['bottom']} className="flex-1 bg-background h-full">
       <Header />
       <ScrollView 
         showsVerticalScrollIndicator={false} 
@@ -201,7 +202,7 @@ const BuyDataScreen = () => {
         />
       </ScrollView>
 
-    </View>
+    </SafeAreaView>
   );
 };
 

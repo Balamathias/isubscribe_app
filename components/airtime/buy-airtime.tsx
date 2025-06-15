@@ -13,6 +13,7 @@ import AirtimeCard, { Airtime } from './airtime-card';
 import AirtimeDetailsModal from './airtime-detail-modal';
 import Header from './header';
 import { useSession } from '../session-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const buyAirtimeSchema = z.object({
   phoneNumber: z.string().min(10, 'Phone number must be at least 10 digits').regex(/^[0-9]+$/, 'Phone number must contain only digits'),
@@ -119,7 +120,7 @@ const BuyAirtimeScreen = () => {
     : selectedPlanPrice;
 
   return (
-    <View className="flex-1 bg-background h-full">
+    <SafeAreaView edges={['bottom']} className="flex-1 bg-background h-full">
       <Header />
       <ScrollView showsVerticalScrollIndicator={false} className="flex-1 p-4">
 
@@ -252,7 +253,7 @@ const BuyAirtimeScreen = () => {
         />
       </ScrollView>
 
-    </View>
+    </SafeAreaView>
   );
 };
 

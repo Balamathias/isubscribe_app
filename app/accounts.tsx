@@ -5,6 +5,7 @@ import { COLORS } from '@/constants/colors'
 import FundWalletBottomSheet, { CreditCard } from '@/components/home/fund-wallet-sheet'
 import Toast from 'react-native-toast-message'
 import Header from '@/components/transactions/header'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
 const Accounts = () => {
   const [showFundWalletBottomSheet, setShowFundWalletBottomSheet] = React.useState(false);
@@ -32,7 +33,7 @@ const Accounts = () => {
   };
 
   return (
-    <View className="flex-1 bg-background p-4">
+    <SafeAreaView className="flex-1 bg-background p-4">
         <Header title={'Accounts'} />
       {isPending ? (
         <ActivityIndicator color={COLORS.light.primary} size={'large'}/>
@@ -62,7 +63,7 @@ const Accounts = () => {
           />
         </View>
       )}
-    </View>
+    </SafeAreaView>
   )
 }
 

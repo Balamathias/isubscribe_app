@@ -38,8 +38,8 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
             style={{ position: 'absolute', bottom: 0, width: '100%' }}
           >
             {(title || true) && (
-              <View className="flex-row justify-between items-center mb-6">
-                {title && <Text className="text-foreground font-bold text-xl">{title}</Text>}
+              <View className="flex-row justify-between items-center mb-4 sm:mb-6">
+                {title && <Text className="text-foreground font-bold text-lg sm:text-xl flex-1 mr-2" numberOfLines={1}>{title}</Text>}
                 <TouchableOpacity onPress={onClose} className="p-2">
                   <Ionicons name="close-circle-outline" size={30} color="#000" />
                 </TouchableOpacity>
@@ -52,11 +52,6 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-  },
-});
 
 export default BottomSheet;
 

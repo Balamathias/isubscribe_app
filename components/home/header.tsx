@@ -46,7 +46,7 @@ const Header = () => {
                                       />
                                   )
                               }
-                              <Text className="text-xl font-medium text-foreground">Hi, {getUserInitials() ? getUserInitials() : 'Guest'}.</Text>
+                              <Text className="text-base sm:text-lg md:text-xl font-medium text-foreground">Hi, {getUserInitials() ? getUserInitials() : 'Guest'}.</Text>
                           </View>
 
                           <View className="flex-row items-center gap-x-4">

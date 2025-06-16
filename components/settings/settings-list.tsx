@@ -9,6 +9,7 @@ import { router } from 'expo-router';
 import Toast from 'react-native-toast-message';
 import { COLORS } from '@/constants/colors';
 import { useSession } from '../session-context';
+import { supabase } from '@/lib/supabase';
 
 export function SettingsList() {
   const colorScheme = useColorScheme();
@@ -77,6 +78,13 @@ export function SettingsList() {
         });
         queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.getWalletBalance]});
         queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.getLatestTransactions]});
+        
+        try {
+          supabase.removeAllChannels()
+        } catch (error: any) {
+          console.error(error)
+        }
+
         router.replace(`/`);
       },
       onError: (error) => {

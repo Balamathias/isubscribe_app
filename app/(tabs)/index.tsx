@@ -5,6 +5,7 @@ import SocialHandles from "@/components/home/social-handles";
 import WalletBox from "@/components/home/wallet-box";
 import { useSession } from "@/components/session-context";
 import { COLORS } from "@/constants/colors";
+import { supabase } from "@/lib/supabase";
 import { router } from "expo-router";
 import { useCallback, useEffect } from "react";
 import { RefreshControl, ScrollView, useColorScheme, View } from "react-native";
@@ -22,6 +23,7 @@ export default function Index() {
 
   useEffect(() => {
     handleRefresh()
+
   }, [handleRefresh])
 
   return (

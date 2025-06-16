@@ -11,6 +11,7 @@ import Animated, {
   withSpring,
   Easing
 } from 'react-native-reanimated';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const NotFoundScreen = () => {
   const colorScheme = useColorScheme();
@@ -51,7 +52,7 @@ const NotFoundScreen = () => {
   }));
 
   return (
-    <View className="flex-1 items-center justify-center p-4 bg-background" style={{ backgroundColor: colors.background }}>
+    <SafeAreaView className="flex-1 items-center justify-center p-4 bg-background" style={{ backgroundColor: colors.background }}>
       <Animated.View style={sadIconStyle}>
         <Ionicons name="sad-outline" size={100} color={colors.primary} className="mb-4" />
       </Animated.View>
@@ -70,7 +71,7 @@ const NotFoundScreen = () => {
           <Text className="text-lg font-bold text-primary-foreground">Go to Home</Text>
         </View>
       </Link>
-    </View>
+    </SafeAreaView>
   );
 };
 

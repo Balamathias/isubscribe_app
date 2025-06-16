@@ -4,7 +4,7 @@ import { formatNigerianNaira } from '@/utils/format-naira';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
-import { ActivityIndicator, Alert, Text, TouchableOpacity, useColorScheme, View } from 'react-native';
+import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, useColorScheme, View } from 'react-native';
 import PinPad from '../pin-pad';
 import { networks } from './buy-data';
 import Avatar from '../ui/avatar';
@@ -142,116 +142,118 @@ const DataBundleDetailsModal: React.FC<DataBundleDetailsModalProps> = ({
         isVisible={isVisible}
         onClose={onClose}
         title={`${selectedBundleDetails?.quantity} - ${selectedBundleDetails?.duration}(Corporate Gifting)`}
-        >
-        <View className="flex flex-col gap-4 w-full relative">
-          {isPending && (
-            <View className='bg-transparent inset-0 absolute flex justify-center items-center z-10 right-0 left-0 bottom-0 top-0'>
-              <ActivityIndicator size="large" color={colors.primary} />
-            </View>
-          )}
-          <View className="p-4 bg-secondary rounded-xl mb-4 w-full">
+      >
+        <ScrollView className="flex-1">
+          <View className="flex flex-col gap-4 w-full relative">
+            {isPending && (
+              <View className='bg-transparent inset-0 absolute flex justify-center items-center z-10 right-0 left-0 bottom-0 top-0'>
+                <ActivityIndicator size="large" color={colors.primary} />
+              </View>
+            )}
+            <View className="p-4 bg-secondary rounded-xl mb-4 w-full">
               <View className="flex-row justify-between mb-2">
-              <Text className="text-muted-foreground text-base">Product</Text>
-              <View className="flex-row items-center">
-                  <Text className="text-foreground font-semibold text-base mr-2">{network?.name}</Text>
+                <Text className="text-muted-foreground text-sm sm:text-base">Product</Text>
+                <View className="flex-row items-center">
+                  <Text className="text-foreground font-semibold text-sm sm:text-base mr-2">{network?.name}</Text>
                   <Avatar 
-                      size={18} 
-                      source={network?.logo}
+                    size={18} 
+                    source={network?.logo}
                   />
-              </View>
-              </View>
-              <View className="flex-row justify-between mb-2">
-              <Text className="text-muted-foreground text-base">Phone Number</Text>
-              <Text className="text-foreground font-semibold text-base">{phoneNumber}</Text>
+                </View>
               </View>
               <View className="flex-row justify-between mb-2">
-              <Text className="text-muted-foreground text-base">Price</Text>
-              <Text className="text-foreground font-semibold text-base">₦{selectedBundleDetails?.price}.00</Text>
+                <Text className="text-muted-foreground text-sm sm:text-base">Phone Number</Text>
+                <Text className="text-foreground font-semibold text-sm sm:text-base">{phoneNumber}</Text>
               </View>
               <View className="flex-row justify-between mb-2">
-              <Text className="text-muted-foreground text-base">Amount</Text>
-              <Text className="text-foreground font-semibold text-base">{selectedBundleDetails?.quantity}</Text>
+                <Text className="text-muted-foreground text-sm sm:text-base">Price</Text>
+                <Text className="text-foreground font-semibold text-sm sm:text-base">{formatNigerianNaira(selectedBundleDetails?.price)}</Text>
               </View>
               <View className="flex-row justify-between mb-2">
-              <Text className="text-muted-foreground text-base">Duration</Text>
-              <Text className="text-foreground font-semibold text-base">{selectedBundleDetails?.duration}</Text>
+                <Text className="text-muted-foreground text-sm sm:text-base">Amount</Text>
+                <Text className="text-foreground font-semibold text-sm sm:text-base">{selectedBundleDetails?.quantity}</Text>
               </View>
               <View className="flex-row justify-between mb-2">
-              <Text className="text-muted-foreground text-base">Data Bonus</Text>
-              <Text className="text-primary font-semibold text-base">+<Text>{selectedBundleDetails?.data_bonus}</Text></Text>
+                <Text className="text-muted-foreground text-sm sm:text-base">Duration</Text>
+                <Text className="text-foreground font-semibold text-sm sm:text-base">{selectedBundleDetails?.duration}</Text>
+              </View>
+              <View className="flex-row justify-between mb-2">
+                <Text className="text-muted-foreground text-sm sm:text-base">Data Bonus</Text>
+                <Text className="text-primary font-semibold text-sm sm:text-base">+<Text>{selectedBundleDetails?.data_bonus}</Text></Text>
               </View>
               <View className="flex-row justify-between">
-              <Text className="text-muted-foreground text-base">Plan Type</Text>
-              <Text className="text-foreground font-semibold text-base">{selectedBundleDetails?.name}</Text>
-              </View>
-          </View>
-
-          <TouchableOpacity 
-              disabled={(walletBalance?.balance || 0) < selectedBundleDetails?.price} 
-              activeOpacity={0.7} 
-              className={`bg-primary/10 rounded-xl p-4 flex-row justify-between items-center
-                          ${selectedPaymentMethod === 'wallet' ? 'border border-primary' : ''} 
-                          ${((walletBalance?.balance || 0) < selectedBundleDetails?.price) ? ' bg-red-500/10' : ''}`}
-              onPress={() => setSelectedPaymentMethod('wallet')}
-          >
-            <View className="flex-row items-center">
-              <Ionicons name="wallet-outline" size={24} color={colors.primary} />
-              <View className="ml-3">
-                <Text className="text-foreground font-bold text-lg">
-                  Wallet Balance <Text className="text-muted-foreground text-sm font-normal">• 
-                  {((walletBalance?.balance || 0) < selectedBundleDetails?.price) ? ' Insufficient Funds' : ' Available' }
-                  </Text>
-                </Text>
-                <Text className="text-foreground font-bold text-xl">
-                  {formatNigerianNaira(user ? (walletBalance?.balance || 0) : 0)}
-                </Text>
+                <Text className="text-muted-foreground text-sm sm:text-base">Plan Type</Text>
+                <Text className="text-foreground font-semibold text-sm sm:text-base flex-1 text-right ml-2" numberOfLines={1}>{selectedBundleDetails?.name}</Text>
               </View>
             </View>
-            {selectedPaymentMethod === 'wallet' && <Ionicons name="checkmark-circle" size={24} color={colors.primary} />}
-          </TouchableOpacity>
 
-          {walletBalance?.cashback_balance !== undefined && (
             <TouchableOpacity 
-                disabled={(walletBalance?.cashback_balance || 0) < selectedBundleDetails?.price} 
-                activeOpacity={0.7} 
-                className={`bg-primary/10 rounded-xl p-4 flex-row justify-between items-center mb-2 
-                            ${selectedPaymentMethod === 'cashback' ? 'border border-primary' : ''} 
-                            ${((walletBalance?.cashback_balance || 0) < selectedBundleDetails?.price) ? ' bg-red-500/10' : ''}`}
-                onPress={() => setSelectedPaymentMethod('cashback')}
+              disabled={(walletBalance?.balance || 0) < selectedBundleDetails?.price} 
+              activeOpacity={0.7} 
+              className={`bg-primary/10 rounded-xl p-3 sm:p-4 flex-row justify-between items-center
+                ${selectedPaymentMethod === 'wallet' ? 'border border-primary' : ''} 
+                ${((walletBalance?.balance || 0) < selectedBundleDetails?.price) ? ' bg-red-500/10' : ''}`}
+              onPress={() => setSelectedPaymentMethod('wallet')}
             >
               <View className="flex-row items-center">
-                <Ionicons name="gift-outline" size={24} color={colors.primary} />
-                <View className="ml-3">
-                  <Text className="text-foreground font-bold text-lg">
-                    Data Bonus <Text className="text-muted-foreground text-sm font-normal">• 
-                    {((walletBalance?.cashback_balance || 0) < selectedBundleDetails?.price) ? ' Insufficient Funds' : ' Available' }
+                <Ionicons name="wallet-outline" size={20} color={colors.primary} />
+                <View className="ml-2 sm:ml-3">
+                  <Text className="text-foreground font-bold text-base sm:text-lg">
+                    Wallet Balance <Text className="text-muted-foreground text-xs sm:text-sm font-normal">• 
+                    {((walletBalance?.balance || 0) < selectedBundleDetails?.price) ? ' Insufficient Funds' : ' Available' }
                     </Text>
                   </Text>
-                  <Text className="text-foreground font-bold text-xl">
-                    {user ? (walletBalance?.data_bonus || formatNigerianNaira(walletBalance?.cashback_balance || 0)) : formatNigerianNaira(0)}
+                  <Text className="text-foreground font-bold text-lg sm:text-xl">
+                    {formatNigerianNaira(user ? (walletBalance?.balance || 0) : 0)}
                   </Text>
                 </View>
               </View>
-              {selectedPaymentMethod === 'cashback' && <Ionicons name="checkmark-circle" size={24} color={colors.primary} />}
+              {selectedPaymentMethod === 'wallet' && <Ionicons name="checkmark-circle" size={20} color={colors.primary} />}
             </TouchableOpacity>
-          )}
 
-          <TouchableOpacity
-              className="rounded-xl py-4 overflow-hidden bg-primary flex flex-row items-center justify-center gap-x-1"
+            {walletBalance?.cashback_balance !== undefined && (
+              <TouchableOpacity 
+                disabled={(walletBalance?.cashback_balance || 0) < selectedBundleDetails?.price} 
+                activeOpacity={0.7} 
+                className={`bg-primary/10 rounded-xl p-3 sm:p-4 flex-row justify-between items-center mb-2 
+                  ${selectedPaymentMethod === 'cashback' ? 'border border-primary' : ''} 
+                  ${((walletBalance?.cashback_balance || 0) < selectedBundleDetails?.price) ? ' bg-red-500/10' : ''}`}
+                onPress={() => setSelectedPaymentMethod('cashback')}
+              >
+                <View className="flex-row items-center">
+                  <Ionicons name="gift-outline" size={20} color={colors.primary} />
+                  <View className="ml-2 sm:ml-3">
+                    <Text className="text-foreground font-bold text-base sm:text-lg">
+                      Data Bonus <Text className="text-muted-foreground text-xs sm:text-sm font-normal">• 
+                      {((walletBalance?.cashback_balance || 0) < selectedBundleDetails?.price) ? ' Insufficient Funds' : ' Available' }
+                      </Text>
+                    </Text>
+                    <Text className="text-foreground font-bold text-lg sm:text-xl">
+                      {user ? (walletBalance?.data_bonus || formatNigerianNaira(walletBalance?.cashback_balance || 0)) : formatNigerianNaira(0)}
+                    </Text>
+                  </View>
+                </View>
+                {selectedPaymentMethod === 'cashback' && <Ionicons name="checkmark-circle" size={20} color={colors.primary} />}
+              </TouchableOpacity>
+            )}
+
+            <TouchableOpacity
+              className="rounded-xl py-3 sm:py-4 overflow-hidden bg-primary flex flex-row items-center justify-center gap-x-1 mb-4"
               onPress={handleProceed}
               activeOpacity={0.5}
               disabled={!user || isInsufficientFunds} 
-          >
+            >
               <LinearGradient
-                  colors={[colors.primary, '#e65bf8']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  className="absolute inset-0"
+                colors={[colors.primary, '#e65bf8']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                className="absolute inset-0"
               />
-              {!user && <Ionicons size={20} name='log-in-outline' color={'white'} />}
-              <Text className="text-primary-foreground text-lg font-bold">{user ? 'Proceed' : 'Login'}</Text>
-          </TouchableOpacity>
-        </View>
+              {!user && <Ionicons size={18} name='log-in-outline' color={'white'} />}
+              <Text className="text-primary-foreground text-base sm:text-lg font-bold">{user ? 'Proceed' : 'Login'}</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
       </BottomSheet>
 
       <PinPad

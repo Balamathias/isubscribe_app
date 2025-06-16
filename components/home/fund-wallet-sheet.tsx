@@ -30,9 +30,9 @@ export const CreditCard: React.FC<CreditCardProps> = ({
       className="rounded-2xl p-5 w-full md:w-1/2 min-h-[180px] overflow-hidden"
     >
       <View className="flex-row justify-between items-center mb-4">
-        <View className="flex-row items-center">
+        <View className="flex-row items-center flex-1 mr-2">
           <Ionicons name="card-outline" size={24} color="#fff" />
-          <Text className="text-white font-semibold text-lg ml-2">isubscribe Virtual</Text>
+          <Text className="text-white font-semibold text-lg ml-2 flex-wrap">isubscribe Virtual</Text>
         </View>
         <View className="flex-row">
           <View className="w-4 h-4 rounded-full bg-white/30 mr-1" />
@@ -41,19 +41,19 @@ export const CreditCard: React.FC<CreditCardProps> = ({
       </View>
       <Text className="text-white/80 text-xs mb-1">ACCOUNT NUMBER</Text>
       <View className="flex-row justify-between items-center">
-        <Text className="text-white font-bold text-2xl">{accountNumber}</Text>
+        <Text className="text-white font-bold text-2xl flex-1 mr-2 flex-wrap">{accountNumber}</Text>
         <TouchableOpacity onPress={onCopy} className="bg-white rounded-full p-3">
           <Ionicons name="copy-outline" size={20} color="#7B2FF2" />
         </TouchableOpacity>
       </View>
       <View className="flex-row justify-between items-start mt-4">
-        <View>
+        <View className="flex-1 mr-2">
           <Text className="text-white/80 text-xs mb-1">BANK NAME</Text>
-          <Text className="text-white font-semibold text-base">{bankName}</Text>
+          <Text className="text-white font-semibold flex-wrap text-sm sm:text-base">{bankName}</Text>
         </View>
-        <View className="items-end">
+        <View className="items-end flex-1">
           <Text className="text-white/80 text-xs mb-1">ACCOUNT NAME</Text>
-          <Text className="text-white font-semibold text-base text-right">{accountName}</Text>
+          <Text className="text-white font-semibold text-sm sm:text-base text-right flex-wrap">{accountName}</Text>
         </View>
       </View>
     </LinearGradient>

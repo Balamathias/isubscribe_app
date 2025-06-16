@@ -3,6 +3,7 @@ import { QUERY_KEYS, useGetAccount } from '@/services/account-hooks'
 import { Tables } from '@/types/database'
 import { formatNigerianNaira } from '@/utils/format-naira'
 import { Ionicons } from '@expo/vector-icons'
+import { useQueryClient } from '@tanstack/react-query'
 import * as Haptics from 'expo-haptics'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Link, router } from 'expo-router'
@@ -11,7 +12,6 @@ import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native'
 import Toast from 'react-native-toast-message'
 import { useSession } from '../session-context'
 import FundWalletBottomSheet from './fund-wallet-sheet'
-import { useQueryClient } from '@tanstack/react-query'
 
 interface Props {
 }
@@ -30,36 +30,47 @@ const WalletBox = ({}: Props) => {
   useEffect(() => {
     if (!user) return
 
-    const walletChannel = supabase.channel('wallet-update-channel')
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'wallet', filter: `user=eq.${user?.id}` },
-        (payload) => {
-          if (payload.new) {
-            const response = payload?.new as Tables<'wallet'>
-            setLocalWalletBalance(response.balance ?? 0)
-            
-            if (response.balance! > wallet?.balance!) {
-              Toast.show({
-                type: 'info',
-                text1: 'Wallet funded successfully.'
-              })
-              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+    try {
+      const walletChannel = supabase.channel(`@isubscribe:wallet-update-channel-${user.id}`)
+        .on(
+          'postgres_changes',
+          { event: 'UPDATE', schema: 'public', table: 'wallet', filter: `user=eq.${user?.id}` },
+          (payload) => {
+            try {
+              if (payload.new) {
+                const response = payload?.new as Tables<'wallet'>
+                setLocalWalletBalance(response.balance ?? 0)
+                
+                if (response.balance! > wallet?.balance!) {
+                  Toast.show({
+                    type: 'info',
+                    text1: 'Wallet funded successfully.'
+                  })
+                  Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+                }
+
+                queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.getLatestTransactions] })
+                queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.getTransactions] })
+                queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.getWalletBalance] })
+              }
+            } catch (error) {
+              console.error('Error processing wallet update:', error)
             }
-
-            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.getLatestTransactions] })
-            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.getTransactions] })
-            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.getWalletBalance] })
           }
+        )
+
+      walletChannel.subscribe()
+
+      return () => { 
+        try {
+          supabase.removeChannel(walletChannel)
+        } catch (error) {
+          console.error('Error removing wallet channel:', error)
         }
-      )
-
-    walletChannel.subscribe()
-
-    // supabase.removeChannel(walletChannel)
-
-    return () => { 
-      supabase.removeChannel(walletChannel)
+      }
+    } catch (error) {
+      console.error('Error setting up wallet channel:', error)
+      return () => {}
     }
   }, [user?.id, wallet?.balance])
 
@@ -138,7 +149,7 @@ const WalletBox = ({}: Props) => {
           {isPending ? (
             <ActivityIndicator size={13} color="#fff" style={{marginRight: 2}}/>
           ) : (
-            <Text className="text-white font-bold text-xl mr-1">{formatBonus(user ? wallet?.data_bonus! : '0.00 MB')}</Text>
+            <Text className="text-white font-bold text-xl mr-1">{formatBonus(user ? wallet?.data_bonus ?? '0.00 MB' : '0.00 MB')}</Text>
           )}
           <TouchableOpacity onPress={toggleBonus}>
             <Ionicons 

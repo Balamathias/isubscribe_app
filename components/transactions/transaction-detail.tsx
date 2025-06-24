@@ -125,7 +125,7 @@ const TransactionDetail = () => {
                   />
                 </View>
                 <Text className="text-2xl font-bold text-foreground mb-2">
-                  {formatNigerianNaira(transaction?.amount || 0)}
+                  {(transaction?.type === 'cashback' && transaction.meta_data && typeof transaction.meta_data === 'object' && 'data_bonus' in transaction.meta_data) ? String(transaction?.meta_data?.data_bonus) : formatNigerianNaira(transaction?.amount || 0)}
                 </Text>
                 <Text className="text-muted-foreground capitalize">
                   {transaction.status}

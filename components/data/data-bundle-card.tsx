@@ -1,4 +1,4 @@
-import { SuperPlansMB } from '@/services/accounts';
+import { SuperPlansMB } from '@/services/api';
 import { formatNigerianNaira } from '@/utils/format-naira';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams } from 'expo-router';

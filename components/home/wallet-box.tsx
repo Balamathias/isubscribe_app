@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase'
-import { QUERY_KEYS, useGetAccount } from '@/services/account-hooks'
+import { QUERY_KEYS, useGetAccount } from '@/services/api-hooks'
 import { Tables } from '@/types/database'
 import { formatNigerianNaira } from '@/utils/format-naira'
 import { Ionicons } from '@expo/vector-icons'

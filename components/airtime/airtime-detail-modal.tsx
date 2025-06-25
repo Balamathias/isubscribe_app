@@ -1,21 +1,20 @@
 import BottomSheet from '@/components/ui/bottom-sheet';
 import { COLORS } from '@/constants/colors';
+import { useLocalAuth } from '@/hooks/useLocalAuth';
+import { QUERY_KEYS, useProcessTransaction, useVerifyPin } from '@/services/api-hooks';
+import { formatDataAmount } from '@/utils';
 import { formatNigerianNaira } from '@/utils/format-naira';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
-import React, { useState } from 'react';
-import { ActivityIndicator, Alert, Text, TouchableOpacity, useColorScheme, View } from 'react-native';
-import PinPad from '../pin-pad';
-import { networks } from './buy-airtime';
-import Avatar from '../ui/avatar';
-import { useSession } from '../session-context';
-import { router } from 'expo-router';
-import { QUERY_KEYS, useProcessTransaction, useVerifyPin } from '@/services/account-hooks';
-import Toast from 'react-native-toast-message';
-import StatusModal from '../status-modal';
 import { useQueryClient } from '@tanstack/react-query';
-import { useLocalAuth } from '@/hooks/useLocalAuth';
-import { formatDataAmount } from '@/utils';
+import { LinearGradient } from 'expo-linear-gradient';
+import { router } from 'expo-router';
+import React, { useState } from 'react';
+import { ActivityIndicator, Text, TouchableOpacity, useColorScheme, View } from 'react-native';
+import PinPad from '../pin-pad';
+import { useSession } from '../session-context';
+import StatusModal from '../status-modal';
+import Avatar from '../ui/avatar';
+import { networks } from './buy-airtime';
 
 interface AirtimeDetailsModalProps {
   isVisible: boolean;
@@ -64,6 +63,7 @@ const AirtimeDetailsModal: React.FC<AirtimeDetailsModalProps> = ({
           onClose()
           queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.getWalletBalance]})
           queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.getLatestTransactions]})
+          queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.getBeneficiaries]})
         } else {
           setOpenStatusModal(true)
           onClose()
@@ -143,7 +143,7 @@ const AirtimeDetailsModal: React.FC<AirtimeDetailsModalProps> = ({
               <Text className="text-muted-foreground text-base">Product</Text>
               <View className="flex-row items-center">
                 <Text className="text-foreground font-semibold text-base mr-2">{network?.name}</Text>
-                <Avatar source={network?.logo} size={18} fallback={network?.id}/>
+                <Avatar resizeMode='contain' source={network?.logo} size={18} fallback={network?.id}/>
               </View>
             </View>
             <View className="flex-row justify-between mb-2">

@@ -1,14 +1,14 @@
-import React, { useRef } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, useColorScheme, ActivityIndicator, Share, Platform, Alert } from 'react-native';
-import { useGetTransaction } from '@/services/account-hooks';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { COLORS } from '@/constants/colors';
+import { useGetTransaction } from '@/services/api-hooks';
 import { formatNigerianNaira } from '@/utils/format-naira';
+import { Ionicons } from '@expo/vector-icons';
 import { format } from 'date-fns';
-import Header from './header';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useRef } from 'react';
+import { ActivityIndicator, Alert, Platform, ScrollView, Share, Text, TouchableOpacity, useColorScheme, View } from 'react-native';
 import ViewShot from 'react-native-view-shot';
+import Header from './header';
 
 const TransactionDetail = () => {
   const { id } = useLocalSearchParams();

@@ -107,6 +107,7 @@ export type Database = {
           frequency: number | null
           id: string
           last_used: string | null
+          network: string | null
           phone: string | null
           user: string | null
         }
@@ -115,6 +116,7 @@ export type Database = {
           frequency?: number | null
           id?: string
           last_used?: string | null
+          network?: string | null
           phone?: string | null
           user?: string | null
         }
@@ -123,6 +125,7 @@ export type Database = {
           frequency?: number | null
           id?: string
           last_used?: string | null
+          network?: string | null
           phone?: string | null
           user?: string | null
         }
@@ -626,6 +629,51 @@ export type Database = {
           },
         ]
       }
+      vtpass: {
+        Row: {
+          commission: number | null
+          created_at: string
+          duration: string | null
+          id: number
+          is_active: boolean | null
+          is_hidden: boolean | null
+          name: string | null
+          network: string | null
+          price: number | null
+          quantity: string | null
+          service_id: string | null
+          value: string | null
+        }
+        Insert: {
+          commission?: number | null
+          created_at?: string
+          duration?: string | null
+          id?: number
+          is_active?: boolean | null
+          is_hidden?: boolean | null
+          name?: string | null
+          network?: string | null
+          price?: number | null
+          quantity?: string | null
+          service_id?: string | null
+          value?: string | null
+        }
+        Update: {
+          commission?: number | null
+          created_at?: string
+          duration?: string | null
+          id?: number
+          is_active?: boolean | null
+          is_hidden?: boolean | null
+          name?: string | null
+          network?: string | null
+          price?: number | null
+          quantity?: string | null
+          service_id?: string | null
+          value?: string | null
+        }
+        Relationships: []
+      }
       wallet: {
         Row: {
           balance: number | null
@@ -747,6 +795,14 @@ export type Database = {
           recipient_wallet_id: string
           amount: number
         }
+        Returns: undefined
+      }
+      update_cashback_balance: {
+        Args: { user_id: string; cashback: number }
+        Returns: undefined
+      }
+      update_wallet_balance: {
+        Args: { user_id: string; amount: number; charge_from?: string }
         Returns: undefined
       }
     }

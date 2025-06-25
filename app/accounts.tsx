@@ -1,11 +1,11 @@
-import { View, Text, ActivityIndicator, Clipboard, ToastAndroid, Platform } from 'react-native'
-import React from 'react'
-import { useGetAccount } from '@/services/account-hooks'
-import { COLORS } from '@/constants/colors'
 import FundWalletBottomSheet, { CreditCard } from '@/components/home/fund-wallet-sheet'
-import Toast from 'react-native-toast-message'
 import Header from '@/components/transactions/header'
+import { COLORS } from '@/constants/colors'
+import { useGetAccount } from '@/services/api-hooks'
+import React from 'react'
+import { ActivityIndicator, Clipboard, Platform, ToastAndroid, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import Toast from 'react-native-toast-message'
 
 const Accounts = () => {
   const [showFundWalletBottomSheet, setShowFundWalletBottomSheet] = React.useState(false);

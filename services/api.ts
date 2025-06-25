@@ -198,6 +198,27 @@ export const processTransaction = async (transactionData: Record<string, any>): 
     }
 }
 
+export const getBeneficiaries = async (limit: number = 5): Promise<Response<Tables<'beneficiaries'>[]>> => {
+    try {
+        const { data, status } = await microservice.get('/mobile/beneficiaries/', {
+            params: {
+                limit
+            }
+        })
+        return data
+    } catch (error: any) {
+        return {
+            data: [],
+            error: {
+                message: error?.response?.data?.message || error?.message
+            },
+            status: error?.response?.status,
+            message: error?.response?.data?.message || error?.message
+        }
+    }
+}
+
+
 export interface SuperPlansMB extends Tables<'n3t'> {
     data_bonus: string
 }
@@ -268,3 +289,4 @@ export const getNotifications = async () => {
 
     return { data }
 }
+

@@ -10,6 +10,7 @@ import { router } from "expo-router";
 import { useCallback, useEffect } from "react";
 import { RefreshControl, ScrollView, useColorScheme, View } from "react-native";
 
+
 export default function Index() {
   const colorScheme = useColorScheme()
   const theme = colorScheme === 'dark' ? 'dark' : 'light'

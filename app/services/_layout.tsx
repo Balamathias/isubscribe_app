@@ -7,10 +7,14 @@ const Layout = () => {
     <Stack>
         <Stack.Screen
             name='data'
-            options={{ headerShown: false }}
+            options={{ headerShown: false,  }}
         />
         <Stack.Screen
             name='airtime'
+            options={{ headerShown: false, }}
+        />
+        <Stack.Screen
+            name='electricity'
             options={{ headerShown: false }}
         />
     </Stack>

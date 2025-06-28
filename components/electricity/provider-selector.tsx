@@ -15,14 +15,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import LoadingSpinner from '../ui/loading-spinner';
 
 const providers = [
-  { id: 'ikeja', name: 'Ikeja Electricity', logo: require('../../assets/services/mtn.png') },
-  { id: 'eko', name: 'Eko Electricity', logo: require('../../assets/services/glo.png') },
-  { id: 'kano', name: 'Kano Electricity', logo: require('../../assets/services/airtel.png') },
-  { id: 'ph', name: 'Port Harcourt Electricity', logo:require('../../assets/services/mtn.png') },
-  { id: 'jos', name: 'Jos Electricity', logo: require('../../assets/services/glo.png') },
-  { id: 'ibadan', name: 'Ibadan Electricity', logo: require('../../assets/services/airtel.png') },
-  { id: 'kaduna', name: 'Kaduna Electricity', logo: require('../../assets/services/mtn.png') },
-  { id: 'abuja', name: 'Abuja Electricity', logo: require('../../assets/services/glo.png') },
+  { id: 'ikeja', name: 'Ikeja Electricity', logo: require('../../assets/services/electricity/ikeja.jpeg') },
+  { id: 'eko', name: 'Eko Electricity', logo: require('../../assets/services/electricity/eko.png') },
+  { id: 'kano', name: 'Kano Electricity', logo: require('../../assets/services/electricity/kano.png') },
+  { id: 'ph', name: 'Port Harcourt Electricity', logo:require('../../assets/services/electricity/port.jpeg') },
+  { id: 'jos', name: 'Jos Electricity', logo: require('../../assets/services/electricity/jos.jpeg') },
+  { id: 'ibadan', name: 'Ibadan Electricity', logo: require('../../assets/services/electricity/ibadan.jpeg') },
+  { id: 'kaduna', name: 'Kaduna Electricity', logo: require('../../assets/services/electricity/kaduna.jpeg') },
+  { id: 'abuja', name: 'Abuja Electricity', logo: require('../../assets/services/electricity/abuja.png') },
 ];
 
 interface Props {
@@ -52,8 +52,8 @@ const ProviderSelector: React.FC<Props> = ({ selectedProvider, onSelect }) => {
       >
         <View className=' flex flex-row items-center gap-2'>
           <Image
-            source={selectedProvider?.logo || providers?.[1]?.logo}
-            className="w-8 h-8 rounded-full"
+            source={selectedProvider?.logo || providers?.[7]?.logo}
+            className="w-8 h-8 rounded-full bg-gray-100"
             resizeMode="contain"
           />
           <Text className="text-base font-medium">
@@ -67,8 +67,8 @@ const ProviderSelector: React.FC<Props> = ({ selectedProvider, onSelect }) => {
 
       {/* Modal Drawer */}
       <Modal visible={isModalVisible} animationType="slide" onRequestClose={() => setModalVisible(false)}   transparent={true} className="flex-1 justify-end bg-black/50">
-        <SafeAreaView  className="flex-1 bg-black/50 bg-opacity-50 justify-end my-2 ">
-        <LoadingSpinner isPending />
+        <SafeAreaView  className="flex-1 bg-black/50 bg-opacity-50 justify-end ">
+        <LoadingSpinner isPending={false} />
           <View className="bg-white rounded-t-2xl p-4 max-h-[85%] ">
             {/* Search */}
             <View className="flex-row items-center bg-[#f1f1f1] px-4 py-2 rounded-lg mb-4">

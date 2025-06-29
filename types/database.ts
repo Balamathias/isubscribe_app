@@ -216,6 +216,36 @@ export type Database = {
           },
         ]
       }
+      electricity: {
+        Row: {
+          alias: string | null
+          created_at: string
+          id: number
+          metadata: Json | null
+          name: string | null
+          service_id: string | null
+          thumbnail: string | null
+        }
+        Insert: {
+          alias?: string | null
+          created_at?: string
+          id?: number
+          metadata?: Json | null
+          name?: string | null
+          service_id?: string | null
+          thumbnail?: string | null
+        }
+        Update: {
+          alias?: string | null
+          created_at?: string
+          id?: number
+          metadata?: Json | null
+          name?: string | null
+          service_id?: string | null
+          thumbnail?: string | null
+        }
+        Relationships: []
+      }
       epins: {
         Row: {
           created_at: string

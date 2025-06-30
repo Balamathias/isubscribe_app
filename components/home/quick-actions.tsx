@@ -9,7 +9,7 @@ const actions = [
   { name: 'Data', icon: 'wifi-outline', href: `/services/data` },
   { name: 'Airtime', icon: 'call-outline', href: `/services/airtime` },
   { name: 'Electricity', icon: 'bulb-outline', href: `/services/electricity` },
-  { name: 'TV Cable', icon: 'tv-outline', href: `/services/tv` },
+  { name: 'TV Cable', icon: 'tv-outline', href: `/services/tv-cable` },
   { name: 'Education', icon: 'school-outline', href: `/services/education` },
   { name: 'Inter-Send', icon: 'swap-vertical-outline', href: `/services/transfer` },
   { name: 'Share & Earn', icon: 'gift-outline', href: `/services/share` },

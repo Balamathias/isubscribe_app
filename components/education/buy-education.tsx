@@ -15,17 +15,17 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import * as z from 'zod';
 import { COLORS } from '@/constants/colors';
-import ProviderSelector from './provider-selector';
 import { useSession } from '../session-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import LoadingSpinner from '../ui/loading-spinner';
+import EducationTypeSelector from './education-type-selector';
 
 const electricitySchema = z.object({
   phoneNumber: z
     .string()
     .min(10, 'Phone number must be at least 10 digits')
     .regex(/^[0-9]+$/, 'Phone number must contain only digits'),
-  meterNumber: z
+  profileCode: z
     .string()
     .min(5, 'Meter number is required'),
   amount: z
@@ -35,10 +35,10 @@ const electricitySchema = z.object({
 
 type ElectricityFormInputs = z.infer<typeof electricitySchema>;
 
-const BuyElectricityScreen = () => {
-  const [isPrepaid, setIsPrepaid] = useState(true);
+const BuyEducationScreen = () => {
+  const [isUTME, setIsUTME] = useState(true);
   const [isPending, setIsPending] = useState(false);
-  const [selectedProvider, setSelectedProvider] = useState<string | null>('abuja');
+  const [selectedProvider, setSelectedProvider] = useState<string | null>('waec');
   const { user, refetchDataPlans, loadingDataPlans } = useSession();
 
   const {
@@ -52,10 +52,12 @@ const BuyElectricityScreen = () => {
     resolver: zodResolver(electricitySchema),
     defaultValues: {
       phoneNumber: user?.user_metadata?.phone || '',
-      meterNumber: '',
-      amount: '',
+      profileCode: '',
+      amount: selectedProvider === "jamb" ? "4500" : "3500" ,
     },
   });
+
+//   console.log("selectedProvider:", selectedProvider);
 
   const onSubmit = (data: ElectricityFormInputs) => {
     if (!selectedProvider) {
@@ -64,10 +66,15 @@ const BuyElectricityScreen = () => {
     }
 
     const payload = {
-            billersCode: data.meterNumber,
+       billersCode: data.profileCode,
             phone: data.phoneNumber,
-            serviceID:selectedProvider,
-            variation_code:isPrepaid ? 'prepaid' : 'postpaid',
+            serviceID: selectedProvider === "jamb" ? "jamb" : "waec",
+            variation_code:
+                selectedProvider === "jamb"
+                    ? isUTME
+                        ? "utme"
+                        : "de"
+                    : "waecdirect",
             amount: data.amount,
     };
 
@@ -93,59 +100,60 @@ const BuyElectricityScreen = () => {
         
         {/* Provider */}
         <View className="bg-white rounded-xl p-4 mb-4 shadow-sm">
-          <ProviderSelector
+          <EducationTypeSelector
             selectedProvider={selectedProvider}
             onSelect={setSelectedProvider}
           />
         </View>
 
-        {/* Prepaid / Postpaid Toggle */}
-        <View className="bg-white rounded-xl p-4 flex-row items-center justify-end gap-4 mb-4 shadow-sm">
-          <Text className="text-base font-semibold text-gray-800">Prepaid</Text>
-          {/* <Switch
-            value={!isPrepaid}
-            onValueChange={() => setIsPrepaid(prev => !prev)}
-            trackColor={{ false: '#ccc', true: '#a855f7' }}
-            thumbColor="#fff"
-          /> */}
-           <TouchableOpacity
-                className={`w-10 h-6 rounded-full justify-center ${
-                  isPrepaid === true
-                    ? 'bg-purple-600'
-                    : 'bg-purple-600'
-                }`}
-                onPress={() => setIsPrepaid(prev => !prev)}
-              >
-                <View
-                  className={`w-4 h-4 rounded-full bg-white ${
-                    isPrepaid === false
-                      ? 'ml-auto mr-1'
-                      : 'ml-1'
-                  }`}
-                />
-             </TouchableOpacity>
-          <Text className="text-base font-semibold text-gray-800">Postpaid</Text>
-        </View>
+        {/* Profile code  / Jamb type only for Jamb */}
+        {
+            selectedProvider === "jamb" && 
+            (
+                <>
+                <View className="bg-white rounded-xl p-4 flex-row items-center justify-end gap-4 mb-4 shadow-sm">
+                <Text className="text-base font-semibold text-gray-800">UTME</Text>
+                <TouchableOpacity
+                        className={`w-10 h-6 rounded-full justify-center ${
+                        isUTME === true
+                            ? 'bg-purple-600'
+                            : 'bg-purple-600'
+                        }`}
+                        onPress={() => setIsUTME(prev => !prev)}
+                    >
+                        <View
+                        className={`w-4 h-4 rounded-full bg-white ${
+                            isUTME === false
+                            ? 'ml-auto mr-1'
+                            : 'ml-1'
+                        }`}
+                        />
+                    </TouchableOpacity>
+                <Text className="text-base font-semibold text-gray-800">DE</Text>
+                </View>
 
-        {/* Meter Number */}
-        <View className="bg-white rounded-xl p-4 mb-4 shadow-sm">
-          <Text className="text-sm font-medium text-gray-700 mb-2">📟 Meter Number:</Text>
-          <Controller
-            control={control}
-            name="meterNumber"
-            render={({ field: { onChange, value } }) => (
-              <TextInput
-                placeholder="Enter Meter Number here."
-                value={value}
-                onChangeText={onChange}
-                className="border border-gray-300 rounded-lg px-4 py-2 text-sm"
-              />
-            )}
-          />
-          {errors.meterNumber && (
-            <Text className="text-red-500 text-xs mt-1">{errors.meterNumber.message}</Text>
-          )}
-        </View>
+                <View className="bg-white rounded-xl p-4 mb-4 shadow-sm">
+                <Text className="text-sm font-medium text-gray-700 mb-2">👤 Profile Code:</Text>
+                <Controller
+                    control={control}
+                    name="profileCode"
+                    render={({ field: { onChange, value } }) => (
+                    <TextInput
+                        placeholder="Enter your profile code here."
+                        value={value}
+                        onChangeText={onChange}
+                        className="border border-gray-300 rounded-lg px-4 py-2 text-sm"
+                    />
+                    )}
+                />
+                {errors.profileCode && (
+                    <Text className="text-red-500 text-xs mt-1">{errors.profileCode.message}</Text>
+                )}
+                </View>
+                </>
+
+            )
+        }
 
         {/* Phone Number */}
         <View className="bg-white rounded-xl p-4 mb-4 shadow-sm">
@@ -169,22 +177,13 @@ const BuyElectricityScreen = () => {
         </View>
 
         {/* Amount */}
-        <View className="bg-white rounded-xl p-4 mb-4 shadow-sm">
-          <TextInput
-            placeholder="₦ Enter Amount here"
-            keyboardType="numeric"
-            onChangeText={text => setValue('amount', text)}
-            className="border border-gray-300 rounded-lg px-4 py-3 text-center text-base font-medium"
-          />
-          {errors.amount && (
-            <Text className="text-red-500 text-xs mt-1">{errors.amount.message}</Text>
-          )}
-        </View>
-
+        <View className="bg-white flex flex-col gap-4 rounded-xl p-4 mb-4 shadow-sm">
+         <Text className=' text-lg font-bold text-black'>Amount to pay:</Text>
+         <Text  className="border border-gray-500 rounded-lg px-4 py-3 text-lg font-bold" >₦ {selectedProvider === "jamb" ? "4,500.00" : "3,500.00"}</Text>
         {/* Continue Button */}
        <TouchableOpacity
           onPress={handleSubmit(onSubmit)}
-          className="rounded-full mt-6 overflow-hidden"
+          className="rounded-full mt-4 overflow-hidden"
         >
          <LinearGradient
             colors={['#7B2FF2', '#F357A8']}
@@ -199,10 +198,13 @@ const BuyElectricityScreen = () => {
             )}
           </LinearGradient>
         </TouchableOpacity>
+        </View>
+
       </ScrollView>
     </SafeAreaView>
   );
 };
 
-export default BuyElectricityScreen;
+export default BuyEducationScreen;
+
 

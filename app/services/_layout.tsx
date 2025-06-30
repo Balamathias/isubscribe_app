@@ -17,6 +17,14 @@ const Layout = () => {
             name='electricity'
             options={{ headerShown: false }}
         />
+        <Stack.Screen
+            name='tv-cable'
+            options={{ headerShown: false }}
+        />
+        <Stack.Screen
+            name='education'
+            options={{ headerShown: false }}
+        />
     </Stack>
   )
 }

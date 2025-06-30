@@ -11,6 +11,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LoadingSpinner from '../ui/loading-spinner';
+import { TextInput } from 'react-native';
 
 interface PlanItem {
   variation_code: string;
@@ -31,6 +32,11 @@ interface Props {
 
 const TvPlanSelector: React.FC<Props> = ({ selectedProviderId, plans, selectedPlan, onSelectPlan, setSelectedPlan }) => {
   const [modalVisible, setModalVisible] = useState(false);
+   const [search, setSearch] = useState('');
+  
+    const filteredPlans = plans.filter(p =>
+      p.name.toLowerCase().includes(search.toLowerCase())
+    );
 
   const handleSelect = (plan: PlanItem) => {
     setSelectedPlan(plan);
@@ -64,8 +70,22 @@ const TvPlanSelector: React.FC<Props> = ({ selectedProviderId, plans, selectedPl
           {/* <LoadingSpinner isPending /> */}
 
           <View className="bg-white rounded-t-2xl p-4 max-h-[85%] ">
+             {/* Search */}
+            <View className="flex-row items-center bg-[#f1f1f1] px-4 py-2 rounded-lg mb-4">
+              <Ionicons name="search" size={20} color="#999" />
+              <TextInput
+                placeholder="Filter plans..."
+                className="ml-2 flex-1 text-sm"
+                value={search}
+                onChangeText={setSearch}
+              />
+              <TouchableOpacity onPress={() => setModalVisible(false)}>
+                <Ionicons name="close" size={20} />
+              </TouchableOpacity>
+            </View>
+
             <FlatList
-              data={plans}
+              data={filteredPlans}
               keyExtractor={(item) => item.variation_code}
               renderItem={({ item }) => (
                 <TouchableOpacity

@@ -27,7 +27,7 @@ const electricitySchema = z.object({
     .regex(/^[0-9]+$/, 'Phone number must contain only digits'),
   profileCode: z
     .string()
-    .min(5, 'Meter number is required'),
+    .min(5, 'Profile code is required'),
   amount: z
     .string()
     .min(1, 'Amount is required'),

@@ -1,18 +1,19 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { 
-    getAccount, 
-    generatePalmpayAccount, 
-    getUserProfile,
-    getWalletBalance, 
-    getLatestTransactions, 
-    getTransactions, 
-    processTransaction, 
-    verifyPin, 
-    listDataPlans,
+import {
+    generatePalmpayAccount,
+    getAccount,
+    getBeneficiaries,
+    getLatestTransactions,
+    getNotifications,
     getTransaction,
+    getTransactions,
+    getUserProfile,
+    getWalletBalance,
+    listDataPlans,
+    processTransaction,
     verifyPhone,
-    getNotifications
-} from "./accounts";
+    verifyPin
+} from "./api";
 
 export const QUERY_KEYS = {
     getAccount: 'getAccount',
@@ -26,7 +27,8 @@ export const QUERY_KEYS = {
     verifyPin: 'verifyPin',
     listDataPlans: 'listDataPlans',
     verifyPhone: 'verifyPhone',
-    getNotifications: 'getNotifications'
+    getNotifications: 'getNotifications',
+    getBeneficiaries: 'getBeneficiaries'
 } as const
 
 export const useGetAccount = (id?: string) => useQuery({
@@ -91,5 +93,11 @@ export const useVerifyPhone = () => useMutation({
 export const useGetNotifications = () => useQuery({
     queryKey: [QUERY_KEYS.getNotifications],
     queryFn: getNotifications,
+    refetchOnMount: true
+})
+
+export const useGetBeneficiaries = (limit: number = 5) => useQuery({
+    queryKey: [QUERY_KEYS.getBeneficiaries, limit],
+    queryFn: () => getBeneficiaries(limit),
     refetchOnMount: true
 })

@@ -1,10 +1,10 @@
-import { createContext, useContext, useEffect, useState } from 'react'
-import { Session, User } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
-import SplashScreen from './splash-screen'
-import { useGetLatestTransactions, useGetWalletBalance, useListDataPlans, useGetUserProfile } from '@/services/account-hooks'
-import { ListDataPlans, WalletBalance } from '@/services/accounts'
+import { ListDataPlans, WalletBalance } from '@/services/api'
+import { useGetBeneficiaries, useGetLatestTransactions, useGetUserProfile, useGetWalletBalance, useListDataPlans } from '@/services/api-hooks'
 import { Tables } from '@/types/database'
+import { Session, User } from '@supabase/supabase-js'
+import { createContext, useContext, useEffect, useState } from 'react'
+import SplashScreen from './splash-screen'
 
 interface SessionContextType {
   session: Session | null
@@ -22,6 +22,9 @@ interface SessionContextType {
   profile: Tables<'profile'> | null,
   refetchProfile: () => void,
   loadingProfile: boolean,
+  beneficiaries?: Tables<'beneficiaries'>[] | null,
+  refetchBeneficiaries?: () => void,
+  loadingBeneficiaries?: boolean,
 }
 
 const SessionContext = createContext<SessionContextType>({
@@ -40,6 +43,9 @@ const SessionContext = createContext<SessionContextType>({
   profile: null,
   refetchProfile: () => {},
   loadingProfile: false,
+  beneficiaries: null,
+  refetchBeneficiaries: () => {},
+  loadingBeneficiaries: false,
 })
 
 export const SessionProvider = ({ children }: { children: React.ReactNode }) => {
@@ -50,6 +56,7 @@ export const SessionProvider = ({ children }: { children: React.ReactNode }) => 
   const { data: latestTransactions, isPending: loadingTransactions, refetch: refetchTransactions } = useGetLatestTransactions()
   const { data: dataPlans, isPending: loadingDataPlans, refetch: refetchDataPlans } = useListDataPlans()
   const { data: profile, isPending: loadingProfile, refetch: refetchProfile } = useGetUserProfile()
+  const { data: beneficiaries, isPending: loadingBeneficiaries, refetch: refetchBeneficiaries } = useGetBeneficiaries()
 
   useEffect(() => {
     const initializeSession = async () => {
@@ -86,6 +93,7 @@ export const SessionProvider = ({ children }: { children: React.ReactNode }) => 
         latestTransactions: latestTransactions?.data || null, refetchTransactions, loadingTransactions,
         dataPlans: dataPlans?.data || null, refetchDataPlans, loadingDataPlans,
         profile: profile?.data || null, refetchProfile, loadingProfile,
+        beneficiaries: beneficiaries?.data || null, refetchBeneficiaries, loadingBeneficiaries
       }}
     >
       {children}

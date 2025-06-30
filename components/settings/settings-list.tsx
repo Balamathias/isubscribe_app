@@ -1,15 +1,14 @@
-import { View, Text, Switch, Pressable, ScrollView, ActivityIndicator } from 'react-native';
-import { useColorScheme } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useLocalAuth } from '@/hooks/useLocalAuth';
-import { useSignOut } from '@/services/auth-hooks';
-import { useQueryClient } from '@tanstack/react-query';
-import { QUERY_KEYS } from '@/services/account-hooks';
-import { router } from 'expo-router';
-import Toast from 'react-native-toast-message';
 import { COLORS } from '@/constants/colors';
-import { useSession } from '../session-context';
+import { useLocalAuth } from '@/hooks/useLocalAuth';
 import { supabase } from '@/lib/supabase';
+import { QUERY_KEYS } from '@/services/api-hooks';
+import { useSignOut } from '@/services/auth-hooks';
+import { Ionicons } from '@expo/vector-icons';
+import { useQueryClient } from '@tanstack/react-query';
+import { router } from 'expo-router';
+import { ActivityIndicator, Pressable, ScrollView, Switch, Text, useColorScheme, View } from 'react-native';
+import Toast from 'react-native-toast-message';
+import { useSession } from '../session-context';
 
 export function SettingsList() {
   const colorScheme = useColorScheme();

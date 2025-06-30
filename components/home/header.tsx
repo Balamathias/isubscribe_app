@@ -1,14 +1,14 @@
 import { COLORS } from '@/constants/colors'
+import { useGetNotifications } from '@/services/api-hooks'
 import { Ionicons } from '@expo/vector-icons'
+import { format } from 'date-fns'
 import { router, Tabs } from 'expo-router'
 import React, { useState } from 'react'
-import { Text, TouchableOpacity, useColorScheme, View, ScrollView } from 'react-native'
+import { ScrollView, Text, TouchableOpacity, useColorScheme, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import Avatar from '../ui/avatar'
 import { useSession } from '../session-context'
+import Avatar from '../ui/avatar'
 import BottomSheet from '../ui/bottom-sheet'
-import { useGetNotifications } from '@/services/account-hooks'
-import { format } from 'date-fns'
 
 const Header = () => {
   const colorScheme = useColorScheme()

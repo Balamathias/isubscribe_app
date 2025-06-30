@@ -28,7 +28,7 @@ const BuyDataScreen = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedBundleDetails, setSelectedBundleDetails] = useState<any | null>(null);
 
-  const { user, dataPlans, refetchDataPlans, loadingDataPlans } = useSession()
+  const { user, dataPlans, refetchDataPlans, loadingDataPlans, refetchBeneficiaries } = useSession()
 
   const { control, handleSubmit, formState: { errors }, setValue, getValues, trigger, watch } = useForm<BuyDataFormInputs>({
     resolver: zodResolver(buyDataSchema),
@@ -100,8 +100,6 @@ const BuyDataScreen = () => {
     alert('Data purchase initiated! Check console for payload.');
   };
 
-  const currentBundles = dataBundles[activeCategory] || [];
-
   const bundles = ((dataPlans?.[activeCategory] || []) as any)?.filter((plan: any) => plan?.network === (selectedNetworkId === '9mobile' ? 'etisalat' : selectedNetworkId))
 
   return (
@@ -162,7 +160,10 @@ const BuyDataScreen = () => {
                 }
               </Text>
               <TouchableOpacity 
-                onPress={refetchDataPlans}
+                onPress={() => {
+                  refetchDataPlans();
+                  refetchBeneficiaries?.();
+                }}
                 className="mt-4 bg-primary/10 px-4 py-2 rounded-lg flex-row items-center justify-center"
                 disabled={loadingDataPlans}
               >
@@ -208,46 +209,11 @@ const BuyDataScreen = () => {
 
 
 export const networks = [
-    { id: 'mtn', name: 'MTN', logo: require('../../assets/services/mtn.png') },
-    { id: 'glo', name: 'GLO', logo: require('../../assets/services/glo.png') },
-    { id: 'airtel', name: 'Airtel', logo: require('../../assets/services/airtel.png') },
-    { id: '9mobile', name: '9MOBILE', logo: require('../../assets/services/9mobile.png') },
+    { id: 'mtn', name: 'MTN', logo: require('@/assets/services/mtn.png') },
+    { id: 'glo', name: 'GLO', logo: require('@/assets/services/glo.png') },
+    { id: 'airtel', name: 'Airtel', logo: require('@/assets/services/airtel.png') },
+    { id: '9mobile', name: '9MOBILE', logo: require('@/assets/services/9mobile.png') },
 ];
 
-export const dataBundles = {
-    Super: [
-        { id: 'super-1gb-1day', size: '1GB', duration: '1 Day', price: 245, bonusMb: 3.41 },
-        { id: 'super-2gb-1day', size: '2GB', duration: '1 Day', price: 385, bonusMb: 6.83 },
-        { id: 'super-3.5gb-2days', size: '3.5GB', duration: '2 Days', price: 650, bonusMb: 20.48 },
-        { id: 'super-15gb-7days', size: '15GB', duration: '7 Days', price: 2700, bonusMb: 51.21 },
-        { id: 'super-200mb-30days', size: '200MB', duration: '30 Days', price: 120, bonusMb: 3.41 },
-        { id: 'super-500mb-30days', size: '500MB', duration: '30 Days', price: 235, bonusMb: 3.41 },
-        { id: 'super-1gb-30days', size: '1GB', duration: '30 Days', price: 470, bonusMb: 6.83 },
-        { id: 'super-2gb-30days', size: '2GB', duration: '30 Days', price: 950, bonusMb: 13.66 },
-        { id: 'super-3gb-30days', size: '3GB', duration: '30 Days', price: 1390, bonusMb: 20.48 },
-        { id: 'super-5gb-30days', size: '5GB', duration: '30 Days', price: 2300, bonusMb: 17.07 },
-        { id: 'super-10gb-30days', size: '10GB', duration: '30 Days', price: 4600, bonusMb: 34.14 },
-    ],
-    Best: [
-        { id: 'best-10gb-30days', size: '10GB', duration: '30days', price: 4600, bonusMb: 145.09 },
-        { id: 'best-1.5gb-30days', size: '1.5GB', duration: '30days', price: 326, bonusMb: 9.59 },
-        { id: 'best-2.5gb-30days', size: '2.5GB', duration: '30days', price: 513, bonusMb: 15.98 },
-        { id: 'best-750mb-1day', size: '750MB', duration: '1day', price: 222, bonusMb: 6.38 },
-        { id: 'best-10gb-7days', size: '10GB', duration: '7days', price: 2100, bonusMb: 63.84 },
-        { id: 'best-1gb-30days', size: '1GB', duration: '30days', price: 460, bonusMb: 14.51 },
-        { id: 'best-500mb-30days', size: '500MB', duration: '30days', price: 250, bonusMb: 7.27 },
-        { id: 'best-2gb-30days', size: '2GB', duration: '30days', price: 925, bonusMb: 29.02 },
-        { id: 'best-3gb-30days', size: '3GB', duration: '30days', price: 1380, bonusMb: 43.53 },
-        { id: 'best-5gb-30days', size: '5GB', duration: '30days', price: 2350, bonusMb: 72.55 },
-        { id: 'best-200mb-14days', size: '200MB', duration: '14days', price: 180, bonusMb: 5.12 },
-        { id: 'best-1gb-3days', size: '1GB', duration: '3days', price: 325, bonusMb: 9.46 },
-        { id: 'best-1gb-7days', size: '1GB', duration: '7days', price: 365, bonusMb: 11.03 },
-    ],
-    Regular: [
-        { id: 'reg-1gb-1day', size: '1GB', duration: '1 Day', price: 250, bonusMb: 0 },
-        { id: 'reg-2gb-1day', size: '2GB', duration: '1 Day', price: 400, bonusMb: 0 },
-    ],
-};
-    
 
 export default BuyDataScreen; 

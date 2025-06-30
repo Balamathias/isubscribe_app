@@ -1,12 +1,12 @@
+import PinPad from '@/components/pin-pad'
 import { useSession } from '@/components/session-context'
-import { router } from 'expo-router'
+import { QUERY_KEYS, useVerifyPin } from '@/services/api-hooks'
+import { useQueryClient } from '@tanstack/react-query'
+import { Redirect, router } from 'expo-router'
 import React, { useState } from 'react'
 import { ScrollView, Text, View } from 'react-native'
-import PinPad from '@/components/pin-pad'
-import { QUERY_KEYS, useVerifyPin } from '@/services/account-hooks'
-import Toast from 'react-native-toast-message'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { useQueryClient } from '@tanstack/react-query'
+import Toast from 'react-native-toast-message'
 
 const OnboardingScreen = () => {
   const { session } = useSession()
@@ -14,7 +14,7 @@ const OnboardingScreen = () => {
   const [firstPin, setFirstPin] = useState('')
   const { mutate: verifyPin, isPending } = useVerifyPin()
 
-  if (!session) return router.replace(`/`)
+  if (!session) return <Redirect href="/auth/login" />
 
   const queryClient = useQueryClient()
 

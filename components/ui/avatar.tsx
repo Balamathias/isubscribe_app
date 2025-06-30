@@ -8,6 +8,7 @@ interface AvatarProps {
   size?: number;
   fallback?: string;
   className?: string;
+  resizeMode?: 'cover' | 'contain' | 'stretch' | 'repeat' | 'center';
 }
 
 const Avatar: React.FC<AvatarProps> = ({
@@ -15,6 +16,7 @@ const Avatar: React.FC<AvatarProps> = ({
   size = 40,
   fallback = '👤',
   className = '',
+  resizeMode = 'cover',
 }) => {
   return (
     <View
@@ -27,6 +29,7 @@ const Avatar: React.FC<AvatarProps> = ({
           style={{ width: '100%', height: '100%' }}
           contentFit="cover"
           transition={200}
+          resizeMode={resizeMode}
         />
       ) : (
         <View className="w-full h-full items-center justify-center">

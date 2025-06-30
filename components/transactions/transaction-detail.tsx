@@ -1,14 +1,14 @@
-import React, { useRef } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, useColorScheme, ActivityIndicator, Share, Platform, Alert } from 'react-native';
-import { useGetTransaction } from '@/services/account-hooks';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { COLORS } from '@/constants/colors';
+import { useGetTransaction } from '@/services/api-hooks';
 import { formatNigerianNaira } from '@/utils/format-naira';
+import { Ionicons } from '@expo/vector-icons';
 import { format } from 'date-fns';
-import Header from './header';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useRef } from 'react';
+import { ActivityIndicator, Alert, Platform, ScrollView, Share, Text, TouchableOpacity, useColorScheme, View } from 'react-native';
 import ViewShot from 'react-native-view-shot';
+import Header from './header';
 
 const TransactionDetail = () => {
   const { id } = useLocalSearchParams();
@@ -125,7 +125,7 @@ const TransactionDetail = () => {
                   />
                 </View>
                 <Text className="text-2xl font-bold text-foreground mb-2">
-                  {formatNigerianNaira(transaction?.amount || 0)}
+                  {(transaction?.type === 'cashback' && transaction.meta_data && typeof transaction.meta_data === 'object' && 'data_bonus' in transaction.meta_data) ? String(transaction?.meta_data?.data_bonus) : formatNigerianNaira(transaction?.amount || 0)}
                 </Text>
                 <Text className="text-muted-foreground capitalize">
                   {transaction.status}

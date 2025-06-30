@@ -1,11 +1,10 @@
-import { Tables } from '@/types/database';
+import { COLORS } from '@/constants/colors';
+import { useGetAccount } from '@/services/api-hooks';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
-import { Modal, Text, TouchableOpacity, View, Clipboard, ToastAndroid, Platform, ActivityIndicator } from 'react-native';
+import { ActivityIndicator, Clipboard, Modal, Platform, Text, ToastAndroid, TouchableOpacity, View } from 'react-native';
 import Toast from 'react-native-toast-message';
-import { useGetAccount } from '@/services/account-hooks'
-import { COLORS } from '@/constants/colors'
 
 interface CreditCardProps {
   colors: string[];

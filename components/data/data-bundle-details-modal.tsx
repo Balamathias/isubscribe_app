@@ -1,20 +1,20 @@
 import BottomSheet from '@/components/ui/bottom-sheet';
 import { COLORS } from '@/constants/colors';
+import { useLocalAuth } from '@/hooks/useLocalAuth';
+import { SuperPlansMB } from '@/services/api';
+import { QUERY_KEYS, useProcessTransaction, useVerifyPin } from '@/services/api-hooks';
 import { formatNigerianNaira } from '@/utils/format-naira';
 import { Ionicons } from '@expo/vector-icons';
+import { useQueryClient } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
+import { router, useLocalSearchParams } from 'expo-router';
 import React, { useState } from 'react';
 import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, useColorScheme, View } from 'react-native';
 import PinPad from '../pin-pad';
-import { networks } from './buy-data';
-import Avatar from '../ui/avatar';
 import { useSession } from '../session-context';
-import { router, useLocalSearchParams } from 'expo-router';
-import { SuperPlansMB } from '@/services/accounts';
-import { useQueryClient } from '@tanstack/react-query';
-import { QUERY_KEYS, useProcessTransaction, useVerifyPin } from '@/services/account-hooks';
 import StatusModal from '../status-modal';
-import { useLocalAuth } from '@/hooks/useLocalAuth';
+import Avatar from '../ui/avatar';
+import { networks } from './buy-data';
 
 interface DataBundleDetailsModalProps {
   isVisible: boolean;
@@ -81,6 +81,7 @@ const DataBundleDetailsModal: React.FC<DataBundleDetailsModalProps> = ({
             onClose()
             queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.getWalletBalance]})
             queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.getLatestTransactions]})
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.getBeneficiaries]})
           }
         },
         onError: (error) => {
@@ -158,6 +159,7 @@ const DataBundleDetailsModal: React.FC<DataBundleDetailsModalProps> = ({
                   <Avatar 
                     size={18} 
                     source={network?.logo}
+                    resizeMode='contain'
                   />
                 </View>
               </View>

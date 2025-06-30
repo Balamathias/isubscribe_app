@@ -1,7 +1,7 @@
 import { TransactionItem, formatDate, getItemConfig } from '@/components/home/recent-transactions';
 import { useSession } from '@/components/session-context';
 import { COLORS } from '@/constants/colors';
-import { getTransactions } from '@/services/accounts';
+import { getTransactions } from '@/services/api';
 import { Tables } from '@/types/database';
 import { formatNigerianNaira } from '@/utils/format-naira';
 import { Ionicons } from '@expo/vector-icons';

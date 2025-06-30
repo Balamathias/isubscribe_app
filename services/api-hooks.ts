@@ -12,7 +12,8 @@ import {
     listDataPlans,
     processTransaction,
     verifyPhone,
-    verifyPin
+    verifyPin,
+    listElectricityServices,
 } from "./api";
 
 export const QUERY_KEYS = {
@@ -28,7 +29,8 @@ export const QUERY_KEYS = {
     listDataPlans: 'listDataPlans',
     verifyPhone: 'verifyPhone',
     getNotifications: 'getNotifications',
-    getBeneficiaries: 'getBeneficiaries'
+    getBeneficiaries: 'getBeneficiaries',
+    listElectricityServices: 'listElectricityServices',
 } as const
 
 export const useGetAccount = (id?: string) => useQuery({
@@ -99,5 +101,11 @@ export const useGetNotifications = () => useQuery({
 export const useGetBeneficiaries = (limit: number = 5) => useQuery({
     queryKey: [QUERY_KEYS.getBeneficiaries, limit],
     queryFn: () => getBeneficiaries(limit),
+    refetchOnMount: true
+})
+
+export const useListElectricityServices = () => useQuery({
+    queryKey: [QUERY_KEYS.listElectricityServices],
+    queryFn: listElectricityServices,
     refetchOnMount: true
 })

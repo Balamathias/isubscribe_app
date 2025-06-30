@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase'
 import { ListDataPlans, WalletBalance } from '@/services/api'
-import { useGetBeneficiaries, useGetLatestTransactions, useGetUserProfile, useGetWalletBalance, useListDataPlans } from '@/services/api-hooks'
+import { useGetBeneficiaries, useGetLatestTransactions, useGetUserProfile, useGetWalletBalance, useListDataPlans, useListElectricityServices } from '@/services/api-hooks'
 import { Tables } from '@/types/database'
 import { Session, User } from '@supabase/supabase-js'
 import { createContext, useContext, useEffect, useState } from 'react'
@@ -25,6 +25,9 @@ interface SessionContextType {
   beneficiaries?: Tables<'beneficiaries'>[] | null,
   refetchBeneficiaries?: () => void,
   loadingBeneficiaries?: boolean,
+  electricityServices?: Tables<'electricity'>[] | null,
+  refetchElectricityServices?: () => void,
+  loadingElectricityServices?: boolean,
 }
 
 const SessionContext = createContext<SessionContextType>({
@@ -46,9 +49,13 @@ const SessionContext = createContext<SessionContextType>({
   beneficiaries: null,
   refetchBeneficiaries: () => {},
   loadingBeneficiaries: false,
+  electricityServices: null,
+  refetchElectricityServices: () => {},
+  loadingElectricityServices: false,
 })
 
 export const SessionProvider = ({ children }: { children: React.ReactNode }) => {
+  
   const [session, setSession] = useState<Session | null>(null)
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -57,6 +64,7 @@ export const SessionProvider = ({ children }: { children: React.ReactNode }) => 
   const { data: dataPlans, isPending: loadingDataPlans, refetch: refetchDataPlans } = useListDataPlans()
   const { data: profile, isPending: loadingProfile, refetch: refetchProfile } = useGetUserProfile()
   const { data: beneficiaries, isPending: loadingBeneficiaries, refetch: refetchBeneficiaries } = useGetBeneficiaries()
+  const { data: electricityServices, isPending: loadingElectricityServices, refetch: refetchElectricityServices } = useListElectricityServices()
 
   useEffect(() => {
     const initializeSession = async () => {
@@ -93,7 +101,8 @@ export const SessionProvider = ({ children }: { children: React.ReactNode }) => 
         latestTransactions: latestTransactions?.data || null, refetchTransactions, loadingTransactions,
         dataPlans: dataPlans?.data || null, refetchDataPlans, loadingDataPlans,
         profile: profile?.data || null, refetchProfile, loadingProfile,
-        beneficiaries: beneficiaries?.data || null, refetchBeneficiaries, loadingBeneficiaries
+        beneficiaries: beneficiaries?.data || null, refetchBeneficiaries, loadingBeneficiaries,
+        electricityServices: electricityServices?.data || null, refetchElectricityServices: refetchElectricityServices, loadingElectricityServices
       }}
     >
       {children}

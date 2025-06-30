@@ -13,6 +13,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LoadingSpinner from '../ui/loading-spinner';
+import { useSession } from '../session-context';
 
 const providers = [
   { id: 'ikeja', name: 'Ikeja Electricity', logo: require('../../assets/services/electricity/ikeja.jpeg') },
@@ -34,12 +35,14 @@ const ProviderSelector: React.FC<Props> = ({ selectedProvider, onSelect }) => {
   const [isModalVisible, setModalVisible] = useState(false);
   const [search, setSearch] = useState('');
 
-  const filteredProviders = providers.filter(p =>
-    p.name.toLowerCase().includes(search.toLowerCase())
+  const { electricityServices } = useSession()
+
+  const filteredProviders = electricityServices?.filter(p =>
+    p?.name?.toLowerCase().includes(search.toLowerCase())
   );
 
-  const handleSelect = (id: string) => {
-    onSelect(id);
+  const handleSelect = (id: string | number) => {
+    onSelect(id as any);
     setModalVisible(false);
   };
 
@@ -48,17 +51,17 @@ const ProviderSelector: React.FC<Props> = ({ selectedProvider, onSelect }) => {
       {/* Selected Display */}
       <TouchableOpacity
         onPress={() => setModalVisible(true)}
-        className="bg-white p-2 rounded-lg flex-row justify-between items-center"
+        className="bg-card p-2 rounded-lg flex-row justify-between items-center"
       >
         <View className=' flex flex-row items-center gap-2'>
           <Image
-            source={providers?.find(p => p.id === selectedProvider)?.logo || providers?.[7]?.logo}
-            className="w-8 h-8 rounded-full bg-gray-100"
+            source={{uri: electricityServices?.find(p => p.id === selectedProvider)?.thumbnail || electricityServices?.find(p => p.id === 8)?.thumbnail || ''}}
+            className="w-8 h-8 rounded-full bg-muted"
             resizeMode="contain"
           />
           <Text className="text-base font-medium">
             {selectedProvider
-              ? providers.find(p => p.id === selectedProvider)?.name
+              ? electricityServices?.find(p => p.id === selectedProvider)?.name
               : 'Select Provider'}
           </Text>
         </View>
@@ -69,9 +72,9 @@ const ProviderSelector: React.FC<Props> = ({ selectedProvider, onSelect }) => {
       <Modal visible={isModalVisible} animationType="slide" onRequestClose={() => setModalVisible(false)}   transparent={true} className="flex-1 justify-end bg-black/50">
         <SafeAreaView  className="flex-1 bg-black/50 bg-opacity-50 justify-end ">
         <LoadingSpinner isPending={false} />
-          <View className="bg-white rounded-t-2xl p-4 max-h-[85%] ">
+          <View className="bg-card rounded-t-2xl p-4 max-h-[85%] ">
             {/* Search */}
-            <View className="flex-row items-center bg-[#f1f1f1] px-4 py-2 rounded-lg mb-4">
+            <View className="flex-row items-center bg-input px-4 py-2 rounded-xl mb-4">
               <Ionicons name="search" size={20} color="#999" />
               <TextInput
                 placeholder="Filter providers..."
@@ -80,22 +83,28 @@ const ProviderSelector: React.FC<Props> = ({ selectedProvider, onSelect }) => {
                 onChangeText={setSearch}
               />
               <TouchableOpacity onPress={() => setModalVisible(false)}>
-                <Ionicons name="close" size={20} />
+                <Ionicons name="close" className='text-destructive' size={20} />
               </TouchableOpacity>
             </View>
 
             {/* Providers List */}
             <FlatList
-              data={filteredProviders}
-              keyExtractor={item => item.id}
+              data={filteredProviders?.map(service => ({
+                id: service.id,
+                name: service.name,
+                logo: service.thumbnail,
+              }))}
+
+              keyExtractor={item => item.id?.toString()}
+              showsVerticalScrollIndicator={false}
               renderItem={({ item }) => (
                 <TouchableOpacity
-                  onPress={() => handleSelect(item.id)}
+                  onPress={() => handleSelect(item?.id)}
                   className="flex-row items-center justify-between px-2 py-3"
                 >
                   <View className="flex-row items-center gap-x-3">
                     <Image
-                      source={item.logo}
+                      source={{ uri: item.logo ||'' }}
                       className="w-8 h-8 rounded-full"
                       resizeMode="contain"
                     />
@@ -109,7 +118,7 @@ const ProviderSelector: React.FC<Props> = ({ selectedProvider, onSelect }) => {
                     }`}
                   >
                     <View
-                      className={`w-4 h-4 rounded-full bg-white ${
+                      className={`w-4 h-4 rounded-full bg-card ${
                         selectedProvider === item.id
                           ? 'ml-auto mr-1'
                           : 'ml-1'
@@ -118,7 +127,7 @@ const ProviderSelector: React.FC<Props> = ({ selectedProvider, onSelect }) => {
                   </View>
                 </TouchableOpacity>
               )}
-              ItemSeparatorComponent={() => <View className="h-px bg-gray-100" />}
+              ItemSeparatorComponent={() => <View className="h-px bg-muted" />}
             />
           </View>
         </SafeAreaView>

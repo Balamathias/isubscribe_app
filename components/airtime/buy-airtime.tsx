@@ -199,7 +199,7 @@ const BuyAirtimeScreen = () => {
         />
 
         <TouchableOpacity
-            className="rounded-xl py-4 items-center overflow-hidden bg-primary flex flex-row justify-center gap-x-1 mb-4"
+            className="rounded-full py-4 items-center overflow-hidden bg-primary flex flex-row justify-center gap-x-1 mb-4 mt-auto"
             onPress={async () => {
                 const isValidPhoneNumber = await trigger('phoneNumber');
                 const isValidCustomAmount = await trigger('customAirtimeAmount');

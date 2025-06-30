@@ -38,8 +38,8 @@ type ElectricityFormInputs = z.infer<typeof electricitySchema>;
 const BuyElectricityScreen = () => {
   const [isPrepaid, setIsPrepaid] = useState(true);
   const [isPending, setIsPending] = useState(false);
-  const [selectedProvider, setSelectedProvider] = useState<string | null>('abuja');
-  const { user, refetchDataPlans, loadingDataPlans } = useSession();
+  const [selectedProvider, setSelectedProvider] = useState<string | number | null>(8); // Default to '8' (Abuja Electricity)
+  const { user, refetchElectricityServices, loadingElectricityServices } = useSession();
 
   const {
     control,
@@ -84,8 +84,8 @@ const BuyElectricityScreen = () => {
         className="p-4"
         refreshControl={
           <RefreshControl
-            refreshing={loadingDataPlans}
-            onRefresh={refetchDataPlans}
+            refreshing={loadingElectricityServices || false}
+            onRefresh={refetchElectricityServices}
             colors={[COLORS.light.primary]}
           />
         }
@@ -169,7 +169,7 @@ const BuyElectricityScreen = () => {
             placeholder="₦ Enter Amount here"
             keyboardType="numeric"
             onChangeText={text => setValue('amount', text)}
-            className="border border-border rounded-lg px-4 py-4 text-center text-base font-medium"
+            className="border border-border rounded-lg px-4 py-4 text-center text-xl font-semibold"
           />
           {errors.amount && (
             <Text className="text-red-500 text-xs mt-1">{errors.amount.message}</Text>

@@ -18,12 +18,12 @@ const Header = () => {
             header: ({navigation}) => (
                 <View className={`${theme} flex-row bg-background`}>
                     <SafeAreaView edges={['top']} className="flex-row items-center justify-between px-4 w-full py-4">
-                        <View className="flex-row items-center gap-x-1.5">
-                            <TouchableOpacity onPress={() => navigation.goBack()}>
+                        <TouchableOpacity className="flex-row items-center gap-x-1.5" onPress={() => navigation.goBack()}>
+                            <TouchableOpacity>
                                 <Ionicons name="arrow-back" color={colors.foreground} size={24} />
                             </TouchableOpacity>
                             <Text className="text-xl font-medium text-foreground">Airtime</Text>
-                        </View>
+                        </TouchableOpacity>
 
                         <View className="flex-row items-center gap-x-4">
                             <TouchableOpacity onPress={() => router.push(`/help`)}>

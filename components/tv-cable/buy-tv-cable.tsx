@@ -84,17 +84,25 @@ const BuyTvCableScreen = () => {
   };
 
   return (
-    <SafeAreaView edges={['bottom']} className="flex-1 bg-[#f5f2ff] ">
+    <SafeAreaView edges={['bottom']} className="flex-1">
       <LoadingSpinner isPending={isPending} />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
         className="p-4"
-
+        refreshControl={
+          <RefreshControl
+            refreshing={false}
+            onRefresh={() => {
+              // Handle refresh logic here
+            }}
+            colors={[COLORS.light.primary]}
+          />
+        }
+        contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
       >
-        
-       {/* Provider */}
-        <View className="bg-white rounded-xl p-1 mb-4 shadow-sm">
+        {/* Provider */}
+        <View className="bg-card rounded-xl p-1 mb-4 shadow-sm">
           <TvProviderSelector
            providers={providers}
            selectedProviderId={selectedProviderId}
@@ -105,8 +113,8 @@ const BuyTvCableScreen = () => {
      
 
         {/* Meter Number */}
-        <View className="bg-white rounded-xl p-4 mb-4 shadow-sm">
-          <Text className="text-sm font-medium text-gray-700 mb-2">📟 Decoder Number:</Text>
+        <View className="bg-card rounded-xl p-4 mb-4 shadow-sm">
+          <Text className="text-sm font-medium text-muted-foreground mb-2">📟 Decoder Number:</Text>
           <Controller
             control={control}
             name="smartCardNumber"
@@ -115,7 +123,7 @@ const BuyTvCableScreen = () => {
                 placeholder="Enter Decoder Number here."
                 value={value}
                 onChangeText={onChange}
-                className="border border-gray-300 rounded-lg px-4 py-2 text-sm"
+                className="border border-border rounded-lg px-4 py-4 text-sm"
               />
             )}
           />
@@ -125,8 +133,8 @@ const BuyTvCableScreen = () => {
         </View>
 
         {/* Phone Number */}
-        <View className="bg-white rounded-xl p-4 mb-4 shadow-sm">
-          <Text className="text-sm font-medium text-gray-700 mb-2">📞 Phone Number:</Text>
+        <View className="bg-card rounded-xl p-4 mb-4 shadow-sm">
+          <Text className="text-sm font-medium text-muted-foreground mb-2">📞 Phone Number:</Text>
           <Controller
             control={control}
             name="phoneNumber"
@@ -136,7 +144,7 @@ const BuyTvCableScreen = () => {
                 value={value}
                 onChangeText={onChange}
                 keyboardType="phone-pad"
-                className="border border-gray-300 rounded-lg px-4 py-2 text-sm"
+                className="border border-border rounded-lg px-4 py-4 text-sm"
               />
             )}
           />
@@ -146,7 +154,7 @@ const BuyTvCableScreen = () => {
         </View>
 
          {/* Provider */}
-        <View className="bg-white rounded-xl p-4 mb-4 shadow-sm">
+        <View className="bg-card rounded-xl p-4 mb-4 shadow-sm">
          <TvPlanSelector
             selectedProviderId={selectedProviderId}
             plans={selectedProviderId === 'dstv' ? dstv_subscription : selectedProviderId === 'gotv' ? gotv_subscription : selectedProviderId === 'startimes' ? startimes_subscription :  selectedProviderId === 'showmax' ? showmax_subscription : []}
@@ -156,6 +164,25 @@ const BuyTvCableScreen = () => {
 
         </View>
 
+        <View className="flex-1 justify-end pb-4">
+          <TouchableOpacity
+            onPress={handleSubmit(onSubmit)}
+            className="rounded-full overflow-hidden"
+          >
+            <LinearGradient
+              colors={['#7B2FF2', '#F357A8']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              className="py-4 items-center justify-center rounded-md"
+            >
+              {isPending ? (
+                <ActivityIndicator color="card" />
+              ) : (
+                <Text className="text-card font-bold text-lg">Continue</Text>
+              )}
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
 
       </ScrollView>
     </SafeAreaView>

@@ -19,6 +19,7 @@ import { useSession } from '../session-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import LoadingSpinner from '../ui/loading-spinner';
 import EducationTypeSelector from './education-type-selector';
+import { formatNigerianNaira } from '@/utils/format-naira';
 
 const electricitySchema = z.object({
   phoneNumber: z
@@ -83,7 +84,7 @@ const BuyEducationScreen = () => {
   };
 
   return (
-    <SafeAreaView edges={['bottom']} className="flex-1 bg-[#f5f2ff] ">
+    <SafeAreaView edges={['bottom']} className="flex-1 ">
       <LoadingSpinner isPending={isPending} />
 
       <ScrollView
@@ -96,10 +97,10 @@ const BuyEducationScreen = () => {
             colors={[COLORS.light.primary]}
           />
         }
+        contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
       >
-        
         {/* Provider */}
-        <View className="bg-white rounded-xl p-4 mb-4 shadow-sm">
+        <View className="bg-card rounded-xl p-4 mb-4 shadow-sm">
           <EducationTypeSelector
             selectedProvider={selectedProvider}
             onSelect={setSelectedProvider}
@@ -111,8 +112,8 @@ const BuyEducationScreen = () => {
             selectedProvider === "jamb" && 
             (
                 <>
-                <View className="bg-white rounded-xl p-4 flex-row items-center justify-end gap-4 mb-4 shadow-sm">
-                <Text className="text-base font-semibold text-gray-800">UTME</Text>
+                <View className="bg-card rounded-xl p-4 flex-row items-center justify-end gap-4 mb-4 shadow-sm">
+                <Text className="text-base font-semibold text-foreground">UTME</Text>
                 <TouchableOpacity
                         className={`w-10 h-6 rounded-full justify-center ${
                         isUTME === true
@@ -122,18 +123,18 @@ const BuyEducationScreen = () => {
                         onPress={() => setIsUTME(prev => !prev)}
                     >
                         <View
-                        className={`w-4 h-4 rounded-full bg-white ${
+                        className={`w-4 h-4 rounded-full bg-card ${
                             isUTME === false
                             ? 'ml-auto mr-1'
                             : 'ml-1'
                         }`}
                         />
                     </TouchableOpacity>
-                <Text className="text-base font-semibold text-gray-800">DE</Text>
+                <Text className="text-base font-semibold text-foreground">DE</Text>
                 </View>
 
-                <View className="bg-white rounded-xl p-4 mb-4 shadow-sm">
-                <Text className="text-sm font-medium text-gray-700 mb-2">👤 Profile Code:</Text>
+                <View className="bg-card rounded-xl p-4 mb-4 shadow-sm">
+                <Text className="text-sm font-medium text-muted-foreground mb-2">👤 Profile Code:</Text>
                 <Controller
                     control={control}
                     name="profileCode"
@@ -142,7 +143,7 @@ const BuyEducationScreen = () => {
                         placeholder="Enter your profile code here."
                         value={value}
                         onChangeText={onChange}
-                        className="border border-gray-300 rounded-lg px-4 py-2 text-sm"
+                        className="border border-border rounded-lg px-4 py-2 text-sm"
                     />
                     )}
                 />
@@ -156,8 +157,8 @@ const BuyEducationScreen = () => {
         }
 
         {/* Phone Number */}
-        <View className="bg-white rounded-xl p-4 mb-4 shadow-sm">
-          <Text className="text-sm font-medium text-gray-700 mb-2">📞 Phone Number:</Text>
+        <View className="bg-card rounded-xl p-4 mb-4 shadow-sm">
+          <Text className="text-sm font-medium text-muted-foreground mb-2">📞 Phone Number:</Text>
           <Controller
             control={control}
             name="phoneNumber"
@@ -167,7 +168,7 @@ const BuyEducationScreen = () => {
                 value={value}
                 onChangeText={onChange}
                 keyboardType="phone-pad"
-                className="border border-gray-300 rounded-lg px-4 py-2 text-sm"
+                className="border border-border rounded-lg px-4 py-4 text-sm"
               />
             )}
           />
@@ -177,27 +178,32 @@ const BuyEducationScreen = () => {
         </View>
 
         {/* Amount */}
-        <View className="bg-white flex flex-col gap-4 rounded-xl p-4 mb-4 shadow-sm">
-         <Text className=' text-lg font-bold text-black'>Amount to pay:</Text>
-         <Text  className="border border-gray-500 rounded-lg px-4 py-3 text-lg font-bold" >₦ {selectedProvider === "jamb" ? "4,500.00" : "3,500.00"}</Text>
+        <View className="bg-card flex flex-col gap-4 rounded-xl p-4 mb-4 shadow-sm">
+         <Text className=' text-lg font-bold text-primary'>Amount to pay:</Text>
+         <Text  className="border text-primary border-primary rounded-lg px-4 py-4 text-lg font-bold" >{selectedProvider === "jamb" ? formatNigerianNaira(4500) : formatNigerianNaira(3500)}</Text>
         {/* Continue Button */}
-       <TouchableOpacity
-          onPress={handleSubmit(onSubmit)}
-          className="rounded-full mt-4 overflow-hidden"
-        >
-         <LinearGradient
-            colors={['#7B2FF2', '#F357A8']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            className="py-4 items-center justify-center rounded-md"
+
+        </View>
+
+
+       <View className="flex-1 justify-end pb-4">
+          <TouchableOpacity
+            onPress={handleSubmit(onSubmit)}
+            className="rounded-full overflow-hidden"
           >
-            {isPending ? (
-              <ActivityIndicator color="white" />
-            ) : (
-              <Text className="text-white font-bold text-lg">Continue</Text>
-            )}
-          </LinearGradient>
-        </TouchableOpacity>
+            <LinearGradient
+              colors={['#7B2FF2', '#F357A8']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              className="py-4 items-center justify-center rounded-md"
+            >
+              {isPending ? (
+                <ActivityIndicator color="card" />
+              ) : (
+                <Text className="text-card font-bold text-lg">Continue</Text>
+              )}
+            </LinearGradient>
+          </TouchableOpacity>
         </View>
 
       </ScrollView>

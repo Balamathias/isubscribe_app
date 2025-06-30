@@ -76,7 +76,7 @@ const BuyElectricityScreen = () => {
   };
 
   return (
-    <SafeAreaView edges={['bottom']} className="flex-1 bg-[#f5f2ff] ">
+    <SafeAreaView edges={['bottom']} className="flex-1">
       <LoadingSpinner isPending={isPending} />
 
       <ScrollView
@@ -89,10 +89,11 @@ const BuyElectricityScreen = () => {
             colors={[COLORS.light.primary]}
           />
         }
+        contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
       >
         
         {/* Provider */}
-        <View className="bg-white rounded-xl p-4 mb-4 shadow-sm">
+        <View className="bg-card rounded-xl p-4 mb-4 shadow-sm">
           <ProviderSelector
             selectedProvider={selectedProvider}
             onSelect={setSelectedProvider}
@@ -100,36 +101,30 @@ const BuyElectricityScreen = () => {
         </View>
 
         {/* Prepaid / Postpaid Toggle */}
-        <View className="bg-white rounded-xl p-4 flex-row items-center justify-end gap-4 mb-4 shadow-sm">
-          <Text className="text-base font-semibold text-gray-800">Prepaid</Text>
-          {/* <Switch
-            value={!isPrepaid}
-            onValueChange={() => setIsPrepaid(prev => !prev)}
-            trackColor={{ false: '#ccc', true: '#a855f7' }}
-            thumbColor="#fff"
-          /> */}
-           <TouchableOpacity
-                className={`w-10 h-6 rounded-full justify-center ${
-                  isPrepaid === true
-                    ? 'bg-purple-600'
-                    : 'bg-purple-600'
-                }`}
-                onPress={() => setIsPrepaid(prev => !prev)}
-              >
-                <View
-                  className={`w-4 h-4 rounded-full bg-white ${
-                    isPrepaid === false
-                      ? 'ml-auto mr-1'
-                      : 'ml-1'
-                  }`}
-                />
-             </TouchableOpacity>
-          <Text className="text-base font-semibold text-gray-800">Postpaid</Text>
+        <View className="bg-card rounded-xl p-4 py-5 flex-row items-center justify-end gap-4 mb-4 shadow-sm">
+          <Text className={`text-base font-semibold ${isPrepaid ? 'text-primary' : 'text-foreground'}`}>Prepaid</Text>
+          <TouchableOpacity
+            className={`w-10 h-6 rounded-full justify-center ${
+              isPrepaid === true
+                ? 'bg-primary'
+                : 'bg-primary'
+            }`}
+            onPress={() => setIsPrepaid(prev => !prev)}
+             >
+            <View
+              className={`w-4 h-4 rounded-full bg-card ${
+                isPrepaid === false
+               ? 'ml-auto mr-1'
+               : 'ml-1'
+              }`}
+            />
+            </TouchableOpacity>
+          <Text className={`text-base font-semibold ${!isPrepaid ? 'text-primary' : 'text-foreground'}`}>Postpaid</Text>
         </View>
 
         {/* Meter Number */}
-        <View className="bg-white rounded-xl p-4 mb-4 shadow-sm">
-          <Text className="text-sm font-medium text-gray-700 mb-2">📟 Meter Number:</Text>
+        <View className="bg-card rounded-xl p-4 mb-4 shadow-sm">
+          <Text className="text-sm font-medium text-muted-foreground mb-2">📟 Meter Number:</Text>
           <Controller
             control={control}
             name="meterNumber"
@@ -138,7 +133,7 @@ const BuyElectricityScreen = () => {
                 placeholder="Enter Meter Number here."
                 value={value}
                 onChangeText={onChange}
-                className="border border-gray-300 rounded-lg px-4 py-2 text-sm"
+                className="border border-border rounded-lg px-4 py-4 text-sm"
               />
             )}
           />
@@ -148,8 +143,8 @@ const BuyElectricityScreen = () => {
         </View>
 
         {/* Phone Number */}
-        <View className="bg-white rounded-xl p-4 mb-4 shadow-sm">
-          <Text className="text-sm font-medium text-gray-700 mb-2">📞 Phone Number:</Text>
+        <View className="bg-card rounded-xl p-4 mb-4 shadow-sm">
+          <Text className="text-sm font-medium text-muted-foreground mb-2">📞 Phone Number:</Text>
           <Controller
             control={control}
             name="phoneNumber"
@@ -159,7 +154,7 @@ const BuyElectricityScreen = () => {
                 value={value}
                 onChangeText={onChange}
                 keyboardType="phone-pad"
-                className="border border-gray-300 rounded-lg px-4 py-2 text-sm"
+                className="border border-border rounded-lg px-4 py-4 text-sm"
               />
             )}
           />
@@ -169,12 +164,12 @@ const BuyElectricityScreen = () => {
         </View>
 
         {/* Amount */}
-        <View className="bg-white rounded-xl p-4 mb-4 shadow-sm">
+        <View className="bg-card rounded-xl p-4 mb-4 shadow-sm">
           <TextInput
             placeholder="₦ Enter Amount here"
             keyboardType="numeric"
             onChangeText={text => setValue('amount', text)}
-            className="border border-gray-300 rounded-lg px-4 py-3 text-center text-base font-medium"
+            className="border border-border rounded-lg px-4 py-4 text-center text-base font-medium"
           />
           {errors.amount && (
             <Text className="text-red-500 text-xs mt-1">{errors.amount.message}</Text>
@@ -182,23 +177,25 @@ const BuyElectricityScreen = () => {
         </View>
 
         {/* Continue Button */}
-       <TouchableOpacity
+      <View className="flex-1 justify-end pb-4">
+        <TouchableOpacity
           onPress={handleSubmit(onSubmit)}
-          className="rounded-full mt-6 overflow-hidden"
+          className="rounded-full overflow-hidden"
         >
-         <LinearGradient
+          <LinearGradient
             colors={['#7B2FF2', '#F357A8']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             className="py-4 items-center justify-center rounded-md"
           >
             {isPending ? (
-              <ActivityIndicator color="white" />
+              <ActivityIndicator color="card" />
             ) : (
-              <Text className="text-white font-bold text-lg">Continue</Text>
+              <Text className="text-card font-bold text-lg">Continue</Text>
             )}
           </LinearGradient>
         </TouchableOpacity>
+      </View>
       </ScrollView>
     </SafeAreaView>
   );

@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase'
-import { ListDataPlans, WalletBalance } from '@/services/api'
-import { useGetBeneficiaries, useGetLatestTransactions, useGetUserProfile, useGetWalletBalance, useListDataPlans, useListElectricityServices } from '@/services/api-hooks'
+import { AppConfig, ListDataPlans, TVData, WalletBalance } from '@/services/api'
+import { useGetAppConfig, useGetBeneficiaries, useGetLatestTransactions, useGetUserProfile, useGetWalletBalance, useListDataPlans, useListElectricityServices, useListTVServices } from '@/services/api-hooks'
 import { Tables } from '@/types/database'
 import { Session, User } from '@supabase/supabase-js'
 import { createContext, useContext, useEffect, useState } from 'react'
@@ -28,6 +28,12 @@ interface SessionContextType {
   electricityServices?: Tables<'electricity'>[] | null,
   refetchElectricityServices?: () => void,
   loadingElectricityServices?: boolean,
+  tvServices?: TVData | null,
+  refetchTVServices?: () => void,
+  loadingTVServices?: boolean,
+  appConfig?: AppConfig | null,
+  refetchAppConfig?: () => void,
+  loadingAppConfig?: boolean,
 }
 
 const SessionContext = createContext<SessionContextType>({
@@ -52,10 +58,16 @@ const SessionContext = createContext<SessionContextType>({
   electricityServices: null,
   refetchElectricityServices: () => {},
   loadingElectricityServices: false,
+  tvServices: null,
+  refetchTVServices: () => {},
+  loadingTVServices: false,
+  appConfig: null,
+  refetchAppConfig: () => {},
+  loadingAppConfig: false,
 })
 
 export const SessionProvider = ({ children }: { children: React.ReactNode }) => {
-  
+
   const [session, setSession] = useState<Session | null>(null)
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -65,6 +77,8 @@ export const SessionProvider = ({ children }: { children: React.ReactNode }) => 
   const { data: profile, isPending: loadingProfile, refetch: refetchProfile } = useGetUserProfile()
   const { data: beneficiaries, isPending: loadingBeneficiaries, refetch: refetchBeneficiaries } = useGetBeneficiaries()
   const { data: electricityServices, isPending: loadingElectricityServices, refetch: refetchElectricityServices } = useListElectricityServices()
+  const { data: tvServices, isPending: loadingTVServices, refetch: refetchTVServices } = useListTVServices()
+  const { data: appConfig, isPending: loadingAppConfig, refetch: refetchAppConfig } = useGetAppConfig()
 
   useEffect(() => {
     const initializeSession = async () => {
@@ -102,7 +116,9 @@ export const SessionProvider = ({ children }: { children: React.ReactNode }) => 
         dataPlans: dataPlans?.data || null, refetchDataPlans, loadingDataPlans,
         profile: profile?.data || null, refetchProfile, loadingProfile,
         beneficiaries: beneficiaries?.data || null, refetchBeneficiaries, loadingBeneficiaries,
-        electricityServices: electricityServices?.data || null, refetchElectricityServices: refetchElectricityServices, loadingElectricityServices
+        electricityServices: electricityServices?.data || null, refetchElectricityServices: refetchElectricityServices, loadingElectricityServices,
+        tvServices: tvServices?.data || null, refetchTVServices, loadingTVServices,
+        appConfig: appConfig?.data || null, refetchAppConfig, loadingAppConfig
       }}
     >
       {children}

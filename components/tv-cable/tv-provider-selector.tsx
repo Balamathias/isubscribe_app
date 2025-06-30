@@ -1,19 +1,20 @@
+import { TVProviders } from '@/types/utils';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect } from 'react';
 import { Image, Text, TouchableOpacity, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
 
-interface Network {
-  id: string;
+export interface Provider {
+  id: TVProviders;
   name: string;
   logo: any; // ImageSourcePropType
 }
 
 interface TvProviderSelectorProps {
-  providers: Network[];
+  providers: Provider[];
   selectedProviderId: string | null;
-  onSelectProvider: (networkId: string) => void;
+  onSelectProvider: (networkId: TVProviders) => void;
   phoneNumber?: string
 }
 

@@ -659,6 +659,39 @@ export type Database = {
           },
         ]
       }
+      tv: {
+        Row: {
+          amount: number | null
+          cashback: number | null
+          created_at: string
+          fixed_price: boolean | null
+          id: number
+          name: string | null
+          provider: string | null
+          variation_code: string | null
+        }
+        Insert: {
+          amount?: number | null
+          cashback?: number | null
+          created_at?: string
+          fixed_price?: boolean | null
+          id?: number
+          name?: string | null
+          provider?: string | null
+          variation_code?: string | null
+        }
+        Update: {
+          amount?: number | null
+          cashback?: number | null
+          created_at?: string
+          fixed_price?: boolean | null
+          id?: number
+          name?: string | null
+          provider?: string | null
+          variation_code?: string | null
+        }
+        Relationships: []
+      }
       vtpass: {
         Row: {
           commission: number | null

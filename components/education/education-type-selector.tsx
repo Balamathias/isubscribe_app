@@ -13,16 +13,17 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LoadingSpinner from '../ui/loading-spinner';
+import { EducationProviders } from '@/types/utils';
 
-const providers = [
+const providers: { id: EducationProviders; name: string; logo: any }[] = [
   { id: 'waec', name: 'WACE', logo: require('../../assets/services/education/waec.png') },
   { id: 'gce', name: 'GCE', logo: require('../../assets/services/education/gce.jpg') },
   { id: 'jamb', name: 'JAMB', logo: require('../../assets/services/education/jamb.png') },
 ]
 
 interface Props {
-  selectedProvider: string | null | any;
-  onSelect: (providerId: string) => void;
+  selectedProvider: EducationProviders;
+  onSelect: (providerId: EducationProviders) => void;
 }
 
 const EducationTypeSelector: React.FC<Props> = ({ selectedProvider, onSelect }) => {
@@ -33,7 +34,7 @@ const EducationTypeSelector: React.FC<Props> = ({ selectedProvider, onSelect }) 
     p.name.toLowerCase().includes(search.toLowerCase())
   );
 
-  const handleSelect = (id: string) => {
+  const handleSelect = (id: EducationProviders) => {
     onSelect(id);
     setModalVisible(false);
   };

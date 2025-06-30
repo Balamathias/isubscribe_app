@@ -12,13 +12,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LoadingSpinner from '../ui/loading-spinner';
 import { TextInput } from 'react-native';
+import { Tables } from '@/types/database';
 
-interface PlanItem {
-  variation_code: string;
-  name: string;
-  variation_amount: string;
-  fixedPrice: string;
-  cashBack: string;
+interface PlanItem extends Tables<'tv'> {
 }
 
 interface Props {
@@ -35,7 +31,7 @@ const TvPlanSelector: React.FC<Props> = ({ selectedProviderId, plans, selectedPl
    const [search, setSearch] = useState('');
   
     const filteredPlans = plans.filter(p =>
-      p.name.toLowerCase().includes(search.toLowerCase())
+      p?.name?.toLowerCase().includes(search.toLowerCase())
     );
 
   const handleSelect = (plan: PlanItem) => {
@@ -86,7 +82,7 @@ const TvPlanSelector: React.FC<Props> = ({ selectedProviderId, plans, selectedPl
 
             <FlatList
               data={filteredPlans}
-              keyExtractor={(item) => item.variation_code}
+              keyExtractor={(item) => item.variation_code!}
               renderItem={({ item }) => (
                 <TouchableOpacity
                   onPress={() => handleSelect(item)}

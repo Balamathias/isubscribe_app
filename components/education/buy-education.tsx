@@ -30,7 +30,7 @@ const electricitySchema = z.object({
     .string()
     .min(5, 'Profile code is required'),
   amount: z
-    .string()
+    .number()
     .min(1, 'Amount is required'),
 });
 
@@ -39,8 +39,8 @@ type ElectricityFormInputs = z.infer<typeof electricitySchema>;
 const BuyEducationScreen = () => {
   const [isUTME, setIsUTME] = useState(true);
   const [isPending, setIsPending] = useState(false);
-  const [selectedProvider, setSelectedProvider] = useState<string | null>('waec');
-  const { user, refetchDataPlans, loadingDataPlans } = useSession();
+  const [selectedProvider, setSelectedProvider] = useState<'waec' | 'jamb'>('waec');
+  const { user, refetchAppConfig, loadingAppConfig, appConfig } = useSession();
 
   const {
     control,
@@ -54,7 +54,7 @@ const BuyEducationScreen = () => {
     defaultValues: {
       phoneNumber: user?.user_metadata?.phone || '',
       profileCode: '',
-      amount: selectedProvider === "jamb" ? "4500" : "3500" ,
+      amount: selectedProvider === "jamb" ? appConfig?.jamb_price : appConfig?.waec_price,
     },
   });
 
@@ -92,8 +92,8 @@ const BuyEducationScreen = () => {
         className="p-4"
         refreshControl={
           <RefreshControl
-            refreshing={loadingDataPlans}
-            onRefresh={refetchDataPlans}
+            refreshing={loadingAppConfig || false}
+            onRefresh={refetchAppConfig}
             colors={[COLORS.light.primary]}
           />
         }
@@ -103,7 +103,7 @@ const BuyEducationScreen = () => {
         <View className="bg-card rounded-xl p-4 mb-4 shadow-sm">
           <EducationTypeSelector
             selectedProvider={selectedProvider}
-            onSelect={setSelectedProvider}
+            onSelect={setSelectedProvider as any}
           />
         </View>
 
@@ -112,29 +112,31 @@ const BuyEducationScreen = () => {
             selectedProvider === "jamb" && 
             (
                 <>
-                <View className="bg-card rounded-xl p-4 flex-row items-center justify-end gap-4 mb-4 shadow-sm">
-                <Text className="text-base font-semibold text-foreground">UTME</Text>
-                <TouchableOpacity
-                        className={`w-10 h-6 rounded-full justify-center ${
-                        isUTME === true
-                            ? 'bg-purple-600'
-                            : 'bg-purple-600'
-                        }`}
-                        onPress={() => setIsUTME(prev => !prev)}
+                <View className="bg-card rounded-xl p-4 flex-row items-center justify-end gap-4 mb-4 shadow-sm py-5">
+                  <Text className={`text-base font-semibold ${isUTME ? 'text-primary' : 'text-foreground'}`}>UTME</Text>
+                  <TouchableOpacity
+                      className={`w-10 h-6 rounded-full justify-center ${
+                      isUTME === true
+                          ? 'bg-primary'
+                          : 'bg-primary'
+                      }`}
+                      onPress={() => setIsUTME(prev => !prev)}
                     >
-                        <View
+                      <View
                         className={`w-4 h-4 rounded-full bg-card ${
                             isUTME === false
                             ? 'ml-auto mr-1'
                             : 'ml-1'
                         }`}
-                        />
+                      />
                     </TouchableOpacity>
-                <Text className="text-base font-semibold text-foreground">DE</Text>
+
+                  <Text className={`text-base font-semibold ${!isUTME ? 'text-primary' : 'text-foreground'}`}>DE</Text>
                 </View>
 
                 <View className="bg-card rounded-xl p-4 mb-4 shadow-sm">
                 <Text className="text-sm font-medium text-muted-foreground mb-2">👤 Profile Code:</Text>
+                
                 <Controller
                     control={control}
                     name="profileCode"
@@ -143,7 +145,7 @@ const BuyEducationScreen = () => {
                         placeholder="Enter your profile code here."
                         value={value}
                         onChangeText={onChange}
-                        className="border border-border rounded-lg px-4 py-2 text-sm"
+                        className="border border-border rounded-lg px-4 py-4 text-sm"
                     />
                     )}
                 />

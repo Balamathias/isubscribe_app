@@ -274,6 +274,54 @@ export const listElectricityServices = async (): Promise<Response<Tables<'electr
     }
 }
 
+export interface TVData {
+    dstv: Tables<'tv'>[];
+    startimes: Tables<'tv'>[];
+    gotv: Tables<'tv'>[];
+    showmax: Tables<'tv'>[];
+}
+
+export const listTVServices = async (): Promise<Response<TVData | null>> => {
+    try {
+        const { data, status } = await microservice.get('/mobile/list-tv/')
+        return data
+    } catch (error: any) {
+        return {
+            data: null,
+            error: {
+                message: error?.response?.data?.message || error?.message
+            },
+            status: error?.response?.status,
+            message: error?.response?.data?.message || error?.message
+        }
+    }
+}
+
+export interface AppConfig {
+    app_name: string;
+    app_version: string;
+    support_email: string;
+    support_phone: string;
+    jamb_price: number;
+    waec_price: number;
+}
+
+export const getAppConfig = async (): Promise<Response<AppConfig | null>> => {
+    try {
+        const { data, status } = await microservice.get('/mobile/app-config/')
+        return data
+    } catch (error: any) {
+        return {
+            data: null,
+            error: {
+                message: error?.response?.data?.message || error?.message
+            },
+            status: error?.response?.status,
+            message: error?.response?.data?.message || error?.message
+        }
+    }
+}
+
 export const verifyPin = async (transactionData: Record<string, any>): Promise<Response<{is_valid: boolean, pin_set?: boolean} | null>> => {
     try {
         const { data, status } = await microservice.post('/mobile/verify-pin/', transactionData)

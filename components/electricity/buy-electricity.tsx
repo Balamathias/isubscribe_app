@@ -70,6 +70,11 @@ const BuyElectricityScreen = () => {
   const watchedAmount = watch('amount');
   const watchedMeterNumber = watch('meterNumber');
 
+  // Calculate commission (10% of the amount)
+  const commissionRate = 0.1; // 10%
+  const commissionAmount = watchedAmount * commissionRate;
+  const totalAmount = watchedAmount + commissionAmount;
+
   const handleVerifyMeter = async () => {
     if (!selectedProvider || !watchedMeterNumber || watchedMeterNumber.length < 5) {
       Toast.show({ type: 'error', text1: 'Please enter a valid meter number and select a provider.' });
@@ -322,6 +327,27 @@ const BuyElectricityScreen = () => {
               />
             )}
           />
+          
+          {/* Commission Breakdown */}
+          {watchedAmount > 0 && (
+            <View className="mt-3 p-3 bg-secondary rounded-lg">
+              <View className="flex-row justify-between mb-1">
+                <Text className="text-muted-foreground text-sm">Amount</Text>
+                <Text className="text-foreground text-sm">₦{watchedAmount.toLocaleString()}</Text>
+              </View>
+              <View className="flex-row justify-between mb-1">
+                <Text className="text-muted-foreground text-sm">Charges (10%)</Text>
+                <Text className="text-foreground text-sm">₦{commissionAmount.toLocaleString()}</Text>
+              </View>
+              <View className="border-t border-border mt-2 pt-2">
+                <View className="flex-row justify-between">
+                  <Text className="text-foreground font-semibold text-base">Total</Text>
+                  <Text className="text-primary font-bold text-base">₦{totalAmount.toLocaleString()}</Text>
+                </View>
+              </View>
+            </View>
+          )}
+          
           {customerInfo?.Min_Purchase_Amount && (
             <Text className="text-muted-foreground text-xs mt-1">
               Minimum purchase: ₦{customerInfo.Min_Purchase_Amount.toLocaleString()}
@@ -339,7 +365,7 @@ const BuyElectricityScreen = () => {
             className="rounded-full overflow-hidden"
             disabled={
               isPending || 
-              (walletBalance?.balance || 0) < watchedAmount || 
+              // (walletBalance?.balance || 0) < totalAmount || 
               verificationStatus !== 'success'
             }
           >
@@ -367,6 +393,8 @@ const BuyElectricityScreen = () => {
           meterNumber: getValues('meterNumber'),
           phoneNumber: getValues('phoneNumber'),
           amount: getValues('amount'),
+          commissionAmount: commissionAmount,
+          totalAmount: totalAmount,
           isPrepaid: isPrepaid,
           customerInfo: customerInfo
         }}

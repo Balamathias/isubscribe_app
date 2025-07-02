@@ -22,6 +22,8 @@ interface ElectricityConfirmationModalProps {
     meterNumber: string;
     phoneNumber: string;
     amount: number;
+    commissionAmount: number;
+    totalAmount: number;
     isPrepaid: boolean;
     customerInfo?: any;
   };
@@ -56,7 +58,7 @@ const ElectricityConfirmationModal: React.FC<ElectricityConfirmationModalProps> 
     ? (walletBalance?.balance || 0) 
     : (walletBalance?.cashback_balance || 0);
 
-  const isInsufficientFunds = electricityData?.amount > currentBalance;
+  const isInsufficientFunds = electricityData?.totalAmount > currentBalance;
 
   const selectedProvider = electricityServices?.find(p => p.id === electricityData.serviceID);
 
@@ -69,7 +71,7 @@ const ElectricityConfirmationModal: React.FC<ElectricityConfirmationModalProps> 
       phone: electricityData.phoneNumber,
       billers_code: electricityData.meterNumber,
       variation_code: electricityData.isPrepaid ? 'prepaid' : 'postpaid',
-      amount: electricityData.amount,
+      amount: electricityData.amount, // Use total amount including commission
     }, {
       onSuccess: (data) => {
         setOpenStatusModal(true);
@@ -187,10 +189,24 @@ const ElectricityConfirmationModal: React.FC<ElectricityConfirmationModalProps> 
                 <Text className="text-muted-foreground text-sm sm:text-base">Phone Number</Text>
                 <Text className="text-foreground font-semibold text-sm sm:text-base">{electricityData.phoneNumber}</Text>
               </View>
+              
               <View className="flex-row justify-between mb-2">
                 <Text className="text-muted-foreground text-sm sm:text-base">Amount</Text>
                 <Text className="text-foreground font-semibold text-sm sm:text-base">{formatNigerianNaira(electricityData.amount)}</Text>
               </View>
+              
+              <View className="flex-row justify-between mb-2">
+                <Text className="text-muted-foreground text-sm sm:text-base">Charges (10%)</Text>
+                <Text className="text-foreground font-semibold text-sm sm:text-base">{formatNigerianNaira(electricityData.commissionAmount)}</Text>
+              </View>
+              
+              <View className="border-t border-border mt-2 pt-2">
+                <View className="flex-row justify-between mb-2">
+                  <Text className="text-foreground font-bold text-base sm:text-lg">Total Amount</Text>
+                  <Text className="text-primary font-bold text-base sm:text-lg">{formatNigerianNaira(electricityData.totalAmount)}</Text>
+                </View>
+              </View>
+              
               <View className="flex-row justify-between mb-2">
                 <Text className="text-muted-foreground text-sm sm:text-base">Type</Text>
                 <Text className="text-foreground font-semibold text-sm sm:text-base">{electricityData.isPrepaid ? 'Prepaid' : 'Postpaid'}</Text>
@@ -207,11 +223,11 @@ const ElectricityConfirmationModal: React.FC<ElectricityConfirmationModalProps> 
             </View>
 
             <TouchableOpacity 
-              disabled={(walletBalance?.balance || 0) < electricityData.amount} 
+              disabled={(walletBalance?.balance || 0) < electricityData.totalAmount} 
               activeOpacity={0.7} 
               className={`bg-primary/10 rounded-xl p-3 sm:p-4 flex-row justify-between items-center
                 ${selectedPaymentMethod === 'wallet' ? 'border border-primary' : ''} 
-                ${((walletBalance?.balance || 0) < electricityData.amount) ? ' bg-red-500/10' : ''}`}
+                ${((walletBalance?.balance || 0) < electricityData.totalAmount) ? ' bg-red-500/10' : ''}`}
               onPress={() => setSelectedPaymentMethod('wallet')}
             >
               <View className="flex-row items-center">
@@ -219,7 +235,7 @@ const ElectricityConfirmationModal: React.FC<ElectricityConfirmationModalProps> 
                 <View className="ml-2 sm:ml-3">
                   <Text className="text-foreground font-bold text-base sm:text-lg">
                     Wallet Balance <Text className="text-muted-foreground text-xs sm:text-sm font-normal">• 
-                    {((walletBalance?.balance || 0) < electricityData.amount) ? ' Insufficient Funds' : ' Available' }
+                    {((walletBalance?.balance || 0) < electricityData.totalAmount) ? ' Insufficient Funds' : ' Available' }
                     </Text>
                   </Text>
                   <Text className="text-foreground font-bold text-lg sm:text-xl">
@@ -232,11 +248,11 @@ const ElectricityConfirmationModal: React.FC<ElectricityConfirmationModalProps> 
 
             {walletBalance?.cashback_balance !== undefined && walletBalance?.cashback_balance > 0 && (
               <TouchableOpacity 
-                disabled={(walletBalance?.cashback_balance || 0) < electricityData.amount} 
+                disabled={(walletBalance?.cashback_balance || 0) < electricityData.totalAmount} 
                 activeOpacity={0.7} 
                 className={`bg-primary/10 rounded-xl p-3 sm:p-4 flex-row justify-between items-center mb-2 
                   ${selectedPaymentMethod === 'cashback' ? 'border border-primary' : ''} 
-                  ${((walletBalance?.cashback_balance || 0) < electricityData.amount) ? ' bg-red-500/10' : ''}`}
+                  ${((walletBalance?.cashback_balance || 0) < electricityData.totalAmount) ? ' bg-red-500/10' : ''}`}
                 onPress={() => setSelectedPaymentMethod('cashback')}
               >
                 <View className="flex-row items-center">
@@ -244,7 +260,7 @@ const ElectricityConfirmationModal: React.FC<ElectricityConfirmationModalProps> 
                   <View className="ml-2 sm:ml-3">
                     <Text className="text-foreground font-bold text-base sm:text-lg">
                       Cashback Balance <Text className="text-muted-foreground text-xs sm:text-sm font-normal">• 
-                      {((walletBalance?.cashback_balance || 0) < electricityData.amount) ? ' Insufficient Funds' : ' Available' }
+                      {((walletBalance?.cashback_balance || 0) < electricityData.totalAmount) ? ' Insufficient Funds' : ' Available' }
                       </Text>
                     </Text>
                     <Text className="text-foreground font-bold text-lg sm:text-xl">

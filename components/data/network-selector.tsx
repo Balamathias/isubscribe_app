@@ -76,12 +76,6 @@ const NetworkSelector: React.FC<NetworkSelectorProps> = ({
                       ${isSelected ? 'border-2 border-primary' : 'bg-card border border-border'}`}
                     style={[
                       animatedStyle,
-                      isSelected && {
-                      backgroundColor: network.id === 'mtn' ? '#ffdd57' : 
-                              network.id === 'airtel' ? '#f1b4b4' :
-                              network.id === 'glo' ? '#69b365' :
-                              network.id === '9mobile' ? '#77ad91' : '#007BFF'
-                      }
                     ]}
                   >
                   <Image 

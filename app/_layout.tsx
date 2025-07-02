@@ -42,7 +42,7 @@ export default function RootLayout() {
             <Stack
               screenOptions={{
                 animation: 'slide_from_right',
-                animationDuration: 1000,
+                animationDuration: 500,
               }}
             >
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />

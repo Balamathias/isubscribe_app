@@ -322,6 +322,45 @@ export const getAppConfig = async (): Promise<Response<AppConfig | null>> => {
     }
 }
 
+export interface VerifyMerchantResponse {
+    Customer_Name: string;
+    Address: string;
+    MeterNumber: string;
+    Min_Purchase_Amount: number;
+    Outstanding: number;
+    Customer_Arrears: string | null;
+    Meter_Type: string;
+    WrongBillersCode: boolean;
+    commission_details: {
+        amount: string | null;
+        rate: string;
+        rate_type: string;
+        computation_type: string;
+    };
+}
+
+export interface VerifyMerchantRequest {
+    type: 'prepaid' | 'postpaid';
+    billersCode: string;
+    serviceID: string;
+}
+
+export const verifyMerchant = async (transactionData: VerifyMerchantRequest): Promise<Response<VerifyMerchantResponse | null>> => {
+    try {
+        const { data, status } = await microservice.post('/mobile/verify-merchant/', transactionData)
+        return data
+    } catch (error: any) {
+        return {
+            data: null,
+            error: {
+                message: error?.response?.data?.message || error?.message
+            },
+            status: error?.response?.status,
+            message: error?.response?.data?.message || error?.message
+        }
+    }
+}
+
 export const verifyPin = async (transactionData: Record<string, any>): Promise<Response<{is_valid: boolean, pin_set?: boolean} | null>> => {
     try {
         const { data, status } = await microservice.post('/mobile/verify-pin/', transactionData)

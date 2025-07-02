@@ -14,6 +14,9 @@ import Animated, {
   withTiming
 } from 'react-native-reanimated';
 
+import Toast from 'react-native-toast-message';
+import { Clipboard } from 'react-native';
+
 interface StatusModalProps {
   isVisible: boolean;
   onClose: () => void;
@@ -24,7 +27,8 @@ interface StatusModalProps {
   onAction?: () => void;
   actionText?: string;
   quantity?: string,
-  data_bonus?: string
+  data_bonus?: string,
+  transaction?: any;
 }
 
 const StatusModal: React.FC<StatusModalProps> = ({
@@ -37,7 +41,8 @@ const StatusModal: React.FC<StatusModalProps> = ({
   onAction,
   actionText = 'Done',
   data_bonus,
-  quantity
+  quantity,
+  transaction
 }) => {
   const colorScheme = useColorScheme();
   const theme = colorScheme === 'dark' ? 'dark' : 'light';
@@ -133,6 +138,25 @@ const StatusModal: React.FC<StatusModalProps> = ({
               <View className="flex-row justify-between items-center">
                 <Text className="text-muted-foreground">Data Bonus</Text>
                 <Text className="text-primary font-semibold">+{data_bonus}</Text>
+              </View>
+            </View>
+          )}
+
+          {transaction?.token && (
+            <View className="rounded-xl w-full">
+              <View className="flex-row justify-between items-center">
+                <Text className="text-muted-foreground">Transaction Token</Text>
+                <TouchableOpacity
+                  onPress={() => {
+                    Clipboard.setString(transaction.token);
+                    Toast.show({ type: 'success', text1: 'Token copied to clipboard!' });
+                  }}
+                  activeOpacity={0.7}
+                  className="flex-row items-center gap-2"
+                >
+                  <Text className="text-foreground font-bold text-lg">{transaction.formatted_token}</Text>
+                  <Ionicons name="copy-outline" size={16} color={colors.foreground} />
+                </TouchableOpacity>
               </View>
             </View>
           )}

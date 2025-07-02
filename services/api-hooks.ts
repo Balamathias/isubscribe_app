@@ -16,6 +16,7 @@ import {
     listElectricityServices,
     listTVServices,
     getAppConfig,
+    verifyMerchant,
 } from "./api";
 
 export const QUERY_KEYS = {
@@ -35,6 +36,7 @@ export const QUERY_KEYS = {
     listElectricityServices: 'listElectricityServices',
     listTVServices: 'listTVServices',
     getAppConfig: 'getAppConfig',
+    verifyMerchant: 'verifyMerchant',
 } as const
 
 export const useGetAccount = (id?: string) => useQuery({
@@ -125,3 +127,8 @@ export const useGetAppConfig = () => useQuery({
     queryFn: getAppConfig,
     refetchOnMount: true
 })
+
+export const useVerifyMerchant = () => useMutation({
+    mutationKey: [QUERY_KEYS.verifyMerchant],
+    mutationFn: verifyMerchant,
+});

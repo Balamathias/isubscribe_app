@@ -9,6 +9,8 @@ import React, { useRef } from 'react';
 import { ActivityIndicator, Alert, Platform, ScrollView, Share, Text, TouchableOpacity, useColorScheme, View } from 'react-native';
 import ViewShot from 'react-native-view-shot';
 import Header from './header';
+import Toast from 'react-native-toast-message';
+import { Clipboard } from 'react-native';
 
 const TransactionDetail = () => {
   const { id } = useLocalSearchParams();
@@ -69,7 +71,7 @@ const TransactionDetail = () => {
         <Ionicons name="receipt-outline" size={48} color="#6b7280" />
         <Text className="text-foreground text-lg font-semibold mt-4 mb-2">Transaction Not Found</Text>
         <Text className="text-muted-foreground text-center">
-          We couldn't find the transaction you're looking for. It may have been deleted or you may not have permission to view it.
+          We {"couldn't"} find the transaction {"you're"} looking for. It may have been deleted or you may not have permission to view it.
         </Text>
         <TouchableOpacity 
           onPress={() => router.back()}
@@ -160,6 +162,23 @@ const TransactionDetail = () => {
                       <Text className="text-muted-foreground text-sm">Amount</Text>
                       <Text className="text-foreground font-medium">{formatNigerianNaira(transaction.amount || 0)}</Text>
                     </View>
+
+                    {transaction.meta_data && typeof transaction.meta_data === 'object' && 'token' in transaction.meta_data && (
+                      <View className="flex-row justify-between items-center">
+                      <Text className="text-muted-foreground text-sm">Token</Text>
+                      <TouchableOpacity
+                        onPress={() => {
+                          Clipboard.setString(String((transaction?.meta_data as any)?.token));
+                          Toast.show({ type: 'success', text1: 'Token copied to clipboard!' });
+                        }}
+                        activeOpacity={0.7}
+                        className="flex-row items-center gap-2"
+                      >
+                        <Text className="text-foreground font-medium">{String(transaction?.meta_data?.formatted_token)}</Text>
+                        <Ionicons name="copy-outline" size={16} color={colors.foreground} />
+                      </TouchableOpacity>
+                      </View>
+                    )}
 
                     {transaction.meta_data && typeof transaction.meta_data === 'object' && 'quantity' in transaction.meta_data && (
                       <View className="flex-row justify-between items-center">

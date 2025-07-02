@@ -219,7 +219,7 @@ export const getItemConfig = (item: Tables<'history'>) => {
   if (item.type === EVENT_TYPE.meter_topup) {
     return {
       icon: 'flash',
-      iconColor: '#FFD700'
+      iconColor: '#caac04'
     }
   }
 

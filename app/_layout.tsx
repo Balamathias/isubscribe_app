@@ -39,7 +39,12 @@ export default function RootLayout() {
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <QueryClientProvider client={client}>
         <SessionProvider>
-            <Stack>
+            <Stack
+              screenOptions={{
+                animation: 'slide_from_right',
+                animationDuration: 1000,
+              }}
+            >
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
               <Stack.Screen name="auth" options={{ headerShown: false }} />
               <Stack.Screen name="services" options={{ headerShown: false }} />

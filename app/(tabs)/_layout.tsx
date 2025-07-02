@@ -1,8 +1,9 @@
-import { SessionProvider, useSession } from '@/components/session-context';
+import { useSession } from '@/components/session-context';
+import CustomTabBar from '@/components/ui/custom-tab-bar';
 import { COLORS } from '@/constants/colors';
-import { Ionicons } from '@expo/vector-icons'
-import { Redirect, Tabs } from 'expo-router'
-import React from 'react'
+import { Ionicons } from '@expo/vector-icons';
+import { Redirect, Tabs } from 'expo-router';
+import React from 'react';
 import { useColorScheme } from 'react-native';
 
 const Layout = () => {
@@ -20,10 +21,11 @@ const Layout = () => {
         screenOptions={{
             tabBarActiveTintColor: theme.primary,
             tabBarStyle: {
-                shadowColor: 'transparent',
-                borderTopWidth: 0,
+                display: 'none',
             },
+            headerShown: false,
         }}
+        tabBar={props => <CustomTabBar {...props} />}
     >
         <Tabs.Screen 
             name="index" 
@@ -32,11 +34,6 @@ const Layout = () => {
                 tabBarIcon: ({ color, size }) => (
                     <Ionicons name="home-outline" color={color} size={size} />
                 ),
-                headerShown: false,
-                headerStyle: {
-                    shadowColor: 'transparent',
-                    borderBottomWidth: 0,
-                },
             }} 
         />
         <Tabs.Screen 
@@ -47,11 +44,6 @@ const Layout = () => {
             tabBarIcon: ({ color, size }) => (
                 <Ionicons name="gift-outline" color={color} size={size} />
             ),
-            headerShown: false,
-                headerStyle: {
-                    shadowColor: 'transparent',
-                    borderBottomWidth: 0,
-                },
         }} />
         <Tabs.Screen 
         name="history" 
@@ -60,11 +52,6 @@ const Layout = () => {
             tabBarIcon: ({ color, size }) => (
                 <Ionicons name="time-outline" color={color} size={size} />
             ),
-            headerShown: false,
-                headerStyle: {
-                    shadowColor: 'transparent',
-                    borderBottomWidth: 0,
-                },
         }} />
         <Tabs.Screen 
         name="settings" 
@@ -73,11 +60,6 @@ const Layout = () => {
             tabBarIcon: ({ color, size }) => (
                 <Ionicons name="settings-outline" color={color} size={size} />
             ),
-            headerShown: false,
-                headerStyle: {
-                    shadowColor: 'transparent',
-                    borderBottomWidth: 0,
-                },
         }} />
     </Tabs>
   )

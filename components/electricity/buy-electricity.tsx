@@ -173,7 +173,7 @@ const BuyElectricityScreen = () => {
           <ProviderSelector
             selectedProvider={selectedProvider}
             onSelect={setSelectedProvider}
-          />clea
+          />
         </View>
 
         {/* Prepaid / Postpaid Toggle */}

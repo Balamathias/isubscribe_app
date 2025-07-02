@@ -293,6 +293,7 @@ const BuyElectricityScreen = () => {
             name="phoneNumber"
             render={({ field: { onChange, value } }) => (
               <PhoneNumberInput
+                className="border !border-primary text-sm"
                 value={value}
                 onChange={onChange}
                 error={errors.phoneNumber?.message}

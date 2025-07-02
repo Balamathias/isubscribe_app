@@ -12,12 +12,14 @@ interface PhoneNumberInputProps {
   onChange: (text: string) => void;
   error?: string;
   onSelectContact: (phoneNumber: string) => void;
+  className?: string;
+  style?: React.CSSProperties;
 }
 
 type Beneficiary = Tables<'beneficiaries'>;
 
 const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
-  value, onChange, error, onSelectContact
+  value, onChange, error, onSelectContact, className, style
 }) => {
   const [isFocused, setIsFocused] = useState(false);
   const [showBeneficiaries, setShowBeneficiaries] = useState(false);
@@ -140,7 +142,7 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
       <Text className="text-foreground text-base font-semibold mb-2">Phone Number</Text>
       <View
         className={`flex-row items-center bg-input border rounded-xl px-4 py-2 shadow-sm
-          ${error ? 'border-red-500' : isFocused ? 'border-primary' : 'border-secondary'}`}
+          ${error ? 'border-red-500' : isFocused ? 'border-primary' : 'border-secondary'} ${className || ''}`}
       >
         <Ionicons name="call-outline" size={20} color="gray" className="mr-3" />
         <TextInput

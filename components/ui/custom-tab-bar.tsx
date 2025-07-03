@@ -3,11 +3,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
-import { Platform, Text, TouchableOpacity, View, useColorScheme } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Text, TouchableOpacity, View, useColorScheme } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const CustomTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, navigation }) => {
-  const insets = useSafeAreaInsets();
   const colorScheme = useColorScheme();
   const theme = colorScheme === 'dark' ? COLORS.dark : COLORS.light;
 
@@ -45,12 +44,12 @@ const CustomTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, navigat
   };
 
   return (
-    <View 
+    <SafeAreaView 
+      edges={['bottom']} 
       className="bg-background border-t-none border-border shadow-sm"
       style={{
-        paddingBottom: Platform.OS === 'ios' ? insets.bottom : 8,
-        paddingTop: 8,
-        paddingHorizontal: 12,
+        paddingTop: 12,
+        paddingHorizontal: 16,
       }}
     >
       <View className="flex-row justify-around items-center">
@@ -91,25 +90,33 @@ const CustomTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, navigat
               testID={options.tabBarButtonTestID}
               onPress={onPress}
               onLongPress={onLongPress}
-              className="flex-1 items-center justify-center py-2 mx-1 rounded-2xl overflow-hidden"
+              className="flex-1 items-center justify-center py-3 mx-2"
               style={{
-                minHeight: 48,
+                minHeight: 52,
               }}
             >
-              {isFocused ? (
-                <LinearGradient
-                  colors={['#7B2FF2', '#F357A8']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  className="absolute inset-0 rounded-2xl"
-                />
-              ) : null}
-              
-              <View className="items-center justify-center">
-                {getTabIcon(route.name, isFocused)}
+              <View className="items-center justify-center relative">
+                <View className="relative mb-1">
+                  {isFocused ? (
+                    <View className="w-12 h-8 rounded-xl overflow-hidden items-center justify-center">
+                      <LinearGradient
+                        colors={['#7B2FF2', '#F357A8']}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 0 }}
+                        className="absolute inset-0"
+                      />
+                      {getTabIcon(route.name, isFocused)}
+                    </View>
+                  ) : (
+                    <View className="w-12 h-8 items-center justify-center">
+                      {getTabIcon(route.name, isFocused)}
+                    </View>
+                  )}
+                </View>
+                
                 <Text 
-                  className={`text-xs font-medium mt-1 ${
-                    isFocused ? 'text-white' : 'text-muted-foreground'
+                  className={`text-xs font-medium ${
+                    isFocused ? 'text-primary' : 'text-muted-foreground'
                   }`}
                   numberOfLines={1}
                 >
@@ -120,7 +127,7 @@ const CustomTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, navigat
           );
         })}
       </View>
-    </View>
+    </SafeAreaView>
   );
 };
 

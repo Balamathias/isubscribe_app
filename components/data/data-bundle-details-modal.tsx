@@ -15,6 +15,7 @@ import { useSession } from '../session-context';
 import StatusModal from '../status-modal';
 import Avatar from '../ui/avatar';
 import { networks } from './buy-data';
+import LoadingSpinner from '../ui/loading-spinner';
 
 interface DataBundleDetailsModalProps {
   isVisible: boolean;
@@ -23,7 +24,7 @@ interface DataBundleDetailsModalProps {
   onSubmit: () => void;
   networkId: string,
   phoneNumber: string,
-  catgory: string
+  category: string
 }
 
 type PaymentMethod = 'wallet' | 'cashback';
@@ -35,7 +36,7 @@ const DataBundleDetailsModal: React.FC<DataBundleDetailsModalProps> = ({
   onSubmit,
   networkId,
   phoneNumber,
-  catgory
+  category
 }) => {
 
     const [isPinPadVisible, setPinPadVisible] = useState(false);
@@ -68,7 +69,7 @@ const DataBundleDetailsModal: React.FC<DataBundleDetailsModalProps> = ({
       await processTransaction({
         channel: 'data_bundle',
         plan_id: selectedBundleDetails?.id,
-        category: catgory,
+        category: category,
         payment_method: selectedPaymentMethod,
         phone: phoneNumber,
       }, {
@@ -144,13 +145,11 @@ const DataBundleDetailsModal: React.FC<DataBundleDetailsModalProps> = ({
         onClose={onClose}
         title={`${selectedBundleDetails?.quantity} - ${selectedBundleDetails?.duration}(Corporate Gifting)`}
       >
+        {isPending && (
+            <LoadingSpinner isPending={isPending} />
+        )}
         <ScrollView className="flex-1">
           <View className="flex flex-col gap-4 w-full relative">
-            {isPending && (
-              <View className='bg-transparent inset-0 absolute flex justify-center items-center z-10 right-0 left-0 bottom-0 top-0'>
-                <ActivityIndicator size="large" color={colors.primary} />
-              </View>
-            )}
             <View className="p-4 bg-secondary rounded-xl mb-4 w-full">
               <View className="flex-row justify-between mb-2">
                 <Text className="text-muted-foreground text-sm sm:text-base">Product</Text>

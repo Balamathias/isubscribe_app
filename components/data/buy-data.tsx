@@ -199,7 +199,7 @@ const BuyDataScreen = () => {
             onSubmit={handleSubmit(onSubmit)}
             networkId={selectedNetworkId || 'mtn'}
             phoneNumber={getValues('phoneNumber')}
-            catgory={activeCategory.toLowerCase()}
+            category={activeCategory.toLowerCase()}
         />
       </ScrollView>
 

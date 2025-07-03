@@ -15,6 +15,7 @@ import { useSession } from '../session-context';
 import StatusModal from '../status-modal';
 import Avatar from '../ui/avatar';
 import { networks } from './buy-airtime';
+import LoadingSpinner from '../ui/loading-spinner';
 
 interface AirtimeDetailsModalProps {
   isVisible: boolean;
@@ -130,13 +131,10 @@ const AirtimeDetailsModal: React.FC<AirtimeDetailsModalProps> = ({
         onClose={onClose}
         title={`${formatNigerianNaira(selectedPlan?.price).split('.')[0]} Airtime`}
       >
+        {(verifyingPin || isPending) && (
+            <LoadingSpinner isPending={(verifyingPin || isPending)} />
+        )}
         <View className="flex flex-col gap-4 w-full relative">
-
-          {(verifyingPin || isPending) && (
-              <View className='bg-transparent inset-0 absolute flex justify-center items-center z-10 right-0 left-0 bottom-0 top-0'>
-                <ActivityIndicator size="large" color={colors.primary} />
-              </View>
-          )}
 
           <View className="p-4 bg-secondary rounded-xl mb-4 w-full">
             <View className="flex-row justify-between mb-2">

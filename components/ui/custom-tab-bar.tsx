@@ -47,9 +47,9 @@ const CustomTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, navigat
     <View>
         <SafeAreaView 
         edges={['bottom']} 
-        className="bg-background border-t-none border-border shadow-sm"
+        className=" border-t-none border-border shadow-2xl bg-background"
         style={{
-            paddingTop: 12,
+            paddingTop: 6,
             paddingHorizontal: 16,
         }}
         >
@@ -91,15 +91,15 @@ const CustomTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, navigat
                 testID={options.tabBarButtonTestID}
                 onPress={onPress}
                 onLongPress={onLongPress}
-                className="flex-1 items-center justify-center py-3 mx-2"
+                className="flex-1 items-center justify-center py-1"
                 style={{
                     minHeight: 52,
                 }}
                 >
                 <View className="items-center justify-center relative">
-                    <View className="relative mb-1">
+                    <View className="relative ">
                     {isFocused ? (
-                        <View className="w-12 h-8 rounded-xl overflow-hidden items-center justify-center">
+                        <View className="w-16 h-10 rounded-2xl overflow-hidden items-center justify-center">
                         <LinearGradient
                             colors={['#7B2FF2', '#F357A8']}
                             start={{ x: 0, y: 0 }}
@@ -109,14 +109,14 @@ const CustomTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, navigat
                         {getTabIcon(route.name, isFocused)}
                         </View>
                     ) : (
-                        <View className="w-12 h-8 items-center justify-center">
+                        <View className="w-16 h-10 items-center justify-center">
                         {getTabIcon(route.name, isFocused)}
                         </View>
                     )}
                     </View>
                     
                     <Text 
-                    className={`text-xs font-medium ${
+                    className={`text-sm font-medium ${
                         isFocused ? 'text-primary' : 'text-muted-foreground'
                     }`}
                     numberOfLines={1}

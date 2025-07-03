@@ -102,7 +102,7 @@ const Header = () => {
 
           <TouchableOpacity 
               onPress={() => router.navigate('https://chat.whatsapp.com/FtUv7tE95Bt4vPbZ3DbNLS' as any)}
-              className="mx-4 mb-4 bg-[#076d2c] rounded-2xl p-4 flex-row items-center justify-center gap-x-2 mt-4"
+              className="mx-4 mb-4 bg-[#7B2FF2] rounded-full p-4 flex-row items-center justify-center gap-x-2 mt-4"
               activeOpacity={0.6}
           >
               <Ionicons name="logo-whatsapp" size={24} color="white" />

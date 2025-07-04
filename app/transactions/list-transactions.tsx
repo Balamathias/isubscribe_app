@@ -66,7 +66,7 @@ const ListTransactions = () => {
         <Text className="text-muted-foreground text-lg font-semibold mt-4 mb-2">Sign in to view transactions</Text>
         <TouchableOpacity 
           onPress={() => router.push('/auth/login')}
-          className="bg-primary px-6 py-3 rounded-lg flex flex-row gap-x-1 items-center"
+          className="bg-primary px-6 py-3 rounded-2xl flex flex-row gap-x-1 items-center"
         >
           <Ionicons name='log-in-outline' color={'white'} size={18} />
           <Text className="text-white font-semibold">Sign In</Text>

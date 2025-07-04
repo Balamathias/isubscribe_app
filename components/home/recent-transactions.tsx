@@ -120,7 +120,7 @@ const EmptyState = ({ isAuthenticated }: { isAuthenticated: boolean }) => {
         </Text>
         <TouchableOpacity 
           onPress={() => router.push('/auth/login')}
-          className="bg-primary px-6 py-3 rounded-xl flex flex-row gap-x-1 items-center"
+          className="bg-primary px-6 py-3 rounded-2xl flex flex-row gap-x-1 items-center"
         >
           <Ionicons name='log-in-outline' color={'white'} size={18} />
           <Text className="text-white font-semibold">Sign In</Text>

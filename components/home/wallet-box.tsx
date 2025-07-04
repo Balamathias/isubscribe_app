@@ -102,7 +102,7 @@ const WalletBox = ({}: Props) => {
       colors={['#7B2FF2', '#8667f7', '#F357A8']}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
-      className={"rounded-2xl p-5 my-2 flex-row justify-between items-start min-h-[120px] overflow-hidden mt-6 shadow-sm"}
+      className={"rounded-2xl p-5  flex-row justify-between items-start min-h-[120px] overflow-hidden shadow-sm"}
     >
       <View className="flex-1">
         <Text className="text-white/80 text-xs mb-1">Wallet Balance</Text>

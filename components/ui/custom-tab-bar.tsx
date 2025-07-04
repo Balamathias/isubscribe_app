@@ -44,7 +44,7 @@ const CustomTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, navigat
   };
 
   return (
-    <View>
+    <View className='bg-background'>
         <SafeAreaView 
         edges={['bottom']} 
         className="bg-background border-t-none border-border shadow-sm"

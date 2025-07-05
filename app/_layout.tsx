@@ -50,6 +50,7 @@ export default function RootLayout() {
               <Stack.Screen name="services" options={{ headerShown: false }} />
               <Stack.Screen name="transactions" options={{ headerShown: false }} />
               <Stack.Screen name="help" options={{ headerShown: false }} />
+              <Stack.Screen name="coming-soon" options={{ headerShown: false }} />
               <Stack.Screen name="accounts" options={{ headerShown: false }} />
               <Stack.Screen name="+not-found" options={{ headerShown: false }} />
             </Stack>

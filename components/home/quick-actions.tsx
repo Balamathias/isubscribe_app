@@ -11,9 +11,9 @@ const actions = [
   { name: 'Electricity', icon: 'bulb-outline', href: `/services/electricity` },
   { name: 'TV Cable', icon: 'tv-outline', href: `/services/tv-cable` },
   { name: 'Education', icon: 'school-outline', href: `/services/education` },
-  { name: 'Inter-Send', icon: 'swap-vertical-outline', href: `/services/transfer` },
-  { name: 'Share & Earn', icon: 'gift-outline', href: `/services/share` },
-  { name: 'More', icon: 'ellipsis-horizontal-outline', href: `/more` },
+  { name: 'Inter-Send', icon: 'swap-vertical-outline', href: `/coming-soon` },
+  { name: 'Share & Earn', icon: 'gift-outline', href: `/coming-soon` },
+  { name: 'More', icon: 'ellipsis-horizontal-outline', href: `/subs` },
 ];
 
 const QuickActions = () => {

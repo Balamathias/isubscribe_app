@@ -64,6 +64,19 @@ const TransactionSkeleton = () => {
   );
 };
 
+
+const SkeletonTransactionItem = () => {
+  return (
+    <View className="flex-row items-center space-x-4 mb-6 gap-3 w-full justify-between">
+      <View className="w-10 h-10 rounded-full bg-gray-300/60 animate-pulse" />
+      <View className="flex-1 space-y-2 gap-2 w-full">
+        <View className="w-full h-4 bg-gray-300/60 rounded-md animate-pulse" />
+        <View className="w-3/4 h-3 bg-gray-200/60 rounded-md animate-pulse" />
+      </View>
+    </View>
+  );
+};
+
 export const TransactionItem: React.FC<TransactionItemProps> = ({
   icon, iconColor, title, date, status, amount, type, data_bonus, id
 }) => {
@@ -154,7 +167,7 @@ const RecentTransactions = ({}: TransactionProps) => {
       <View>
         {loadingTransactions ? (
           Array(3).fill(0).map((_, index) => (
-            <TransactionSkeleton key={index} />
+            <SkeletonTransactionItem />
           ))
         ) : !loadedTransactions || loadedTransactions.length === 0 ? (
           <EmptyState isAuthenticated={!!user} />

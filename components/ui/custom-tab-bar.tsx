@@ -59,9 +59,9 @@ const CustomTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, navigat
             const isFocused = state.index === index;
 
             // Skip subs tab since it has href: null
-            if (route.name === 'subs') {
-                return null;
-            }
+            // if (route.name === 'subs') {
+            //     return null;
+            // }
 
             const onPress = () => {
                 const event = navigation.emit({

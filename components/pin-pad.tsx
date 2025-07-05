@@ -65,21 +65,13 @@ const PinPad: React.FC<PinPadProps> = ({
     setError('');
     setIsSuccess(false);
     try {
-      // Simulate API call for PIN verification
-      const isPinCorrect = await new Promise<boolean>((resolve) => {
-        setTimeout(() => {
-          // Replace with your actual API call and logic
-          const correctPin = '1234'; 
-          resolve(pin === correctPin);
-        }, 1000);
-      });
 
       const handlerResult = await handler(pin);
 
-      if (isPinCorrect && (handlerResult === undefined || handlerResult === true)) {
+      if ((handlerResult === undefined || handlerResult === true)) {
         setIsSuccess(true);
         onSuccess?.();
-        setTimeout(() => onClose(), 500); // Close on success after a short delay
+        setTimeout(() => onClose(), 500);
       } else {
         setError(errorMessage);
         onError?.();
@@ -90,7 +82,7 @@ const PinPad: React.FC<PinPadProps> = ({
       onError?.();
     } finally {
       setIsLoading(false);
-      setPin(''); // Clear PIN after attempt
+      setPin('');
     }
   };
 

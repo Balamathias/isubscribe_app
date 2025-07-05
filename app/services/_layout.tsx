@@ -6,7 +6,7 @@ const Layout = () => {
     <Stack
       screenOptions={{
         animation: 'slide_from_right',
-        animationDuration: 1500,
+        animationDuration: 1000,
       }}
     >
         <Stack.Screen

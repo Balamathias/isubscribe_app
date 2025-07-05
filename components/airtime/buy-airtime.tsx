@@ -120,10 +120,11 @@ const BuyAirtimeScreen = () => {
     : selectedPlanPrice;
 
   return (
-    <SafeAreaView edges={['bottom']} className="flex-1 bg-background h-full">
+    <SafeAreaView edges={['bottom']} className="flex-1 bg-background/50 h-full">
       <Header />
       <ScrollView showsVerticalScrollIndicator={false} className="flex-1 p-4">
-
+       
+       <View className=' bg-background p-4 py-1 rounded-xl shadow-sm mb-4'>
         <Controller
           control={control}
           name="phoneNumber"
@@ -142,6 +143,8 @@ const BuyAirtimeScreen = () => {
           )}
         />
 
+       </View>
+
         <NetworkSelector
           networks={networks}
           selectedNetworkId={selectedNetworkId}
@@ -150,7 +153,7 @@ const BuyAirtimeScreen = () => {
         />
 
         <Text className="text-foreground text-xl font-bold mt-8 mb-4 ml-2">Quick Plans</Text>
-        <View className="flex flex-1 flex-row flex-wrap gap-x-3 gap-y-3 pb-6">
+        <View className="flex flex-1 flex-row flex-wrap gap-x-3 gap-y-3 pb-6 bg-background p-4 rounded-xl shadow-sm mb-6">
           {quickPlans?.map((planPrice) => (
             <AirtimeCard
               phoneNumber={getValues('phoneNumber')}
@@ -173,73 +176,77 @@ const BuyAirtimeScreen = () => {
           ))}
         </View>
 
-        <Controller
-          control={control}
-          name="customAirtimeAmount"
-          render={({ field: { onChange, value } }) => (
-            <View className="mb-4">
-              <Text className="text-foreground text-xl font-medium mb-4 ml-2">Enter Amount</Text>
-              <TextInput
-                className="w-full p-5 rounded-xl bg-input text-foreground text-base"
-                placeholder="Enter amount (e.g., 250)"
-                placeholderTextColor={colors.mutedForeground}
-                keyboardType="numeric"
-                value={value}
-                onChangeText={(text) => {
-                  onChange(text);
-                  handleCustomAmountChange(text);
-                }}
-                onFocus={() => setSelectedPlanPrice(null)}
-              />
-              {errors.customAirtimeAmount && (
-                <Text className="text-destructive text-sm mt-1 ml-2">{errors.customAirtimeAmount.message}</Text>
-              )}
-            </View>
-          )}
-        />
+        <View className=' bg-background p-4 py-1 rounded-xl shadow-sm mb-4'>
+          <Controller
+            control={control}
+            name="customAirtimeAmount"
+            render={({ field: { onChange, value } }) => (
+              <View className="mb-4">
+                <Text className="text-foreground text-xl font-medium mb-4 ml-2">Enter Amount</Text>
+                <TextInput
+                  className="w-full p-5 rounded-xl bg-input text-foreground text-base"
+                  placeholder="Enter amount (e.g., 250)"
+                  placeholderTextColor={colors.mutedForeground}
+                  keyboardType="numeric"
+                  value={value}
+                  onChangeText={(text) => {
+                    onChange(text);
+                    handleCustomAmountChange(text);
+                  }}
+                  onFocus={() => setSelectedPlanPrice(null)}
+                />
+                {errors.customAirtimeAmount && (
+                  <Text className="text-destructive text-sm mt-1 ml-2">{errors.customAirtimeAmount.message}</Text>
+                )}
+              </View>
+            )}
+          />
 
-        <TouchableOpacity
-            className="rounded-full py-4 items-center overflow-hidden bg-primary flex flex-row justify-center gap-x-1 mb-4 mt-auto"
-            onPress={async () => {
-                const isValidPhoneNumber = await trigger('phoneNumber');
-                const isValidCustomAmount = await trigger('customAirtimeAmount');
+          <TouchableOpacity
+              className="rounded-full py-4 items-center overflow-hidden bg-primary flex flex-row justify-center gap-x-1 mb-4 mt-auto"
+              onPress={async () => {
+                  const isValidPhoneNumber = await trigger('phoneNumber');
+                  const isValidCustomAmount = await trigger('customAirtimeAmount');
 
-                if (isValidPhoneNumber && isValidCustomAmount) {
-                    const customAmountValue = Number(getValues('customAirtimeAmount'));
-                    if (customAmountValue > 0) {
-                        handleCardPress({
-                            bonusMb: (customAmountValue * 0.02),
-                            id: String(customAmountValue),
-                            price: customAmountValue,
-                            size: String(customAmountValue),
-                        });
-                    }
-                } else {
-                  if (errors.phoneNumber?.message) {
-                    Toast.show({ type: 'error', text1: errors.phoneNumber.message });
-                  } else if (errors.customAirtimeAmount?.message) {
-                    Toast.show({ type: 'error', text1: errors.customAirtimeAmount.message });
+                  if (isValidPhoneNumber && isValidCustomAmount) {
+                      const customAmountValue = Number(getValues('customAirtimeAmount'));
+                      if (customAmountValue > 0) {
+                          handleCardPress({
+                              bonusMb: (customAmountValue * 0.02),
+                              id: String(customAmountValue),
+                              price: customAmountValue,
+                              size: String(customAmountValue),
+                          });
+                      }
                   } else {
-                    Toast.show({ type: 'warning', text1: 'Please provide a valid phone number and custom amount to continue.' });
+                    if (errors.phoneNumber?.message) {
+                      Toast.show({ type: 'error', text1: errors.phoneNumber.message });
+                    } else if (errors.customAirtimeAmount?.message) {
+                      Toast.show({ type: 'error', text1: errors.customAirtimeAmount.message });
+                    } else {
+                      Toast.show({ type: 'warning', text1: 'Please provide a valid phone number and custom amount to continue.' });
+                    }
                   }
-                }
-            }}
-            activeOpacity={0.5}
-            disabled={!getValues('customAirtimeAmount') || !!errors.customAirtimeAmount || Number(getValues('customAirtimeAmount')) < 50 || Number(getValues('customAirtimeAmount')) > 50000}
-        >
-            <LinearGradient
-                colors={[colors.primary, '#e65bf8']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                className="absolute inset-0"
-            />
-            <Text className="text-primary-foreground text-lg font-bold">
-                {Number(getValues('customAirtimeAmount')) < 50 || Number(getValues('customAirtimeAmount')) > 50000 
-                    ? 'Between ₦50 - ₦50,000'
-                    : `Buy ${formatNigerianNaira(customAmountNum)}`
-                }
-            </Text>
-        </TouchableOpacity>
+              }}
+              activeOpacity={0.5}
+              disabled={!getValues('customAirtimeAmount') || !!errors.customAirtimeAmount || Number(getValues('customAirtimeAmount')) < 50 || Number(getValues('customAirtimeAmount')) > 50000}
+          >
+              <LinearGradient
+                  colors={[colors.primary, '#e65bf8']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  className="absolute inset-0"
+              />
+              <Text className="text-primary-foreground text-lg font-bold">
+                  {Number(getValues('customAirtimeAmount')) < 50 || Number(getValues('customAirtimeAmount')) > 50000 
+                      ? 'Between ₦50 - ₦50,000'
+                      : `Buy ${formatNigerianNaira(customAmountNum)}`
+                  }
+              </Text>
+          </TouchableOpacity>
+
+        </View>
+
 
         <View className='mt-5' />
 

@@ -103,7 +103,7 @@ const BuyDataScreen = () => {
   const bundles = ((dataPlans?.[activeCategory] || []) as any)?.filter((plan: any) => plan?.network === (selectedNetworkId === '9mobile' ? 'etisalat' : selectedNetworkId))
 
   return (
-    <SafeAreaView edges={['bottom']} className="flex-1 bg-background h-full">
+    <SafeAreaView edges={['bottom']} className="flex-1 bg-background/40 h-full">
       <Header />
       <ScrollView 
         showsVerticalScrollIndicator={false} 
@@ -116,24 +116,26 @@ const BuyDataScreen = () => {
           />
         }
       >
+       <View className=' bg-background p-4 py-1 rounded-xl shadow-sm mb-4'>
+          <Controller
+            control={control}
+            name="phoneNumber"
+            render={({ field: { onChange, value } }) => (
+              <PhoneNumberInput
+                value={value}
+                onChange={(e) => {
+                  onChange(e)
+                  setValue('phoneNumber', e)
+                }}
+                error={errors.phoneNumber?.message}
+                onSelectContact={(number) => {
+                  setValue('phoneNumber', number);
+                }}
+              />
+            )}
+          />
 
-        <Controller
-          control={control}
-          name="phoneNumber"
-          render={({ field: { onChange, value } }) => (
-            <PhoneNumberInput
-              value={value}
-              onChange={(e) => {
-                onChange(e)
-                setValue('phoneNumber', e)
-              }}
-              error={errors.phoneNumber?.message}
-              onSelectContact={(number) => {
-                setValue('phoneNumber', number);
-              }}
-            />
-          )}
-        />
+       </View>
 
         <NetworkSelector
           networks={networks}
@@ -148,7 +150,7 @@ const BuyDataScreen = () => {
         />
 
         <Text className="text-foreground text-xl font-bold mt-8 mb-4 ml-2">{activeCategory} Bundles</Text>
-        <View className="flex flex-1 flex-row flex-wrap gap-x-3 gap-y-3 pb-6">
+        <View className="flex flex-1 flex-row flex-wrap gap-x-3 gap-y-3 pb-6 bg-background p-4 rounded-xl shadow-sm mb-6">
           {!bundles || bundles.length === 0 ? (
             <View className="w-full bg-card p-6 rounded-xl items-center justify-center">
               <Ionicons name="wifi-outline" size={48} color={COLORS.light.mutedForeground} />

@@ -3,6 +3,7 @@ import { COLORS } from '@/constants/colors';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, useColorScheme, View } from 'react-native';
+import LoadingSpinner from './ui/loading-spinner';
 
 interface PinPadProps {
   isVisible: boolean;
@@ -88,6 +89,8 @@ const PinPad: React.FC<PinPadProps> = ({
 
   return (
     <BottomSheet isVisible={isVisible} onClose={onClose} title={title}>
+      <LoadingSpinner isPending={isLoading} />
+
       <View className="flex flex-col items-center justify-center p-4 w-full relative">
         <Text className="text-muted-foreground text-center mb-6">{description}</Text>
 
@@ -107,12 +110,14 @@ const PinPad: React.FC<PinPadProps> = ({
           <Text className="text-primary text-center mb-4">{successMessage}</Text>
         ) : null}
 
-        {isLoading && (
+        {/* {isLoading && (
           <View className='bg-transparent inset-0 absolute flex justify-center items-center z-10 right-0 left-0 bottom-0 top-0'>
             <ActivityIndicator size="large" color={colors.primary} />
             <Text className="text-foreground mt-2">{loadingText}</Text>
           </View>
-        )}
+        )} */}
+
+
 
         <View className="flex w-full flex-row flex-wrap">
           {[1, 2, 3, 4, 5, 6, 7, 8, 9, -1, 0, -2].map((num) => (

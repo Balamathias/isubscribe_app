@@ -120,27 +120,41 @@ ${transaction.meta_data && typeof transaction.meta_data === 'object' && 'phone' 
 
   if (isLoading) {
     return (
-      <View className="flex-1 items-center justify-center">
-        <ActivityIndicator size="large" color={colors.primary} />
+      <View className="flex-1 bg-background">
+        <ScrollView className="flex-1">
+          <View className="p-4 py-0">
+            <Header title={"Transaction Details"} />
+            <View className="flex-1 items-center justify-center bg-card m-4">
+              <ActivityIndicator size="large" color={colors.primary} />
+            </View>
+          </View>
+        </ScrollView>
       </View>
     );
   }
 
   if (!transaction) {
     return (
-      <View className="flex-1 items-center justify-center p-6">
-        <Ionicons name="receipt-outline" size={48} color="#6b7280" />
-        <Text className="text-foreground text-lg font-semibold mt-4 mb-2">Transaction Not Found</Text>
-        <Text className="text-muted-foreground text-center">
-          We {"couldn't"} find the transaction {"you're"} looking for. It may have been deleted or you may not have permission to view it.
-        </Text>
-        <TouchableOpacity 
-          onPress={() => router.back()}
-          className="bg-primary px-6 py-3 rounded-xl flex flex-row gap-x-1 items-center mt-6"
-        >
-          <Ionicons name='arrow-back' color={'white'} size={18} />
-          <Text className="text-white font-semibold">Go Back</Text>
-        </TouchableOpacity>
+       <View className="flex-1 bg-background">
+        <ScrollView className="flex-1">
+          <View className="p-4 py-0">
+            <Header title={"Transaction Details"} />
+            <View className="flex-1 items-center justify-center p-6">
+              <Ionicons name="receipt-outline" size={48} color="#6b7280" />
+              <Text className="text-foreground text-lg font-semibold mt-4 mb-2">Transaction Not Found</Text>
+              <Text className="text-muted-foreground text-center">
+                We {"couldn't"} find the transaction {"you're"} looking for. It may have been deleted or you may not have permission to view it.
+              </Text>
+              <TouchableOpacity 
+                onPress={() => router.back()}
+                className="bg-primary px-6 py-3 rounded-xl flex flex-row gap-x-1 items-center mt-6"
+              >
+                <Ionicons name='arrow-back' color={'white'} size={18} />
+                <Text className="text-white font-semibold">Go Back</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </ScrollView>
       </View>
     );
   }

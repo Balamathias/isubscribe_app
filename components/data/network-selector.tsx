@@ -52,7 +52,7 @@ const NetworkSelector: React.FC<NetworkSelectorProps> = ({
   }, [phoneNumber, networks]);
 
   return (
-    <View className="w-full max-w-sm px-4">
+    <View className="w-full max-w-sm px-4 bg-background p-4 rounded-xl py-1 shadow-sm">
       <View className="flex-row justify-between mb-4 mt-8">
         {networks.map((network) => {
           const isSelected = selectedNetworkId === network.id;

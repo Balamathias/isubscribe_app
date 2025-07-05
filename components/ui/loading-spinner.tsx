@@ -57,7 +57,7 @@ const LoadingSpinner: React.FC<Props> = ({ isPending }) => {
   if (!isPending) return null;
 
   return (
-    <View style={styles.overlay}>
+    <View style={styles.overlay} className=' rounded-t-3xl'>
       {/* Spinner in center */}
       <View style={styles.spinnerBox}>
         <ActivityIndicator size="large" color="#7C3AED" />

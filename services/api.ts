@@ -393,6 +393,42 @@ export const verifyPhone = async (phone: string): Promise<Response<{network: str
     }
 }
 
+export const createRating = async (_req_data: { comment: string, rating: number }): Promise<Response<Tables<'ratings'> | null>> => {
+    try {
+        const { data, status } = await microservice.post('/mobile/ratings/', { ..._req_data })
+        return data
+    } catch (error: any) {
+        return {
+            data: null,
+            error: {
+                message: error?.response?.data?.message || error?.message
+            },
+            status: error?.response?.status,
+            message: error?.response?.data?.message || error?.message
+        }
+    }
+}
+
+export const listRatings = async (limit: number = 10, offset: number = 0): Promise<Response<Tables<'ratings'>[] | null>> => {
+    try {
+        const { data, status } = await microservice.get('/mobile/ratings/', {
+            params: {
+                limit,
+                offset
+            }
+        })
+        return data
+    } catch (error: any) {
+        return {
+            data: null,
+            error: {
+                message: error?.response?.data?.message || error?.message
+            },
+            status: error?.response?.status,
+            message: error?.response?.data?.message || error?.message
+        }
+    }
+}
 
 export const getNotifications = async () => {
     const { data, error } = await supabase.from('announcements').select('*').eq('published', true).order('created_at', { ascending: false })

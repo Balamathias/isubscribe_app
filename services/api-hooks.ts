@@ -17,6 +17,8 @@ import {
     listTVServices,
     getAppConfig,
     verifyMerchant,
+    listRatings,
+    createRating,
 } from "./api";
 
 export const QUERY_KEYS = {
@@ -37,6 +39,8 @@ export const QUERY_KEYS = {
     listTVServices: 'listTVServices',
     getAppConfig: 'getAppConfig',
     verifyMerchant: 'verifyMerchant',
+    listRatings: 'listRatings',
+    createRating: 'createRating',
 } as const
 
 export const useGetAccount = (id?: string) => useQuery({
@@ -131,4 +135,15 @@ export const useGetAppConfig = () => useQuery({
 export const useVerifyMerchant = () => useMutation({
     mutationKey: [QUERY_KEYS.verifyMerchant],
     mutationFn: verifyMerchant,
+});
+
+export const useListRatings = (limit: number, offset: number) => useQuery({
+    queryKey: [QUERY_KEYS.listRatings, limit, offset],
+    queryFn: () => listRatings(limit, offset),
+    refetchOnMount: true
+});
+
+export const useCreateRating = () => useMutation({
+    mutationKey: [QUERY_KEYS.createRating],
+    mutationFn: createRating,
 });

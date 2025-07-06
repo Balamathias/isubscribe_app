@@ -218,7 +218,7 @@ const BuyElectricityScreen = () => {
             <TouchableOpacity
               onPress={handleVerifyMeter}
               disabled={isVerifyingMeter || !watchedMeterNumber || watchedMeterNumber.length < 5}
-              className={`px-4 py-4 rounded-lg ${
+              className={`px-4 py-4 rounded-2xl ${
                 isVerifyingMeter || !watchedMeterNumber || watchedMeterNumber.length < 5
                   ? 'bg-primary/50'
                   : 'bg-primary'
@@ -362,7 +362,7 @@ const BuyElectricityScreen = () => {
         <View className="flex-1 justify-end pb-4">
           <TouchableOpacity
             onPress={handleSubmit(onSubmit)}
-            className="rounded-full overflow-hidden"
+            className="rounded-2xl overflow-hidden"
             disabled={
               isPending || 
               // (walletBalance?.balance || 0) < totalAmount || 

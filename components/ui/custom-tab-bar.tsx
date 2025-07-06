@@ -101,7 +101,7 @@ const CustomTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, navigat
                     {isFocused ? (
                         <View className="w-16 h-10 rounded-2xl overflow-hidden items-center justify-center">
                         <LinearGradient
-                            colors={['#7B2FF2', '#F357A8']}
+                            colors={['#7B2FF2', '#a13ae1']}
                             start={{ x: 0, y: 0 }}
                             end={{ x: 1, y: 0 }}
                             className="absolute inset-0"

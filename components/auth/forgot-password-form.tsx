@@ -95,12 +95,12 @@ const ForgotPasswordForm = () => {
           )}
         />
 
-        <TouchableOpacity onPress={handleSubmit(onSubmit)} className="w-full rounded-xl overflow-hidden mt-4">
+        <TouchableOpacity onPress={handleSubmit(onSubmit)} className="w-full rounded-2xl overflow-hidden mt-4">
           <LinearGradient
             colors={['#7B2FF2', '#F357A8']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
-            className="py-4 items-center justify-center rounded-xl"
+            className="py-4 items-center justify-center rounded-2xl"
           >
             <Text className="text-white font-bold text-lg">Send OTP</Text>
           </LinearGradient>

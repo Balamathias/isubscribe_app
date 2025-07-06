@@ -191,7 +191,7 @@ const BuyEducationScreen = () => {
        <View className="flex-1 justify-end pb-4">
           <TouchableOpacity
             onPress={handleSubmit(onSubmit)}
-            className="rounded-full overflow-hidden"
+            className="rounded-2xl overflow-hidden"
           >
             <LinearGradient
               colors={['#7B2FF2', '#F357A8']}

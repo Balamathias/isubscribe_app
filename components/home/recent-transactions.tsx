@@ -4,7 +4,7 @@ import { formatNigerianNaira } from '@/utils/format-naira';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { Text, TouchableOpacity, useColorScheme, View } from 'react-native';
 import Animated, { 
   useAnimatedStyle, 
   withRepeat, 
@@ -13,6 +13,8 @@ import Animated, {
   withSequence
 } from 'react-native-reanimated';
 import { useSession } from '../session-context';
+import { LinearGradient } from 'expo-linear-gradient';
+import { COLORS } from '@/constants/colors';
 
 interface TransactionItemProps {
   icon: string;
@@ -122,7 +124,7 @@ interface TransactionProps {
   
 }
 
-const EmptyState = ({ isAuthenticated }: { isAuthenticated: boolean }) => {
+const EmptyState = ({ isAuthenticated, colors }: { isAuthenticated: boolean, colors: any }) => {
   if (!isAuthenticated) {
     return (
       <View className="bg-card shadow-sm p-6 rounded-xl items-center justify-center">
@@ -133,8 +135,14 @@ const EmptyState = ({ isAuthenticated }: { isAuthenticated: boolean }) => {
         </Text>
         <TouchableOpacity 
           onPress={() => router.push('/auth/login')}
-          className="bg-primary px-6 py-3 rounded-2xl flex flex-row gap-x-1 items-center"
+          className="bg-primary px-6 py-3 rounded-2xl flex flex-row gap-x-1 items-center overflow-hidden"
         >
+          <LinearGradient
+                          colors={[colors.primary, '#e65bf8']}
+                          start={{ x: 0, y: 0 }}
+                          end={{ x: 1, y: 0 }}
+                          className="absolute inset-0 rounded-2xl"
+                                    />
           <Ionicons name='log-in-outline' color={'white'} size={18} />
           <Text className="text-white font-semibold">Sign In</Text>
         </TouchableOpacity>
@@ -155,6 +163,9 @@ const EmptyState = ({ isAuthenticated }: { isAuthenticated: boolean }) => {
 
 const RecentTransactions = ({}: TransactionProps) => {
   const { user, latestTransactions: loadedTransactions, loadingTransactions } = useSession();
+    const colorScheme = useColorScheme()
+    const theme = colorScheme === 'dark' ? 'dark' : 'light'
+    const colors = COLORS[theme]
 
   return (
     <View className="mt-6">
@@ -170,7 +181,7 @@ const RecentTransactions = ({}: TransactionProps) => {
             <SkeletonTransactionItem />
           ))
         ) : !loadedTransactions || loadedTransactions.length === 0 ? (
-          <EmptyState isAuthenticated={!!user} />
+          <EmptyState isAuthenticated={!!user} colors={colors} />
         ) : (
           loadedTransactions.map((item) => (
             <TransactionItem

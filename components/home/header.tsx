@@ -9,16 +9,19 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { useSession } from '../session-context'
 import Avatar from '../ui/avatar'
 import BottomSheet from '../ui/bottom-sheet'
+import { LinearGradient } from 'expo-linear-gradient'
+import { Image } from 'react-native'
+
 
 const Header = () => {
   const colorScheme = useColorScheme()
   const theme = colorScheme === 'dark' ? 'dark' : 'light'
+  const colors = COLORS[theme]
   const [showNotifications, setShowNotifications] = useState(false)
   const { data: notificationsData } = useGetNotifications()
 
   const notifications = notificationsData?.data || []
 
-  const colors = COLORS[theme]
   const { user, session } = useSession()
 
   const getUserInitials = () => user?.user_metadata?.full_name?.split(' ')[0] || user?.email?.split(`@`)[0]
@@ -32,8 +35,17 @@ const Header = () => {
               headerShown: true,
               header: () => (
                   <View className={`${theme} flex-row bg-background`}>
-                      <SafeAreaView edges={['top']} className="flex-row items-center justify-between px-4 w-full py-4">
-                          <View className="flex-row items-center gap-x-1.5">
+                      <SafeAreaView edges={['top']} className="flex-row items-center justify-between px-3 w-full py-4">
+                        <View className="flex-row items-center justify-center">
+                            <Image
+                            source={require('@/assets/images/logo-icon.png')}
+                            className="w-11 h-11 mr-0.5"
+                            style={{ tintColor: '#7B2FF2' }}
+                            />
+                            <Text className="text-2xl font-semibold text-[#7B2FF2]">isubscribe</Text>
+                        </View>
+                    
+                          {/* <View className="flex-row items-center gap-x-1.5">
                               {
                                   user ? (
                                       <Avatar 
@@ -47,7 +59,7 @@ const Header = () => {
                                   )
                               }
                               <Text className="text-base sm:text-lg md:text-xl font-medium text-foreground">Hi, {getUserInitials() ? getUserInitials() : 'Guest'}.</Text>
-                          </View>
+                          </View> */}
 
                           <View className="flex-row items-center gap-x-4">
                               <TouchableOpacity onPress={() => router.push('/help')}>
@@ -102,9 +114,15 @@ const Header = () => {
 
           <TouchableOpacity 
               onPress={() => router.navigate('https://chat.whatsapp.com/FtUv7tE95Bt4vPbZ3DbNLS' as any)}
-              className="mx-4 mb-4 bg-[#7B2FF2] rounded-full p-4 flex-row items-center justify-center gap-x-2 mt-4"
+              className="mx-4 mb-4 bg-[#7B2FF2] rounded-2xl p-4 flex-row items-center justify-center gap-x-2 mt-4 overflow-hidden"
               activeOpacity={0.6}
           >
+             <LinearGradient
+                colors={[colors.primary, '#e65bf8']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                className="absolute inset-0 rounded-2xl"
+                          />
               <Ionicons name="logo-whatsapp" size={24} color="white" />
               <Text className="text-white font-semibold text-base">Join our WhatsApp group for updates</Text>
           </TouchableOpacity>

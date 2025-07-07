@@ -152,7 +152,7 @@ const BuyAirtimeScreen = () => {
           phoneNumber={watch('phoneNumber')}
         />
 
-        <Text className="text-foreground text-xl font-bold mt-8 mb-4 ml-2">Quick Plans</Text>
+        <Text className="text-foreground text-xl font-bold mt-8 mb-4 ml-2">Quick Subs</Text>
         <View className="flex flex-1 flex-row flex-wrap gap-x-3 gap-y-3 pb-6 bg-background p-4 rounded-xl shadow-sm mb-6">
           {quickPlans?.map((planPrice) => (
             <AirtimeCard
@@ -203,7 +203,7 @@ const BuyAirtimeScreen = () => {
           />
 
           <TouchableOpacity
-              className="rounded-full py-4 items-center overflow-hidden bg-primary flex flex-row justify-center gap-x-1 mb-4 mt-auto"
+              className="rounded-2xl py-4 items-center overflow-hidden bg-primary flex flex-row justify-center gap-x-1 mb-4 mt-auto"
               onPress={async () => {
                   const isValidPhoneNumber = await trigger('phoneNumber');
                   const isValidCustomAmount = await trigger('customAirtimeAmount');

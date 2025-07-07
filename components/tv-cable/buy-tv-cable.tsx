@@ -168,13 +168,13 @@ const BuyTvCableScreen = () => {
         <View className="flex-1 justify-end pb-4">
           <TouchableOpacity
             onPress={handleSubmit(onSubmit)}
-            className="rounded-full overflow-hidden"
+            className="rounded-2xl overflow-hidden"
           >
             <LinearGradient
               colors={['#7B2FF2', '#F357A8']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
-              className="py-4 items-center justify-center rounded-md"
+              className="py-4 items-center justify-center rounded-2xl"
             >
               {isPending ? (
                 <ActivityIndicator color="card" />

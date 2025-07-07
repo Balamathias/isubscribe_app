@@ -99,7 +99,7 @@ const WalletBox = ({}: Props) => {
 
   return (
     <LinearGradient
-      colors={['#7B2FF2', '#8667f7', '#F357A8']}
+      colors={['#740faa', '#a13ae1']}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       className={"rounded-2xl p-5  flex-row justify-between items-start min-h-[120px] overflow-hidden shadow-sm"}

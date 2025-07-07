@@ -122,7 +122,7 @@ const FundWalletBottomSheet: React.FC<FundWalletBottomSheetProps> = ({ isVisible
 
             <View className="flex-col md:flex-row justify-center items-center gap-4">
               <CreditCard
-                colors={['#7B2FF2', '#F357A8']}
+                colors={['#a13ae1', '#740faa']}
                 accountNumber={account?.palmpay_account_number || '**********'}
                 bankName={'Palmpay'}
                 accountName={account?.palmpay_account_name || '****** ******'}

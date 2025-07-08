@@ -55,7 +55,7 @@ const Subs = () => {
     <View className="flex-1 bg-background/60">
       <Header title="All Subs" />
       <ScrollView contentContainerStyle={{ padding: 16 }}>
-        <Text className=' text-center text-2xl mt-3'>Our Services</Text>
+        <Text className=' text-center text-2xl mt-3 text-primary font-bold'>Our Services</Text>
         <Text className=' text-center text-muted-foreground text-sm mt-3'>Choose from our comprehensive range of digital services</Text>
         <View className="flex-row flex-wrap justify-between mt-6">
           {services.map((service:any, index) => (

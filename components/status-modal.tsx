@@ -230,7 +230,10 @@ const StatusModal: React.FC<StatusModalProps> = ({
 
       <RatingModal
         isVisible={showRatingModal}
-        onClose={() => setShowRatingModal(false)}
+        onClose={() => {
+          setShowRatingModal(false)
+          handleClose();
+        }}
         transactionTitle={transaction?.title || 'Transaction'}
       />
     </>

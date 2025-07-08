@@ -210,7 +210,7 @@ const RatingModal: React.FC<RatingModalProps> = ({
           </Text>
         </View>
 
-        <View className="flex-row space-x-3">
+        <View className="flex-row gap-x-3">
           <TouchableOpacity
             onPress={onClose}
             className="flex-1 py-4 rounded-xl border border-border"

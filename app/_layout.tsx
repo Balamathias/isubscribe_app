@@ -6,13 +6,14 @@ import 'react-native-reanimated';
 import '../globals.css';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
-import { AppState } from 'react-native';
 import { supabase } from '@/lib/supabase';
+import { AppState } from 'react-native';
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import Toast from 'react-native-toast-message';
-import toastConfig from '@/config/toast-config';
 import { SessionProvider } from '@/components/session-context';
+import toastConfig from '@/config/toast-config';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import Toast from 'react-native-toast-message';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -36,28 +37,40 @@ export default function RootLayout() {
   }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <QueryClientProvider client={client}>
-        <SessionProvider>
-            <Stack
-              screenOptions={{
-                animation: 'slide_from_right',
-                animationDuration: 500,
-              }}
-            >
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen name="auth" options={{ headerShown: false }} />
-              <Stack.Screen name="services" options={{ headerShown: false }} />
-              <Stack.Screen name="transactions" options={{ headerShown: false }} />
-              <Stack.Screen name="help" options={{ headerShown: false }} />
-              <Stack.Screen name="coming-soon" options={{ headerShown: false }} />
-              <Stack.Screen name="accounts" options={{ headerShown: false }} />
-              <Stack.Screen name="+not-found" options={{ headerShown: false }} />
-            </Stack>
-            <StatusBar style="auto" />
-            <Toast config={toastConfig} />
-        </SessionProvider>
-      </QueryClientProvider>
-    </ThemeProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <QueryClientProvider client={client}>
+          <SessionProvider>
+              <Stack
+                screenOptions={{
+                  animation: 'slide_from_right',
+                  animationDuration: 500,
+                  headerShown: false,
+                }}
+              >
+                <Stack.Screen name="(tabs)" />
+                <Stack.Screen name="auth" />
+                <Stack.Screen name="services" />
+                <Stack.Screen name="transactions" />
+                <Stack.Screen name="help" />
+                <Stack.Screen name="coming-soon" />
+                <Stack.Screen name="accounts" />
+                <Stack.Screen name="+not-found" />
+                
+                <Stack.Screen
+                  name="ratings-modal"
+                  options={{
+                    presentation: 'modal',
+                    headerShown: false,
+                    animation: 'slide_from_bottom',
+                  }}
+                />
+              </Stack>
+              <StatusBar style="auto" />
+              <Toast config={toastConfig} />
+          </SessionProvider>
+        </QueryClientProvider>
+      </ThemeProvider>
+    </GestureHandlerRootView>
   );
 }

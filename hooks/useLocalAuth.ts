@@ -48,22 +48,31 @@ export const useLocalAuth = () => {
     }
   };
 
-  const authenticate = async (): Promise<boolean> => {
-    if (!isBiometricEnabled) return true;
+  const authenticate = async (onCustomFallback?: () => void): Promise<boolean> => {
+  if (!isBiometricEnabled) return true;
 
-    try {
-      const result = await LocalAuthentication.authenticateAsync({
-        promptMessage: 'Authenticate to continue',
-        fallbackLabel: 'Use passcode',
-        disableDeviceFallback: false,
-      });
+  try {
+    const result = await LocalAuthentication.authenticateAsync({
+      promptMessage: 'Authenticate to continue',
+      fallbackLabel: 'Use PIN',
+      disableDeviceFallback: true,
+      cancelLabel: 'Use PIN',
+    });
 
-      return result.success;
-    } catch (error) {
-      console.error('Authentication error:', error);
+    if (result.success) {
+      return true;
+    } else if (result.error === 'user_fallback' && onCustomFallback) {
+      onCustomFallback();
       return false;
     }
-  };
+
+    return false;
+  } catch (error) {
+    console.error('Authentication error:', error);
+    return false;
+  }
+};
+
 
   return {
     isBiometricSupported,

@@ -19,6 +19,7 @@ import {
     verifyMerchant,
     listRatings,
     createRating,
+    deleteAccount,
 } from "./api";
 
 export const QUERY_KEYS = {
@@ -41,6 +42,7 @@ export const QUERY_KEYS = {
     verifyMerchant: 'verifyMerchant',
     listRatings: 'listRatings',
     createRating: 'createRating',
+    deleteAccount: 'deleteAccount',
 } as const
 
 export const useGetAccount = (id?: string) => useQuery({
@@ -146,4 +148,9 @@ export const useListRatings = (limit: number, offset: number) => useQuery({
 export const useCreateRating = () => useMutation({
     mutationKey: [QUERY_KEYS.createRating],
     mutationFn: createRating,
+});
+
+export const useDeleteAccount = () => useMutation({
+    mutationKey: [QUERY_KEYS.deleteAccount],
+    mutationFn: deleteAccount,
 });

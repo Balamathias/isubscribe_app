@@ -121,7 +121,7 @@ const DataBundleDetailsModal: React.FC<DataBundleDetailsModalProps> = ({
 
       if (isBiometricEnabled) {
         try {
-          const authenticated = await authenticate()
+          const authenticated = await authenticate(() => setPinPadVisible(true));
           if (authenticated) {
             await handleProcessRequest()
           } else {

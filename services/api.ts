@@ -430,6 +430,22 @@ export const listRatings = async (limit: number = 10, offset: number = 0): Promi
     }
 }
 
+export const deleteAccount = async (): Promise<Response<any | null>> => {
+    try {
+        const { data, status } = await microservice.delete('/mobile/delete-account/')
+        return data
+    } catch (error: any) {
+        return {
+            data: null,
+            error: {
+                message: error?.response?.data?.message || error?.message
+            },
+            status: error?.response?.status,
+            message: error?.response?.data?.message || error?.message
+        }
+    }
+}
+
 export const getNotifications = async () => {
     const { data, error } = await supabase.from('announcements').select('*').eq('published', true).order('created_at', { ascending: false })
 

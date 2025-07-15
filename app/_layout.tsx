@@ -37,7 +37,7 @@ export default function RootLayout() {
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    // <GestureHandlerRootView style={{ flex: 1 }}>
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
         <QueryClientProvider client={client}>
           <SessionProvider>
@@ -71,6 +71,6 @@ export default function RootLayout() {
           </SessionProvider>
         </QueryClientProvider>
       </ThemeProvider>
-    </GestureHandlerRootView>
+    // </GestureHandlerRootView>
   );
 }

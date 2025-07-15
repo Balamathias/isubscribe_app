@@ -6,19 +6,50 @@ import { useSignOut } from '@/services/auth-hooks';
 import { Ionicons } from '@expo/vector-icons';
 import { useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
-import { ActivityIndicator, Pressable, ScrollView, Switch, Text, useColorScheme, View } from 'react-native';
+import { useState } from 'react';
+import { ActivityIndicator, FlatList, Pressable, Switch, Text, useColorScheme, View } from 'react-native';
 import Toast from 'react-native-toast-message';
 import { useSession } from '../session-context';
 
 export function SettingsList() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const colors = COLORS[isDark ? 'dark' : 'light'];
   const { isBiometricSupported, isBiometricEnabled, toggleBiometric } = useLocalAuth();
   const { mutate: logout, isPending: loggingOut } = useSignOut();
   const queryClient = useQueryClient();
-  const { user } = useSession()
+  const { user } = useSession();
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  const settings = [
+  const handleLogout = () => {
+    logout(undefined, {
+      onSuccess: () => {
+        Toast.show({
+          type: 'success',
+          text1: 'Signed out successfully.'
+        });
+        queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.getWalletBalance] });
+        queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.getLatestTransactions] });
+        
+        try {
+          supabase.removeAllChannels();
+        } catch (error: any) {
+          console.error(error);
+        }
+
+        router.replace('/');
+      },
+      onError: (error) => {
+        Toast.show({
+          type: 'error',
+          text1: 'Sign out failed!',
+          text2: error?.message
+        });
+      }
+    });
+  };
+
+  const settingsData = [
     {
       id: 'biometric',
       title: 'Biometric Authentication',
@@ -36,149 +67,178 @@ export function SettingsList() {
       title: 'Notifications',
       description: 'Manage notification preferences',
       icon: 'notifications-outline',
-      type: 'toggle'
+      type: 'toggle',
+      value: false,
+      onToggle: () => {}
     },
     {
       id: 'theme',
       title: 'Dark Mode',
       description: 'Toggle dark/light theme',
       icon: 'moon-outline',
-      type: 'toggle'
+      type: 'toggle',
+      value: isDark,
+      onToggle: () => {}
     },
     {
       id: 'language',
       title: 'Language',
       description: 'Change app language',
       icon: 'language-outline',
-      type: 'link'
+      type: 'link',
+      onPress: () => {}
     },
     {
       id: 'privacy',
       title: 'Privacy',
       description: 'Manage privacy settings',
       icon: 'shield-outline',
-      type: 'link'
+      type: 'link',
+      onPress: () => {}
     },
     {
       id: 'about',
       title: 'About',
       description: 'App version and information',
       icon: 'information-circle-outline',
-      type: 'link'
+      type: 'link',
+      onPress: () => {}
+    },
+    ...(user ? [{
+      id: 'delete-account',
+      title: 'Delete Account',
+      description: 'Permanently delete your account and all data',
+      icon: 'trash-outline',
+      type: 'action',
+      isDangerous: true,
+      onPress: () => setShowDeleteModal(true),
+    }] : []),
+    // Add separator
+    {
+      id: 'separator',
+      type: 'separator'
+    },
+    {
+      id: 'auth-action',
+      title: user ? 'Logout' : 'Login',
+      description: user ? 'Sign out of your account' : 'Sign in to your account',
+      icon: user ? 'log-out-outline' : 'log-in-outline',
+      type: 'auth-action',
+      onPress: user ? handleLogout : () => router.push('/auth/login'),
+      isDangerous: !!user,
+      isLoading: loggingOut
     }
   ];
 
-  const handleLogout = () => {
-    logout(undefined, {
-      onSuccess: () => {
-        Toast.show({
-          type: 'success',
-          text1: `Signed out successfully.`
-        });
-        queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.getWalletBalance]});
-        queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.getLatestTransactions]});
-        
-        try {
-          supabase.removeAllChannels()
-        } catch (error: any) {
-          console.error(error)
-        }
+  const renderSettingItem = ({ item }: { item: any }) => {
+    if (item.type === 'separator') {
+      return <View className="h-4" />;
+    }
 
-        router.replace(`/`);
-      },
-      onError: (error) => {
-        Toast.show({
-          type: 'error',
-          text1: `Sign out failed!`,
-          text2: error?.message
-        });
-      }
-    });
+    if (item.type === 'auth-action') {
+      return (
+        <Pressable
+          onPress={item.onPress}
+          className={`flex-row items-center p-4 rounded-xl ${
+            item.isDangerous ? 'bg-red-50 dark:bg-red-900/20' : 'bg-primary/10'
+          }`}
+        >
+          <View className={`w-8 h-8 rounded-full items-center justify-center mr-3 ${
+            item.isDangerous ? 'bg-red-100 dark:bg-red-900' : 'bg-primary/20'
+          }`}>
+            <Ionicons 
+              name={item.icon} 
+              size={20} 
+              color={item.isDangerous ? '#ef4444' : colors.primary} 
+            />
+          </View>
+          
+          <View className="flex-1">
+            <Text className={`font-medium ${
+              item.isDangerous ? 'text-red-500' : 'text-primary'
+            }`}>
+              {item.title}
+            </Text>
+            <Text className={`text-sm ${
+              item.isDangerous ? 'text-red-400' : 'text-muted-foreground'
+            }`}>
+              {item.description}
+            </Text>
+          </View>
+
+          {item.isLoading && (
+            <ActivityIndicator size="small" color={item.isDangerous ? '#ef4444' : colors.primary} />
+          )}
+        </Pressable>
+      );
+    }
+
+    return (
+      <Pressable
+        className={`flex-row items-center p-4 border-b border-border/80 ${
+          item.disabled ? 'opacity-50' : ''
+        } ${item.isDangerous ? 'bg-red-50 dark:bg-red-900/20' : ''}`}
+        disabled={item.disabled}
+        onPress={item.type === 'toggle' && item.onToggle ? item.onToggle : item.onPress}
+      >
+        <View className={`w-8 h-8 rounded-full items-center justify-center mr-3 ${
+          item.isDangerous ? 'bg-red-100 dark:bg-red-900' : 'bg-secondary'
+        }`}>
+          <Ionicons 
+            name={item.icon} 
+            size={15} 
+            color={item.isDangerous ? '#EF4444' : colors.mutedForeground} 
+          />
+        </View>
+        
+        <View className="flex-1">
+          <Text className={`font-medium ${
+            item.isDangerous ? 'text-red-600 dark:text-red-400' : 'text-foreground'
+          }`}>
+            {item.title}
+          </Text>
+          <Text className={`text-sm ${
+            item.isDangerous ? 'text-red-500 dark:text-red-500' : 'text-muted-foreground'
+          }`}>
+            {item.description}
+          </Text>
+        </View>
+
+        {item.type === 'toggle' ? (
+          <Switch
+            value={item.value}
+            onValueChange={item.onToggle}
+            trackColor={{ false: colors.mutedForeground, true: colors.primary }}
+            thumbColor={isDark ? '#f4f4f5' : '#f4f4f5'}
+            disabled={item.disabled}
+          />
+        ) : (
+          <Ionicons 
+            name="chevron-forward" 
+            size={20} 
+            color={item.isDangerous ? '#EF4444' : colors.mutedForeground} 
+          />
+        )}
+      </Pressable>
+    );
   };
 
   return (
-    <View className="flex-1 bg-background">
-      <ScrollView className="flex-1">
-        {settings.map((setting) => (
-          <Pressable
-            key={setting.id}
-            className={`flex-row items-center p-4 border-b border-border/80 ${setting.disabled ? 'opacity-50' : ''}`}
-            disabled={setting.disabled}
-            onPress={setting.type === 'toggle' && setting.onToggle ? setting.onToggle : undefined}
-          >
-            <View className="w-8 h-8 rounded-full bg-secondary items-center justify-center mr-3">
-              <Ionicons 
-                name={setting.icon as any} 
-                size={15} 
-                color={isDark ? '#71717a' : '#71717a'} 
-              />
-            </View>
-            
-            <View className="flex-1">
-              <Text className="text-foreground font-medium">{setting.title}</Text>
-              <Text className="text-muted-foreground text-sm">{setting.description}</Text>
-            </View>
-
-            {setting.type === 'toggle' ? (
-              <Switch
-                value={setting.value}
-                onValueChange={setting.onToggle}
-                trackColor={{ false: '#71717a', true: COLORS.light.primary }}
-                thumbColor={isDark ? '#f4f4f5' : '#f4f4f5'}
-                disabled={setting.disabled}
-              />
-            ) : (
-              <Ionicons 
-                name="chevron-forward" 
-                size={20} 
-                color="#71717a" 
-              />
-            )}
-          </Pressable>
-        ))}
-      </ScrollView>
-
-      {user ? (
-        <Pressable
-          onPress={handleLogout}
-          className="flex-row items-center p-4 border-t border-border/80"
-        >
-          <View className="w-8 h-8 rounded-full bg-red-500/10 items-center justify-center mr-3">
-            <Ionicons 
-              name="log-out-outline" 
-              size={20} 
-              color="#ef4444" 
-            />
-          </View>
-          
-          <View className="flex-1">
-            <Text className="text-red-500 font-medium">Logout</Text>
-            <Text className="text-muted-foreground text-sm">Sign out of your account</Text>
-          </View>
-
-          {loggingOut && (
-            <ActivityIndicator size="small" color="#ef4444" />
-          )}
-        </Pressable>
-      ) : (
-        <Pressable
-          onPress={() => router.push('/auth/login')}
-          className="flex-row items-center p-4 border-t border-border/80"
-        >
-          <View className="w-8 h-8 rounded-full bg-primary/10 items-center justify-center mr-3">
-            <Ionicons 
-              name="log-in-outline" 
-              size={20} 
-              color={COLORS.light.primary} 
-            />
-          </View>
-          
-          <View className="flex-1">
-            <Text className="text-primary font-medium">Login</Text>
-            <Text className="text-muted-foreground text-sm">Sign in to your account</Text>
-          </View>
-        </Pressable>
-      )}
+    <View style={{ flex: 1 }}>
+      <View className="flex-1 bg-background p-4">
+        <FlatList
+          data={settingsData}
+          renderItem={renderSettingItem}
+          keyExtractor={(item) => item.id}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{
+            paddingBottom: 24,
+            flexGrow: 1
+          }}
+          style={{ flex: 1 }}
+        />
+      </View>
     </View>
   );
 }
+

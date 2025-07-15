@@ -9,11 +9,13 @@ import {
   FlatList,
   TextInput,
   Image,
+  useColorScheme,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LoadingSpinner from '../ui/loading-spinner';
 import { useSession } from '../session-context';
+import { COLORS } from '@/constants/colors';
 
 const providers = [
   { id: 'ikeja', name: 'Ikeja Electricity', logo: require('../../assets/services/electricity/ikeja.jpeg') },
@@ -37,6 +39,10 @@ const ProviderSelector: React.FC<Props> = ({ selectedProvider, onSelect }) => {
 
   const { electricityServices } = useSession()
 
+  const colorScheme = useColorScheme()
+  const theme = colorScheme === 'dark' ? 'dark' : 'light'
+  const colors = COLORS[theme];
+
   const filteredProviders = electricityServices?.filter(p =>
     p?.name?.toLowerCase().includes(search.toLowerCase())
   );
@@ -59,35 +65,33 @@ const ProviderSelector: React.FC<Props> = ({ selectedProvider, onSelect }) => {
             className="w-8 h-8 rounded-full bg-muted"
             resizeMode="contain"
           />
-          <Text className="text-base font-medium">
+          <Text className="text-base font-medium text-foreground">
             {selectedProvider
               ? electricityServices?.find(p => p.id === selectedProvider)?.name
               : 'Select Provider'}
           </Text>
         </View>
-        <Ionicons name="chevron-down" size={20} />
+        <Ionicons name="chevron-down" size={20} color={colors.foreground} />
       </TouchableOpacity>
 
-      {/* Modal Drawer */}
       <Modal visible={isModalVisible} animationType="slide" onRequestClose={() => setModalVisible(false)}   transparent={true} className="flex-1 justify-end bg-black/50">
         <SafeAreaView  className="flex-1 bg-black/50 bg-opacity-50 justify-end ">
         <LoadingSpinner isPending={false} />
           <View className="bg-card rounded-t-2xl p-4 max-h-[85%] ">
-            {/* Search */}
             <View className="flex-row items-center bg-input px-4 py-2 rounded-xl mb-4">
-              <Ionicons name="search" size={20} color="#999" />
+              <Ionicons name="search" size={20} color={colors.mutedForeground} />
               <TextInput
                 placeholder="Filter providers..."
-                className="ml-2 flex-1 text-sm"
+                className="ml-2 flex-1 text-sm text-foreground"
                 value={search}
+                placeholderTextColor={colors.mutedForeground}
                 onChangeText={setSearch}
               />
               <TouchableOpacity onPress={() => setModalVisible(false)}>
-                <Ionicons name="close" className='text-destructive' size={20} />
+                <Ionicons name="close" color={colors.mutedForeground} size={20} />
               </TouchableOpacity>
             </View>
 
-            {/* Providers List */}
             <FlatList
               data={filteredProviders?.map(service => ({
                 id: service.id,
@@ -108,7 +112,7 @@ const ProviderSelector: React.FC<Props> = ({ selectedProvider, onSelect }) => {
                       className="w-8 h-8 rounded-full"
                       resizeMode="contain"
                     />
-                    <Text className="text-base text-gray-800">{item.name}</Text>
+                    <Text className="text-base text-muted-foreground">{item.name}</Text>
                   </View>
                   <View
                     className={`w-10 h-6 rounded-full justify-center ${

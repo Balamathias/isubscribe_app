@@ -61,7 +61,7 @@ export default function Index() {
 
           <RecentTransactions />
 
-          <View className="bg-card rounded-xl p-4 shadow-sm">
+          <View className="bg-card dark:bg-secondary rounded-xl p-4 shadow-sm">
             <View className="flex-row items-center justify-between mb-3">
               <View className="flex-row items-center">
                 <Ionicons name="star" size={20} color="#FFD700" />

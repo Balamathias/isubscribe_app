@@ -18,7 +18,7 @@ const HelpScreen = () => {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-background">
+    <SafeAreaView className={"flex-1 bg-background" + ` ${theme}`}>
       <View className="flex-1 p-5">
         <View className="items-center mt-10 mb-10">
           <Ionicons name="help-circle-outline" size={48} color={colors.primary} />

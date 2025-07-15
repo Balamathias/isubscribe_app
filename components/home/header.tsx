@@ -40,26 +40,10 @@ const Header = () => {
                             <Image
                             source={require('@/assets/images/logo-icon.png')}
                             className="w-11 h-11 mr-0.5"
-                            style={{ tintColor: '#7B2FF2' }}
+                            style={{ tintColor: colors.primary }}
                             />
-                            <Text className="text-2xl font-semibold text-[#7B2FF2]">isubscribe</Text>
+                            <Text className="text-2xl font-semibold text-primary">isubscribe</Text>
                         </View>
-                    
-                          {/* <View className="flex-row items-center gap-x-1.5">
-                              {
-                                  user ? (
-                                      <Avatar 
-                                          source={ user?.user_metadata?.picture ? { uri: user?.user_metadata?.picture}: undefined }
-                                          size={32}
-                                      />
-                                  ): (
-                                      <Avatar 
-                                          size={32}
-                                      />
-                                  )
-                              }
-                              <Text className="text-base sm:text-lg md:text-xl font-medium text-foreground">Hi, {getUserInitials() ? getUserInitials() : 'Guest'}.</Text>
-                          </View> */}
 
                           <View className="flex-row items-center gap-x-4">
                               <TouchableOpacity onPress={() => router.push('/help')}>

@@ -20,6 +20,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import LoadingSpinner from '../ui/loading-spinner';
 import EducationTypeSelector from './education-type-selector';
 import { formatNigerianNaira } from '@/utils/format-naira';
+import { useThemedColors } from '@/hooks/useThemedColors';
 
 const electricitySchema = z.object({
   phoneNumber: z
@@ -41,6 +42,8 @@ const BuyEducationScreen = () => {
   const [isPending, setIsPending] = useState(false);
   const [selectedProvider, setSelectedProvider] = useState<'waec' | 'jamb'>('waec');
   const { user, refetchAppConfig, loadingAppConfig, appConfig } = useSession();
+
+  const { colors } = useThemedColors()
 
   const {
     control,
@@ -146,11 +149,12 @@ const BuyEducationScreen = () => {
                         value={value}
                         onChangeText={onChange}
                         className="border border-border rounded-lg px-4 py-4 text-sm"
+                        placeholderTextColor={colors.mutedForeground}
                     />
                     )}
                 />
                 {errors.profileCode && (
-                    <Text className="text-red-500 text-xs mt-1">{errors.profileCode.message}</Text>
+                    <Text className="text-destructive text-xs mt-1">{errors.profileCode.message}</Text>
                 )}
                 </View>
                 </>
@@ -168,6 +172,7 @@ const BuyEducationScreen = () => {
               <TextInput
                 placeholder="Enter Phone Number here."
                 value={value}
+                placeholderTextColor={colors.mutedForeground}
                 onChangeText={onChange}
                 keyboardType="phone-pad"
                 className="border border-border rounded-lg px-4 py-4 text-sm"
@@ -175,7 +180,7 @@ const BuyEducationScreen = () => {
             )}
           />
           {errors.phoneNumber && (
-            <Text className="text-red-500 text-xs mt-1">{errors.phoneNumber.message}</Text>
+            <Text className="text-destructive text-xs mt-1">{errors.phoneNumber.message}</Text>
           )}
         </View>
 

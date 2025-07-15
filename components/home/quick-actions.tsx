@@ -60,7 +60,7 @@ const ActionItem: React.FC<ActionItemProps> = ({ action }) => {
   return (
     <Animated.View style={animatedStyle} className="flex flex-col w-1/4 items-center mb-4">
       <TouchableOpacity
-        className="bg-[#F3EFFB] dark:bg-[#222] p-1 rounded-xl mb-2 items-center justify-center aspect-square w-10 h-10"
+        className="bg-[#F3EFFB] dark:bg-secondary p-1 rounded-xl mb-2 items-center justify-center aspect-square w-10 h-10"
         activeOpacity={0.7}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}

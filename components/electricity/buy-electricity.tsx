@@ -22,6 +22,7 @@ import { useSession } from '../session-context';
 import LoadingSpinner from '../ui/loading-spinner';
 import ElectricityConfirmationModal from './electricity-confirmation-modal';
 import ProviderSelector from './provider-selector';
+import { useThemedColors } from '@/hooks/useThemedColors';
 
 const electricitySchema = z.object({
   phoneNumber: z
@@ -49,6 +50,7 @@ const BuyElectricityScreen = () => {
   const { user, refetchElectricityServices, loadingElectricityServices, walletBalance, electricityServices } = useSession();
 
   const { mutateAsync: verifyMerchant, isPending: isVerifyingMeter } = useVerifyMerchant();
+  const { colors } = useThemedColors()
 
   const {
     control,
@@ -126,7 +128,6 @@ const BuyElectricityScreen = () => {
     }
   };
 
-  // Reset verification when meter number or provider changes
   React.useEffect(() => {
     setVerificationStatus('idle');
     setCustomerInfo(null);
@@ -173,7 +174,6 @@ const BuyElectricityScreen = () => {
         contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
       >
         
-        {/* Provider */}
         <View className="bg-card rounded-xl p-4 mb-4 shadow-sm">
           <ProviderSelector
             selectedProvider={selectedProvider}
@@ -181,7 +181,6 @@ const BuyElectricityScreen = () => {
           />
         </View>
 
-        {/* Prepaid / Postpaid Toggle */}
         <View className="bg-card rounded-xl p-4 py-5 flex-row items-center justify-end gap-4 mb-4 shadow-sm">
           <Text className={`text-base font-semibold ${isPrepaid ? 'text-primary' : 'text-foreground'}`}>Prepaid</Text>
           <TouchableOpacity
@@ -199,7 +198,6 @@ const BuyElectricityScreen = () => {
           <Text className={`text-base font-semibold ${!isPrepaid ? 'text-primary' : 'text-foreground'}`}>Postpaid</Text>
         </View>
 
-        {/* Meter Number */}
         <View className="bg-card rounded-xl p-4 mb-4 shadow-sm">
           <Text className="text-sm font-medium text-muted-foreground mb-2">📟 Meter Number:</Text>
           <View className="flex-row items-center gap-2">
@@ -210,6 +208,7 @@ const BuyElectricityScreen = () => {
                 <TextInput
                   placeholder="Enter Meter Number here."
                   value={value}
+                  placeholderTextColor={colors.mutedForeground}
                   onChangeText={onChange}
                   className="flex-1 border border-border rounded-lg px-4 py-4 text-sm"
                 />
@@ -255,17 +254,17 @@ const BuyElectricityScreen = () => {
               <View className="ml-2 flex-1">
                 {verificationStatus === 'success' && customerInfo && (
                   <>
-                    <Text className="text-green-800 font-medium text-sm">✓ Meter Verified</Text>
-                    <Text className="text-green-700 text-sm mt-1">
+                    <Text className="text-green-800 dark:text-green-500 font-medium text-sm">✓ Meter Verified</Text>
+                    <Text className="text-green-700 dark:text-green-300 text-sm mt-1">
                       Customer: {customerInfo.Customer_Name}
                     </Text>
                     {customerInfo.Address && (
-                      <Text className="text-green-600 text-xs mt-1">
+                      <Text className="text-green-600 dark:text-green-300 text-xs mt-1">
                         Address: {customerInfo.Address}
                       </Text>
                     )}
                     {customerInfo.Outstanding > 0 && (
-                      <Text className="text-orange-600 text-xs mt-1">
+                      <Text className="text-orange-600 dark:text-orange-300 text-xs mt-1">
                         Outstanding: ₦{customerInfo.Outstanding.toLocaleString()}
                       </Text>
                     )}
@@ -273,21 +272,21 @@ const BuyElectricityScreen = () => {
                 )}
                 {verificationStatus === 'error' && (
                   <>
-                    <Text className="text-red-800 font-medium text-sm">✗ Verification Failed</Text>
-                    <Text className="text-red-700 text-sm mt-1">
+                    <Text className="text-red-800 dark:text-destructive font-medium text-sm">✗ Verification Failed</Text>
+                    <Text className="text-red-700 dark:text-destructive text-sm mt-1">
                       Please check the meter number and try again
                     </Text>
                   </>
                 )}
                 {verificationStatus === 'loading' && (
-                  <Text className="text-blue-800 font-medium text-sm">Verifying meter...</Text>
+                  <Text className="text-blue-800 dark:text-blue-400 font-medium text-sm">Verifying meter...</Text>
                 )}
               </View>
             </View>
           )}
           
           {errors.meterNumber && (
-            <Text className="text-red-500 text-xs mt-1">{errors.meterNumber.message}</Text>
+            <Text className="text-destructive text-xs mt-1">{errors.meterNumber.message}</Text>
           )}
         </View>
 
@@ -319,6 +318,7 @@ const BuyElectricityScreen = () => {
                 placeholder="Enter Amount here"
                 keyboardType="numeric"
                 value={value ? value.toString() : ''}
+                placeholderTextColor={colors.mutedForeground}
                 onChangeText={(text) => {
                   const numericValue = parseFloat(text) || 0;
                   onChange(numericValue);
@@ -354,7 +354,7 @@ const BuyElectricityScreen = () => {
             </Text>
           )}
           {errors.amount && (
-            <Text className="text-red-500 text-xs mt-1">{errors.amount.message}</Text>
+            <Text className="text-destructive text-xs mt-1">{errors.amount.message}</Text>
           )}
         </View>
 

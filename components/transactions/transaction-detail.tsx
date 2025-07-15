@@ -200,13 +200,11 @@ ${transaction.meta_data && typeof transaction.meta_data === 'object' && 'phone' 
               width: width - 32,
               height: undefined,
             }}
-            style={{ backgroundColor: colors.background }}
           >
             <View style={{ 
-              backgroundColor: colors.background, 
               padding: 20,
               minHeight: 600
-            }}>
+            }} className={'bg-secondary dark:bg-secondary'}>
               <View className="items-center mb-6">
                 <Text className="text-2xl font-bold text-primary mb-2">isubscribe</Text>
                 <Text className="text-muted-foreground text-sm">Transaction Receipt</Text>

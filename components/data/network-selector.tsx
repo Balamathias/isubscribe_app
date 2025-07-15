@@ -3,6 +3,8 @@ import React, { useEffect } from 'react';
 import { Image, Text, TouchableOpacity, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { useVerifyPhone } from '../../services/api-hooks';
+import { useColorScheme } from 'react-native';
+import { COLORS } from '@/constants/colors';
 
 interface Network {
   id: string;
@@ -23,6 +25,10 @@ const NetworkSelector: React.FC<NetworkSelectorProps> = ({
   const scale = useSharedValue(1);
   const opacity = useSharedValue(1);
   const verifyPhone = useVerifyPhone();
+
+  const colorScheme = useColorScheme()
+  const theme = colorScheme === 'dark' ? 'dark' : 'light'
+  const colors = COLORS[theme];
 
   const animatedStyle = useAnimatedStyle(() => {
     return {
@@ -83,8 +89,8 @@ const NetworkSelector: React.FC<NetworkSelectorProps> = ({
                     className="w-10 h-10 rounded-full" 
                     resizeMode="contain"
                     style={{ 
-                    tintColor: undefined,
-                    backgroundColor: 'transparent',
+                      tintColor: network?.id === 'mtn' ? colors.foreground : '',
+                      backgroundColor: 'transparent',
                     }}
                     fadeDuration={0}
                   />

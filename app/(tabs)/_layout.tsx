@@ -23,7 +23,7 @@ const Layout = () => {
         screenOptions={{
             tabBarActiveTintColor: theme.primary,
             tabBarStyle: {
-                display: 'none', // Hide default tab bar
+                display: 'none',
             },
             headerShown: false,
         }}

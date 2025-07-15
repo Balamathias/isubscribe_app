@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LoadingSpinner from '../ui/loading-spinner';
 import { EducationProviders } from '@/types/utils';
+import { useThemedColors } from '@/hooks/useThemedColors';
 
 const providers: { id: EducationProviders; name: string; logo: any }[] = [
   { id: 'waec', name: 'WACE', logo: require('../../assets/services/education/waec.png') },
@@ -29,6 +30,7 @@ interface Props {
 const EducationTypeSelector: React.FC<Props> = ({ selectedProvider, onSelect }) => {
   const [isModalVisible, setModalVisible] = useState(false);
   const [search, setSearch] = useState('');
+  const { colors } = useThemedColors();
 
   const filteredProviders = providers.filter(p =>
     p.name.toLowerCase().includes(search.toLowerCase())
@@ -44,12 +46,12 @@ const EducationTypeSelector: React.FC<Props> = ({ selectedProvider, onSelect }) 
       {/* Selected Display */}
       <TouchableOpacity
         onPress={() => setModalVisible(true)}
-        className="bg-white p-2 rounded-lg flex-row justify-between items-center"
+        className="bg-background p-2 rounded-lg flex-row justify-between items-center"
       >
         <View className=' flex flex-row items-center gap-2'>
           <Image
             source={providers?.find(p => p.id === selectedProvider)?.logo || providers?.[0]?.logo}
-            className="w-8 h-8 rounded-full bg-gray-100"
+            className="w-8 h-8 rounded-full bg-secondary"
             resizeMode="contain"
           />
           <Text className="text-base font-medium">
@@ -61,26 +63,24 @@ const EducationTypeSelector: React.FC<Props> = ({ selectedProvider, onSelect }) 
         <Ionicons name="chevron-down" size={20} />
       </TouchableOpacity>
 
-      {/* Modal Drawer */}
       <Modal visible={isModalVisible} animationType="slide" onRequestClose={() => setModalVisible(false)}   transparent={true} className="flex-1 justify-end bg-black/50">
         <SafeAreaView  className="flex-1 bg-black/50 bg-opacity-50 justify-end ">
         <LoadingSpinner isPending={false} />
-          <View className="bg-white rounded-t-2xl p-4 max-h-[85%] ">
-            {/* Search */}
-            <View className="flex-row items-center bg-[#f1f1f1] px-4 py-2 rounded-lg mb-4">
-              <Ionicons name="search" size={20} color="#999" />
+          <View className="bg-background rounded-t-2xl p-4 max-h-[85%] ">
+            <View className="flex-row items-center bg-secondary px-4 py-2 rounded-lg mb-4">
+              <Ionicons name="search" size={20} color={colors.mutedForeground} />
               <TextInput
                 placeholder="Filter exam type..."
                 className="ml-2 flex-1 text-sm"
                 value={search}
                 onChangeText={setSearch}
+                placeholderTextColor={colors.mutedForeground}
               />
               <TouchableOpacity onPress={() => setModalVisible(false)}>
-                <Ionicons name="close" size={20} />
+                <Ionicons name="close" size={20} color={colors.mutedForeground} />
               </TouchableOpacity>
             </View>
 
-            {/* Providers List */}
             <FlatList
               data={filteredProviders}
               keyExtractor={item => item.id}
@@ -95,7 +95,7 @@ const EducationTypeSelector: React.FC<Props> = ({ selectedProvider, onSelect }) 
                       className="w-8 h-8 rounded-full"
                       resizeMode="contain"
                     />
-                    <Text className="text-base text-gray-800">{item.name}</Text>
+                    <Text className="text-base text-foreground">{item.name}</Text>
                   </View>
                   <View
                     className={`w-10 h-6 rounded-full justify-center ${
@@ -105,7 +105,7 @@ const EducationTypeSelector: React.FC<Props> = ({ selectedProvider, onSelect }) 
                     }`}
                   >
                     <View
-                      className={`w-4 h-4 rounded-full bg-white ${
+                      className={`w-4 h-4 rounded-full bg-background ${
                         selectedProvider === item.id
                           ? 'ml-auto mr-1'
                           : 'ml-1'
@@ -114,7 +114,7 @@ const EducationTypeSelector: React.FC<Props> = ({ selectedProvider, onSelect }) 
                   </View>
                 </TouchableOpacity>
               )}
-              ItemSeparatorComponent={() => <View className="h-px bg-gray-100" />}
+              ItemSeparatorComponent={() => <View className="h-px bg-border" />}
             />
           </View>
         </SafeAreaView>

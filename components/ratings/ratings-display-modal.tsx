@@ -4,17 +4,17 @@ import { Ionicons } from '@expo/vector-icons';
 import { format } from 'date-fns';
 import React, { useState } from 'react';
 import {
-    ActivityIndicator,
-    FlatList,
-    RefreshControl,
-    Text,
-    useColorScheme,
-    View
+  ActivityIndicator,
+  FlatList,
+  RefreshControl,
+  Text,
+  useColorScheme,
+  View
 } from 'react-native';
 import Animated, {
-    useAnimatedStyle,
-    useSharedValue,
-    withSpring
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring
 } from 'react-native-reanimated';
 import Avatar from '../ui/avatar';
 import BottomSheet from '../ui/bottom-sheet';
@@ -75,7 +75,7 @@ const RatingCard = ({ item, index }: { item: Tables<'ratings'>; index: number })
 
   return (
     <Animated.View style={animatedStyle}>
-      <View className="bg-card rounded-xl p-4 mb-3 shadow-sm border border-input mx-4">
+      <View className="bg-card rounded-xl p-4 mb-3 shadow-sm">
         <View className="flex-row items-start justify-between mb-3">
           <View className="flex-row items-center flex-1">
             <Avatar size={40} />
@@ -97,9 +97,9 @@ const RatingCard = ({ item, index }: { item: Tables<'ratings'>; index: number })
         </View>
         
         {item.comment && (
-          <View className="bg-secondary rounded-lg p-3">
+          <View className="rounded-lg p-3">
             <Text className="text-foreground text-sm leading-relaxed">
-              "{item.comment}"
+              {item.comment}
             </Text>
           </View>
         )}
@@ -109,19 +109,6 @@ const RatingCard = ({ item, index }: { item: Tables<'ratings'>; index: number })
             <Ionicons name="time-outline" size={14} color="#6B7280" />
             <Text className="text-muted-foreground text-xs ml-1">
               {format(new Date(item.created_at), 'h:mm a')}
-            </Text>
-          </View>
-          <View className={`px-2 py-1 rounded-full ${
-            item.status === 'approved' ? 'bg-green-100 dark:bg-green-900' :
-            item.status === 'pending' ? 'bg-yellow-100 dark:bg-yellow-900' :
-            'bg-gray-100 dark:bg-gray-900'
-          }`}>
-            <Text className={`text-xs font-medium ${
-              item.status === 'approved' ? 'text-green-700 dark:text-green-300' :
-              item.status === 'pending' ? 'text-yellow-700 dark:text-yellow-300' :
-              'text-gray-700 dark:text-gray-300'
-            }`}>
-              {item.status || 'pending'}
             </Text>
           </View>
         </View>
@@ -176,7 +163,7 @@ const RatingsDisplayModal: React.FC<RatingsDisplayModalProps> = ({
   const averageRating = calculateAverageRating();
 
   const renderHeader = () => (
-    <View className="bg-secondary rounded-xl p-4 mb-4 mx-4">
+    <View className="bg-secondary rounded-xl p-4 mb-4">
       <View className="flex-row items-center justify-between mb-4">
         <View className="items-center">
           <Text className="text-foreground text-3xl font-bold">
@@ -239,10 +226,10 @@ const RatingsDisplayModal: React.FC<RatingsDisplayModalProps> = ({
           )}
           ListHeaderComponent={ratings.length > 0 ? renderHeader : null}
           ListEmptyComponent={renderEmpty}
+          nestedScrollEnabled
           showsVerticalScrollIndicator={true}
           bounces={true}
           scrollEnabled={true}
-          nestedScrollEnabled={true}
           keyboardShouldPersistTaps="handled"
           refreshControl={
             <RefreshControl

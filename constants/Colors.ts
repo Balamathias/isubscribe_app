@@ -16,7 +16,7 @@ export const COLORS = {
         input: 'hsl(210 20% 98%)',
     },
     dark: {
-        primary: 'hsl(263.4 70% 60.4%)',
+        primary: 'hsl(263.4 70% 65%)',
         secondary: 'hsl(210 40% 3.9%)',
         secondaryForeground: 'hsl(210 40% 96.1%)',
         

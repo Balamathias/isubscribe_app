@@ -14,6 +14,7 @@ import toastConfig from '@/config/toast-config';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Toast from 'react-native-toast-message';
+import { useThemedColors } from '@/hooks/useThemedColors';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -21,6 +22,8 @@ export default function RootLayout() {
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
     Poppins: require('../assets/fonts/Poppins-Regular.ttf'),
   });
+
+  const { theme } = useThemedColors()
 
   AppState.addEventListener('change', (state) => {
     if (state === 'active') {
@@ -37,7 +40,7 @@ export default function RootLayout() {
   }
 
   return (
-    // <GestureHandlerRootView style={{ flex: 1 }}>
+    <GestureHandlerRootView style={{ flex: 1 }} className={theme}>
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
         <QueryClientProvider client={client}>
           <SessionProvider>
@@ -56,21 +59,12 @@ export default function RootLayout() {
                 <Stack.Screen name="coming-soon" />
                 <Stack.Screen name="accounts" />
                 <Stack.Screen name="+not-found" />
-                
-                <Stack.Screen
-                  name="ratings-modal"
-                  options={{
-                    presentation: 'modal',
-                    headerShown: false,
-                    animation: 'slide_from_bottom',
-                  }}
-                />
               </Stack>
               <StatusBar style="auto" />
               <Toast config={toastConfig} />
           </SessionProvider>
         </QueryClientProvider>
       </ThemeProvider>
-    // </GestureHandlerRootView>
+    </GestureHandlerRootView>
   );
 }

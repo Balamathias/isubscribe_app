@@ -1,7 +1,8 @@
-import React from 'react';
-import { View, Text } from 'react-native';
-import { BaseToastProps } from 'react-native-toast-message';
+import { useThemedColors } from '@/hooks/useThemedColors';
 import { Ionicons } from '@expo/vector-icons';
+import React from 'react';
+import { Text, View } from 'react-native';
+import { BaseToastProps } from 'react-native-toast-message';
 
 interface CustomToastProps extends BaseToastProps {
   text1?: string;

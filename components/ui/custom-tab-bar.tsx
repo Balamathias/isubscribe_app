@@ -8,10 +8,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 const CustomTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, navigation }) => {
   const colorScheme = useColorScheme();
-  const theme = colorScheme === 'dark' ? COLORS.dark : COLORS.light;
+    const theme = colorScheme === 'dark' ? 'dark' : 'light';
+  const colors = colorScheme === 'dark' ? COLORS.dark : COLORS.light;
 
   const getTabIcon = (routeName: string, focused: boolean) => {
-    const iconColor = focused ? '#FFFFFF' : theme.mutedForeground;
+    const iconColor = focused ? '#FFFFFF' : colors.mutedForeground;
     const iconSize = 22;
 
     switch (routeName) {
@@ -44,24 +45,19 @@ const CustomTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, navigat
   };
 
   return (
-    <View className='bg-background'>
+    <View className={`${theme} bg-background`}>
         <SafeAreaView 
-        edges={['bottom']} 
-        className=" border-t-none border-border shadow-2xl bg-background"
-        style={{
-            paddingTop: 6,
-            paddingHorizontal: 16,
-        }}
+            edges={['bottom']} 
+            className=" border-t-none border-border shadow-2xl bg-background"
+            style={{
+                paddingTop: 6,
+                paddingHorizontal: 16,
+            }}
         >
-        <View className="flex-row justify-around items-center">
+        <View className="flex-row justify-around items-center bg-background">
             {state.routes.map((route, index) => {
             const { options } = descriptors[route.key];
             const isFocused = state.index === index;
-
-            // Skip subs tab since it has href: null
-            // if (route.name === 'subs') {
-            //     return null;
-            // }
 
             const onPress = () => {
                 const event = navigation.emit({
@@ -84,17 +80,17 @@ const CustomTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, navigat
 
             return (
                 <TouchableOpacity
-                key={route.key}
-                accessibilityRole="button"
-                accessibilityState={isFocused ? { selected: true } : {}}
-                accessibilityLabel={options.tabBarAccessibilityLabel}
-                testID={options.tabBarButtonTestID}
-                onPress={onPress}
-                onLongPress={onLongPress}
-                className="flex-1 items-center justify-center py-1"
-                style={{
-                    minHeight: 52,
-                }}
+                    key={route.key}
+                    accessibilityRole="button"
+                    accessibilityState={isFocused ? { selected: true } : {}}
+                    accessibilityLabel={options.tabBarAccessibilityLabel}
+                    testID={options.tabBarButtonTestID}
+                    onPress={onPress}
+                    onLongPress={onLongPress}
+                    className="flex-1 items-center justify-center py-1"
+                    style={{
+                        minHeight: 52,
+                    }}
                 >
                 <View className="items-center justify-center relative">
                     <View className="relative ">

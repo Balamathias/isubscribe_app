@@ -10,6 +10,7 @@ import { useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, Switch, Text, useColorScheme, View } from 'react-native';
 import Toast from 'react-native-toast-message';
 import { useSession } from '../session-context';
+import DeleteAccountModal from './delete-account-modal';
 
 export function SettingsList() {
   const colorScheme = useColorScheme();
@@ -238,6 +239,12 @@ export function SettingsList() {
           style={{ flex: 1 }}
         />
       </View>
+      {showDeleteModal && (
+        <DeleteAccountModal 
+          isVisible={showDeleteModal} 
+          onClose={() => setShowDeleteModal(false)} 
+        />
+      )}
     </View>
   );
 }

@@ -11,6 +11,7 @@ import { Link, router } from 'expo-router';
 import { performOAuth } from '@/services/auth';
 import { useSignIn } from '@/services/auth-hooks';
 import Toast from 'react-native-toast-message';
+import { useThemedColors } from '@/hooks/useThemedColors';
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address').min(1, 'Email is required'),
@@ -34,14 +35,15 @@ interface CustomTextInputProps {
 const CustomTextInput: React.FC<CustomTextInputProps> = ({
   icon, placeholder, onChange, value, secureTextEntry, toggleVisibility, isPasswordVisible, error, keyboardType = 'default'
 }) => {
+  const { colors } = useThemedColors()
   return (
     <View className="mb-4">
       <View className="flex-row items-center bg-input  border border-secondary rounded-xl px-4 py-2 shadow-sm">
-        <Ionicons name={icon} size={20} color="gray" className="mr-3" />
+        <Ionicons name={icon} size={20} color={colors.mutedForeground} className="mr-3" />
         <TextInput
           className="flex-1 text-base text-foreground"
           placeholder={placeholder}
-          placeholderTextColor="gray"
+          placeholderTextColor={colors.mutedForeground}
           onChangeText={onChange}
           value={value}
           secureTextEntry={secureTextEntry}
@@ -50,11 +52,11 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
         />
         {secureTextEntry !== undefined && (
           <TouchableOpacity onPress={toggleVisibility} className="p-1">
-            <Ionicons name={isPasswordVisible ? "eye-off-outline" : "eye-outline"} size={20} color="gray" />
+            <Ionicons name={isPasswordVisible ? "eye-off-outline" : "eye-outline"} size={20} color={colors.mutedForeground} />
           </TouchableOpacity>
         )}
       </View>
-      {error && <Text className="text-red-500 text-sm mt-1 ml-2">{error}</Text>}
+      {error && <Text className="text-destructive text-sm mt-1 ml-2">{error}</Text>}
     </View>
   );
 };
@@ -171,7 +173,7 @@ const LoginForm = () => {
           </TouchableOpacity>
         </View>
         <TouchableOpacity className="items-center mt-2">
-          <Text className="font-semibold text-base">Forgot password? <Link href={`/auth/forgot-password`} className="text-primary">Reset password</Link></Text>
+          <Text className="font-semibold text-base text-muted-foreground">Forgot password? <Link href={`/auth/forgot-password`} className="text-primary">Reset password</Link></Text>
         </TouchableOpacity>
 
         <Text className="text-muted-foreground text-center text-xs mt-8 px-4">

@@ -4,6 +4,7 @@ import { QUERY_KEYS, useVerifyPin } from '@/services/api-hooks'
 import { useQueryClient } from '@tanstack/react-query'
 import { Redirect, router } from 'expo-router'
 import React, { useState } from 'react'
+import { useColorScheme } from 'react-native'
 import { ScrollView, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import Toast from 'react-native-toast-message'
@@ -13,6 +14,9 @@ const OnboardingScreen = () => {
   const [isFirstPinVisible, setIsFirstPinVisible] = useState(true)
   const [firstPin, setFirstPin] = useState('')
   const { mutate: verifyPin, isPending } = useVerifyPin()
+
+  const colorScheme = useColorScheme()
+  const theme = colorScheme === 'dark' ? 'dark' : 'light'
 
   if (!session) return <Redirect href="/auth/login" />
 
@@ -62,7 +66,7 @@ const OnboardingScreen = () => {
   }
 
   return (
-    <SafeAreaView className="flex flex-1 bg-background min-h-full justify-center items-center w-full py-4">
+    <SafeAreaView className={"flex flex-1 bg-background min-h-full justify-center items-center w-full py-4" + ` ${theme}`}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}>
         <View className="items-center px-4">
           <Text className="text-foreground text-2xl font-bold mb-4">Set Your PIN</Text>

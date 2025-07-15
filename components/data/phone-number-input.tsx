@@ -6,6 +6,7 @@ import { Tables } from '../../types/database';
 import { networks } from '../../utils/networks';
 import { useSession } from '../session-context';
 import BottomSheet from '../ui/bottom-sheet';
+import { useThemedColors } from '@/hooks/useThemedColors';
 
 interface PhoneNumberInputProps {
   value: string;
@@ -23,6 +24,8 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
 }) => {
   const [isFocused, setIsFocused] = useState(false);
   const [showBeneficiaries, setShowBeneficiaries] = useState(false);
+
+  const { colors } = useThemedColors()
   
   const { beneficiaries } = useSession();
 
@@ -142,13 +145,13 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
       <Text className="text-foreground text-base font-semibold mb-2">Phone Number</Text>
       <View
         className={`flex-row items-center bg-input border rounded-xl px-4 py-2 shadow-sm
-          ${error ? 'border-red-500' : isFocused ? 'border-primary' : 'border-secondary'} ${className || ''}`}
+          ${error ? 'border-destructive' : isFocused ? 'border-primary' : 'border-secondary'} ${className || ''}`}
       >
-        <Ionicons name="call-outline" size={20} color="gray" className="mr-3" />
+        <Ionicons name="call-outline" size={20} color={colors.mutedForeground} className="mr-3" />
         <TextInput
           className="flex-1 text-base text-foreground"
           placeholder="e.g., 08012345678"
-          placeholderTextColor="gray"
+          placeholderTextColor={colors.mutedForeground}
           onChangeText={onChange}
           value={value}
           keyboardType="phone-pad"
@@ -157,14 +160,14 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
         />
         {beneficiaries && beneficiaries.length > 0 && (
           <TouchableOpacity onPress={() => setShowBeneficiaries(true)} className="p-1 ml-2">
-            <Ionicons name="chevron-down-outline" size={18} color="gray" />
+            <Ionicons name="chevron-down-outline" size={18} color={colors.mutedForeground} />
           </TouchableOpacity>
         )}
         <TouchableOpacity onPress={handleContactPicking} className="p-1 ml-2">
-          <Ionicons name="person-add-outline" size={20} color="gray" />
+          <Ionicons name="person-add-outline" size={20} color={colors.mutedForeground} />
         </TouchableOpacity>
       </View>
-      {error && <Text className="text-red-500 text-sm mt-1 ml-2">{error}</Text>}
+      {error && <Text className="text-destructive text-sm mt-1 ml-2">{error}</Text>}
 
       {/* Beneficiaries Bottom Sheet */}
       <BottomSheet
@@ -179,14 +182,14 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
               <TouchableOpacity
                 key={beneficiary.id}
                 onPress={() => handleSelectBeneficiary(beneficiary)}
-                className="flex-row items-center justify-between p-4 border-b border-gray-100"
+                className="flex-row items-center justify-between p-4 border-b border-border"
               >
                 <View className="flex-1">
                   <Text className="text-foreground font-medium text-base">
                     {beneficiary.phone}
                   </Text>
                   {beneficiary.network && (
-                    <Text className="text-gray-500 text-sm mt-1 capitalize">
+                    <Text className="text-muted-foreground text-sm mt-1 capitalize">
                       {beneficiary.network}
                     </Text>
                   )}
@@ -198,8 +201,8 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
                     resizeMode="contain"
                   />
                 ) : beneficiary.network ? (
-                  <View className="w-8 h-8 ml-3 bg-gray-200 rounded-full items-center justify-center">
-                    <Ionicons name="cellular-outline" size={16} color="gray" />
+                  <View className="w-8 h-8 ml-3 bg-secondary rounded-full items-center justify-center">
+                    <Ionicons name="cellular-outline" size={16} color={colors.mutedForeground} />
                   </View>
                 ) : null}
               </TouchableOpacity>
@@ -207,8 +210,8 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
           })}
           {(!beneficiaries || beneficiaries.length === 0) && (
             <View className="p-8 items-center">
-              <Ionicons name="people-outline" size={48} color="gray" />
-              <Text className="text-gray-500 text-center mt-4">
+              <Ionicons name="people-outline" size={48} color={colors.mutedForeground} />
+              <Text className="text-muted-foreground text-center mt-4">
                 No beneficiaries found
               </Text>
             </View>

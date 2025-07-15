@@ -9,6 +9,7 @@ import * as z from 'zod';
 import IsubscribeLogo from './logo-isubscribe';
 import { useResendOtp, useVerifyOtp } from '@/services/auth-hooks';
 import Toast from 'react-native-toast-message';
+import { useThemedColors } from '@/hooks/useThemedColors';
 
 interface OtpInputProps {
   length: number;
@@ -22,6 +23,8 @@ const OtpInput: React.FC<OtpInputProps> = ({ length, value, onChange, error }) =
 
   const inputRefs = useRef<TextInput[]>([]);
   const otpDigits = value.padEnd(length, ' ').split('');
+
+  const { colors } = useThemedColors();
 
   const handleTextChange = (text: string, index: number) => {
     let newOtp = value.split('');
@@ -47,13 +50,14 @@ const OtpInput: React.FC<OtpInputProps> = ({ length, value, onChange, error }) =
         <View
           key={index}
           className={`w-12 h-12 border rounded-xl items-center justify-center mx-1
-            ${error ? 'border-red-500' : 'border-secondary bg-input'}`}
+            ${error ? 'border-destructive' : 'border-secondary bg-input'}`}
         >
           <TextInput
             ref={ref => (inputRefs.current[index] = ref!) as any}
             className="text-foreground text-xl font-bold text-center w-full h-full"
             keyboardType="number-pad"
             maxLength={1}
+            placeholderTextColor={colors.mutedForeground}
             onChangeText={(text) => handleTextChange(text, index)}
             onKeyPress={(e) => handleKeyPress(e, index)}
             value={digit === ' ' ? '' : digit} // Clear placeholder space for actual input
@@ -62,7 +66,7 @@ const OtpInput: React.FC<OtpInputProps> = ({ length, value, onChange, error }) =
           />
         </View>
       ))}
-      {error && <Text className="text-red-500 text-sm mt-1 ml-2 absolute -bottom-6 left-0">{error}</Text>}
+      {error && <Text className="text-destructive text-sm mt-1 ml-2 absolute -bottom-6 left-0">{error}</Text>}
     </View>
   );
 };

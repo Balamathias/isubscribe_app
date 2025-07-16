@@ -5,6 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
 import { ActivityIndicator, Clipboard, Modal, Platform, Text, ToastAndroid, TouchableOpacity, View } from 'react-native';
 import Toast from 'react-native-toast-message';
+import BottomSheet from '../ui/bottom-sheet';
 
 interface CreditCardProps {
   colors: string[];
@@ -94,52 +95,34 @@ const FundWalletBottomSheet: React.FC<FundWalletBottomSheetProps> = ({ isVisible
 
   return (
     <View>
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={isVisible}
-        onRequestClose={onClose}
+      <BottomSheet
+        isVisible={isVisible}
+        onClose={onClose}
+        title='Fund Your Wallet'
       >
-        <TouchableOpacity 
-          activeOpacity={1} 
-          onPress={onClose}
-          className="flex-1 justify-end bg-black/50"
-        >
           {
             isPending && <ActivityIndicator color={COLORS.light.primary} />
           }
-          <TouchableOpacity 
-            activeOpacity={1} 
-            onPress={(e) => e.stopPropagation()}
-            className="bg-background rounded-t-3xl p-6 max-h-[80vh]"
-          >
-            <View className="flex-row justify-between items-center mb-6">
-              <Text className="text-forground font-bold text-xl">Fund Your Wallet</Text>
-              <TouchableOpacity onPress={onClose} className="p-2">
-                <Ionicons name="close-circle-outline" size={30} className='text-forground' />
-              </TouchableOpacity>
-            </View>
 
-            <View className="flex-col md:flex-row justify-center items-center gap-4">
-              <CreditCard
-                colors={['#a13ae1', '#740faa']}
-                accountNumber={account?.palmpay_account_number || '**********'}
-                bankName={'Palmpay'}
-                accountName={account?.palmpay_account_name || '****** ******'}
-                onCopy={() => handleCopy(account?.palmpay_account_number || '**********')}
-              />
+        <View className="flex-col md:flex-row justify-center items-center gap-4">
+          <CreditCard
+            colors={['#a13ae1', '#740faa']}
+            accountNumber={account?.palmpay_account_number || '**********'}
+            bankName={'Palmpay'}
+            accountName={account?.palmpay_account_name || '****** ******'}
+            onCopy={() => handleCopy(account?.palmpay_account_number || '**********')}
+          />
 
-              {account?.account_number && <CreditCard
-                colors={['#6017b9', '#af5eed']}
-                accountNumber={account?.account_number || ''}
-                bankName="Moniepoint"
-                accountName={"iSubscribe Network Technology.-" + account?.account_name}
-                onCopy={() => handleCopy(account?.account_number || '')}
-              />}
-            </View>
-          </TouchableOpacity>
-        </TouchableOpacity>
-      </Modal>
+          {account?.account_number && <CreditCard
+            colors={['#6017b9', '#af5eed']}
+            accountNumber={account?.account_number || ''}
+            bankName="Moniepoint"
+            accountName={"iSubscribe Network Technology.-" + account?.account_name}
+            onCopy={() => handleCopy(account?.account_number || '')}
+          />}
+        </View>
+            
+      </BottomSheet>
     </View>
   );
 };

@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { useThemedColors } from '@/hooks/useThemedColors';
 import React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
@@ -12,10 +12,12 @@ const DataBundleCategorySelector: React.FC<DataBundleCategorySelectorProps> = ({
   activeCategory, onSelectCategory
 }) => {
   const categories = [
-    { id: 'Best' as const, name: 'Best', icon: 'star-outline' },
-    { id: 'Super' as const, name: 'Super', icon: 'shield-outline' },
-    { id: 'Regular' as const, name: 'Regular', icon: 'time-outline' },
+    { id: 'Best' as const, name: 'Best', emoji: '⭐' },
+    { id: 'Super' as const, name: 'Super', emoji: '🚀' },
+    { id: 'Regular' as const, name: 'Regular', emoji: '📱' },
   ];
+
+  const colors = useThemedColors().colors
 
   return (
     <View className="w-full mt-4 bg-secondary rounded-xl">
@@ -39,12 +41,9 @@ const DataBundleCategorySelector: React.FC<DataBundleCategorySelectorProps> = ({
               className={`flex-1 items-center py-3 rounded-xl ${isSelected ? 'bg-primary/10' : ''}`}
             >
               <Animated.View style={animatedStyle} className="flex-row items-center">
-                <Ionicons
-                  name={category.icon as any}
-                  size={20}
-                  className="mr-2"
-                  color={isSelected ? '#7B2FF2' : '#666'}
-                />
+                <Text className="mr-2 text-xl">
+                  {category.emoji}
+                </Text>
                 <Text
                   className={`font-semibold text-base
                     ${isSelected ? 'text-primary' : 'text-muted-foreground'}`}

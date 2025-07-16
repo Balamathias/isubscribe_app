@@ -100,9 +100,9 @@ const FundWalletBottomSheet: React.FC<FundWalletBottomSheetProps> = ({ isVisible
         onClose={onClose}
         title='Fund Your Wallet'
       >
-          {
-            isPending && <ActivityIndicator color={COLORS.light.primary} />
-          }
+        {
+          isPending && <ActivityIndicator color={COLORS.light.primary} />
+        }
 
         <View className="flex-col md:flex-row justify-center items-center gap-4">
           <CreditCard

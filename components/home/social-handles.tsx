@@ -1,8 +1,8 @@
-import { View, Text, TouchableOpacity, Image, Linking } from 'react-native'
-import React from 'react'
 import { Ionicons } from '@expo/vector-icons'
-import Toast from 'react-native-toast-message'
 import { router } from 'expo-router'
+import React from 'react'
+import { Linking, Text, TouchableOpacity, View } from 'react-native'
+import Toast from 'react-native-toast-message'
 
 const SocialLinks = () => {
   const handleSocialLink = async (url: string) => {
@@ -46,9 +46,19 @@ const SocialLinks = () => {
           <Ionicons name="logo-whatsapp" size={24} color="#25D366" />
         </TouchableOpacity>
       </View>
-      <Text className="text-muted-foreground text-base font-semibold">
-        Privacy <Text className="text-gray-400">|</Text> About <Text className="text-gray-400">|</Text> Terms & Conditions
-      </Text>
+      <View className="flex-row items-center gap-x-2">
+        <TouchableOpacity onPress={() => router.push('/privacy')}>
+          <Text className="text-muted-foreground text-base font-semibold">Privacy</Text>
+        </TouchableOpacity>
+        <Text className="text-gray-400">|</Text>
+        <TouchableOpacity onPress={() => router.push('/about')}>
+          <Text className="text-muted-foreground text-base font-semibold">About</Text>
+        </TouchableOpacity>
+        <Text className="text-gray-400">|</Text>
+        <TouchableOpacity onPress={() => router.push('/terms')}>
+          <Text className="text-muted-foreground text-base font-semibold">Terms & Conditions</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   )
 }

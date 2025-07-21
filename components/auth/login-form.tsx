@@ -178,8 +178,8 @@ const LoginForm = () => {
 
         <Text className="text-muted-foreground text-center text-xs mt-8 px-4">
           By signing in, you agree to our 
-          <Link href="https://www.isubscribe.ng/terms-and-conditions" className="text-primary"> Terms and Conditions</Link> and 
-          <Link href="https://www.isubscribe.ng/privacy-policy" className="text-primary"> Privacy Policy</Link>.
+          <Link href="/terms" className="text-primary"> Terms and Conditions</Link> and 
+          <Link href="/privacy" className="text-primary"> Privacy Policy</Link>.
         </Text>
       </View>
     </SafeAreaView>

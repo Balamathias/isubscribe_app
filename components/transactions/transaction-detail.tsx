@@ -186,7 +186,7 @@ ${transaction.meta_data && typeof transaction.meta_data === 'object' && 'phone' 
   };
 
   return (
-    <View className="flex-1 bg-background">
+    <View className="flex-1 bg-background mt-4">
       <ScrollView className="flex-1">
         <View className="p-4 py-0">
           <Header title={transaction.title} />

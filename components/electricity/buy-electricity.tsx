@@ -210,7 +210,7 @@ const BuyElectricityScreen = () => {
                   value={value}
                   placeholderTextColor={colors.mutedForeground}
                   onChangeText={onChange}
-                  className="flex-1 border border-border rounded-lg px-4 py-4 text-sm"
+                  className="flex-1 border border-border rounded-lg px-4 py-4 text-sm text-foreground"
                 />
               )}
             />
@@ -234,9 +234,9 @@ const BuyElectricityScreen = () => {
           {/* Verification Status */}
           {verificationStatus !== 'idle' && (
             <View className={`mt-3 p-3 rounded-lg flex-row items-center ${
-              verificationStatus === 'success' ? 'bg-green-50' : 
-              verificationStatus === 'error' ? 'bg-red-50' :
-              'bg-blue-50'
+              verificationStatus === 'success' ? 'bg-green-500/10' : 
+              verificationStatus === 'error' ? 'bg-red-500/10' :
+              'bg-blue-500/10'
             }`}>
               <Ionicons 
                 name={
@@ -323,7 +323,7 @@ const BuyElectricityScreen = () => {
                   const numericValue = parseFloat(text) || 0;
                   onChange(numericValue);
                 }}
-                className="border border-border rounded-lg px-4 py-4 text-center text-xl font-semibold"
+                className="border border-border rounded-lg px-4 py-4 text-center text-xl font-semibold text-foreground"
               />
             )}
           />

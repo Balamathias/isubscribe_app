@@ -12,11 +12,11 @@ const ComingSoon = () => {
       const theme = colorScheme === 'dark' ? 'dark' : 'light'
       const colors = COLORS[theme]
   return (
-    <View className='flex-1 bg-background/60'>
+    <View className={'flex-1 bg-background/60 ' + theme}>
       <Header title={'Coming Soon'} />
      <View className="bg-card p-6 rounded-xl items-center justify-center m-4">
       <View className="bg-card p-6 rounded-xl items-center justify-center">
-          <Ionicons name="battery-charging" size={48} color="#6b7280" />
+          <Ionicons name="battery-charging" size={48} color={colors.mutedForeground} />
           <Text className="text-foreground text-lg font-semibold mt-4 mb-2 animate-pulse">Coming soon...</Text>
           <Text className="text-muted-foreground text-center">
           This feature is coming soon on our mobile platform. For the meantime, you can enjoy this feature on our web platform.

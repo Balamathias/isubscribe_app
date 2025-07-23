@@ -1,26 +1,26 @@
+import { COLORS } from '@/constants/colors';
+import { useThemedColors } from '@/hooks/useThemedColors';
+import { TVProviders } from '@/types/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import {
-  View,
-  Text,
+  ActivityIndicator,
+  RefreshControl,
   ScrollView,
+  Text,
   TextInput,
   TouchableOpacity,
-  Switch,
-  RefreshControl,
-  ActivityIndicator,
+  View
 } from 'react-native';
-import { Controller, useForm } from 'react-hook-form';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import * as z from 'zod';
-import { COLORS } from '@/constants/colors';
 import { useSession } from '../session-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import LoadingSpinner from '../ui/loading-spinner';
 import TvPlanSelector from './tv-plan-selector';
 import TvProviderSelector, { Provider } from './tv-provider-selector';
-import { TVProviders } from '@/types/utils';
 
 const electricitySchema = z.object({
   phoneNumber: z
@@ -44,6 +44,7 @@ const BuyTvCableScreen = () => {
   const [selectedPlan, setSelectedPlan] = useState<any>(null);
 
   const { user, tvServices } = useSession();
+  const colors = useThemedColors().colors
 
   const {
     control,
@@ -124,12 +125,13 @@ const BuyTvCableScreen = () => {
                 placeholder="Enter Decoder Number here."
                 value={value}
                 onChangeText={onChange}
-                className="border border-border rounded-lg px-4 py-4 text-sm"
+                placeholderTextColor={colors.mutedForeground}
+                className="border border-border rounded-lg px-4 py-4 text-sm text-foreground"
               />
             )}
           />
           {errors.smartCardNumber && (
-            <Text className="text-red-500 text-xs mt-1">{errors.smartCardNumber.message}</Text>
+            <Text className="text-destructive text-xs mt-1">{errors.smartCardNumber.message}</Text>
           )}
         </View>
 
@@ -145,12 +147,13 @@ const BuyTvCableScreen = () => {
                 value={value}
                 onChangeText={onChange}
                 keyboardType="phone-pad"
-                className="border border-border rounded-lg px-4 py-4 text-sm"
+                className="border border-border rounded-lg px-4 py-4 text-sm text-foreground"
+                placeholderTextColor={colors.mutedForeground}
               />
             )}
           />
           {errors.phoneNumber && (
-            <Text className="text-red-500 text-xs mt-1">{errors.phoneNumber.message}</Text>
+            <Text className="text-destructive text-xs mt-1">{errors.phoneNumber.message}</Text>
           )}
         </View>
 
@@ -177,9 +180,9 @@ const BuyTvCableScreen = () => {
               className="py-4 items-center justify-center rounded-2xl"
             >
               {isPending ? (
-                <ActivityIndicator color="card" />
+                <ActivityIndicator color="white" />
               ) : (
-                <Text className="text-card font-bold text-lg">Continue</Text>
+                <Text className="text-white font-bold text-lg">Continue</Text>
               )}
             </LinearGradient>
           </TouchableOpacity>

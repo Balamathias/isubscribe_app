@@ -105,20 +105,6 @@ export function SettingsList() {
       type: 'link',
       onPress: () => {}
     },
-    ...(user ? [{
-      id: 'delete-account',
-      title: 'Delete Account',
-      description: 'Permanently delete your account and all data',
-      icon: 'trash-outline',
-      type: 'action',
-      isDangerous: true,
-      onPress: () => setShowDeleteModal(true),
-    }] : []),
-    // Add separator
-    {
-      id: 'separator',
-      type: 'separator'
-    },
     {
       id: 'auth-action',
       title: user ? 'Logout' : 'Login',
@@ -128,7 +114,20 @@ export function SettingsList() {
       onPress: user ? handleLogout : () => router.push('/auth/login'),
       isDangerous: !!user,
       isLoading: loggingOut
-    }
+    },
+    {
+      id: 'separator',
+      type: 'separator'
+    },
+    ...(user ? [{
+      id: 'delete-account',
+      title: 'Delete Account',
+      description: 'Permanently delete your account and all data',
+      icon: 'trash-outline',
+      type: 'action',
+      isDangerous: true,
+      onPress: () => setShowDeleteModal(true),
+    }] : []),
   ];
 
   const renderSettingItem = ({ item }: { item: any }) => {

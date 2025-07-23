@@ -148,7 +148,7 @@ const BuyEducationScreen = () => {
                         placeholder="Enter your profile code here."
                         value={value}
                         onChangeText={onChange}
-                        className="border border-border rounded-lg px-4 py-4 text-sm"
+                        className="border border-border rounded-lg px-4 py-4 text-sm text-foreground"
                         placeholderTextColor={colors.mutedForeground}
                     />
                     )}
@@ -175,7 +175,7 @@ const BuyEducationScreen = () => {
                 placeholderTextColor={colors.mutedForeground}
                 onChangeText={onChange}
                 keyboardType="phone-pad"
-                className="border border-border rounded-lg px-4 py-4 text-sm"
+                className="border border-border rounded-lg px-4 py-4 text-sm text-foreground"
               />
             )}
           />
@@ -205,9 +205,9 @@ const BuyEducationScreen = () => {
               className="py-4 items-center justify-center rounded-md"
             >
               {isPending ? (
-                <ActivityIndicator color="card" />
+                <ActivityIndicator color="white" />
               ) : (
-                <Text className="text-card font-bold text-lg">Continue</Text>
+                <Text className="font-bold text-lg text-white">Continue</Text>
               )}
             </LinearGradient>
           </TouchableOpacity>

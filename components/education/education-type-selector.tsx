@@ -43,7 +43,6 @@ const EducationTypeSelector: React.FC<Props> = ({ selectedProvider, onSelect }) 
 
   return (
     <>
-      {/* Selected Display */}
       <TouchableOpacity
         onPress={() => setModalVisible(true)}
         className="bg-background p-2 rounded-lg flex-row justify-between items-center"
@@ -54,13 +53,13 @@ const EducationTypeSelector: React.FC<Props> = ({ selectedProvider, onSelect }) 
             className="w-8 h-8 rounded-full bg-secondary"
             resizeMode="contain"
           />
-          <Text className="text-base font-medium">
+          <Text className="text-base font-medium text-foreground">
             {selectedProvider
               ? providers.find(p => p.id === selectedProvider)?.name
               : 'Select Exam Type'}
           </Text>
         </View>
-        <Ionicons name="chevron-down" size={20} />
+        <Ionicons name="chevron-down" size={20} color={colors.mutedForeground} />
       </TouchableOpacity>
 
       <Modal visible={isModalVisible} animationType="slide" onRequestClose={() => setModalVisible(false)}   transparent={true} className="flex-1 justify-end bg-black/50">
@@ -100,8 +99,8 @@ const EducationTypeSelector: React.FC<Props> = ({ selectedProvider, onSelect }) 
                   <View
                     className={`w-10 h-6 rounded-full justify-center ${
                       selectedProvider === item.id
-                        ? 'bg-purple-600'
-                        : 'bg-gray-300'
+                        ? 'bg-primary'
+                        : 'bg-secondary'
                     }`}
                   >
                     <View

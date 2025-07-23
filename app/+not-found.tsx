@@ -52,7 +52,7 @@ const NotFoundScreen = () => {
   }));
 
   return (
-    <SafeAreaView className="flex-1 items-center justify-center p-4 bg-background" style={{ backgroundColor: colors.background }}>
+    <SafeAreaView className={`flex-1 items-center justify-center p-4 bg-background ${theme}`} style={{ backgroundColor: colors.background }}>
       <Animated.View style={sadIconStyle}>
         <Ionicons name="sad-outline" size={100} color={colors.primary} className="mb-4" />
       </Animated.View>

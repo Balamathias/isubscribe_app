@@ -6,14 +6,15 @@ const Layout = () => {
     <Stack
       screenOptions={{
         animation: 'slide_from_right',
-        animationDuration: 1000,
+        animationDuration: 500,
+        animationTypeForReplace: 'pop',
       }}
     >
         <Stack.Screen
             name='data'
             options={{ 
               headerShown: false,
-              animationTypeForReplace: 'push',
+              animationTypeForReplace: 'pop',
               gestureDirection: 'horizontal',
             }}
         />

@@ -6,6 +6,7 @@ import WalletBox from "@/components/home/wallet-box";
 import RatingsDisplayModal from "@/components/ratings/ratings-display-modal";
 import { useSession } from "@/components/session-context";
 import { COLORS } from "@/constants/colors";
+import { useThemedColors } from "@/hooks/useThemedColors";
 import { getGreeting } from "@/utils";
 import { Ionicons } from "@expo/vector-icons";
 import { useCallback, useEffect, useState } from "react";
@@ -18,6 +19,7 @@ export default function Index() {
 
   const { refetchBalance, loadingBalance, refetchTransactions, loadingTransactions, profile, user } = useSession()
   const [showRatingsModal, setShowRatingsModal] = useState(false);
+  const colors = useThemedColors().colors
   
   const getUserInitials = () => user?.user_metadata?.full_name?.split(' ')[0] || user?.email?.split(`@`)[0]
 
@@ -61,10 +63,10 @@ export default function Index() {
 
           <RecentTransactions />
 
-          <View className="bg-card dark:bg-secondary rounded-xl p-4 shadow-sm">
+          <TouchableOpacity activeOpacity={0.7} onPress={() => setShowRatingsModal(true)} className="bg-card dark:bg-secondary rounded-xl p-4 shadow-sm">
             <View className="flex-row items-center justify-between mb-3">
               <View className="flex-row items-center">
-                <Ionicons name="star" size={20} color="#FFD700" />
+                <Ionicons name="person" size={20} color="#FFD700" />
                 <Text className="text-foreground font-bold text-lg ml-2">
                   Customer Reviews
                 </Text>
@@ -76,13 +78,13 @@ export default function Index() {
                 <Text className="text-primary font-semibold text-sm mr-1">
                   View All
                 </Text>
-                <Ionicons name="chevron-forward" size={16} color="#7B2FF2" />
+                <Ionicons name="chevron-forward" size={16} color={colors.primary} />
               </TouchableOpacity>
             </View>
             <Text className="text-muted-foreground text-sm">
               See what our customers are saying about their experience
             </Text>
-          </View>
+          </TouchableOpacity>
 
           <SocialHandles />
         </View>

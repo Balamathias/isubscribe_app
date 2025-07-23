@@ -16,6 +16,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Toast from 'react-native-toast-message';
 
+import * as SystemUI from 'expo-system-ui';
+
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const [loaded] = useFonts({
@@ -23,7 +25,7 @@ export default function RootLayout() {
     Poppins: require('../assets/fonts/Poppins-Regular.ttf'),
   });
 
-  const { theme } = useThemedColors()
+  const { theme, colors } = useThemedColors()
 
   AppState.addEventListener('change', (state) => {
     if (state === 'active') {
@@ -39,6 +41,8 @@ export default function RootLayout() {
     return null;
   }
 
+  SystemUI.setBackgroundColorAsync(colors.background);
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }} className={theme}>
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
@@ -49,6 +53,7 @@ export default function RootLayout() {
                   animation: 'slide_from_right',
                   animationDuration: 500,
                   headerShown: false,
+                  animationTypeForReplace: 'pop',
                 }}
               >
                 <Stack.Screen name="(tabs)" />

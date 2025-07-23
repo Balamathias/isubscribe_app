@@ -122,7 +122,7 @@ const AboutScreen = () => {
               <Text className="text-muted-foreground text-sm mb-2">📞 +234 704 959 7498</Text>
               <Text className="text-muted-foreground text-sm mb-4">📍 Abuja, Nigeria</Text>
               
-              <View className="flex-row justify-center space-x-4">
+              <View className="flex-row justify-center gap-x-4">
                 {socialLinks.map((social) => (
                   <TouchableOpacity
                     key={social.icon}

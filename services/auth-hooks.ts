@@ -8,7 +8,7 @@ const QUERY_KEYS = {
     performOAuth: 'performOAuth',
     validateResetPasswordOTP: 'validateResetPasswordOTP',
     verifyOtp: 'verifyOtp',
-    resendOtp: 'resendOtp'
+    resendOtp: 'resendOtp',
 }
 
 export const useSignUp = () => useMutation({

@@ -20,6 +20,9 @@ import {
     listRatings,
     createRating,
     deleteAccount,
+    resetPinWithOTP,
+    verifyResetPinOTP,
+    requestPinResetOTP,
 } from "./api";
 
 export const QUERY_KEYS = {
@@ -43,6 +46,9 @@ export const QUERY_KEYS = {
     listRatings: 'listRatings',
     createRating: 'createRating',
     deleteAccount: 'deleteAccount',
+    resetPinWithOTP: 'resetPinWithOTP',
+    verifyResetPinOTP: 'verifyResetPinOTP',
+    requestPinResetOTP: 'requestPinResetOTP',
 } as const
 
 export const useGetAccount = (id?: string) => useQuery({
@@ -153,4 +159,19 @@ export const useCreateRating = () => useMutation({
 export const useDeleteAccount = () => useMutation({
     mutationKey: [QUERY_KEYS.deleteAccount],
     mutationFn: deleteAccount,
+});
+
+export const useResetPinWithOTP = () => useMutation({
+    mutationKey: [QUERY_KEYS.resetPinWithOTP],
+    mutationFn: resetPinWithOTP,
+});
+
+export const useVerifyResetPinOTP = () => useMutation({
+    mutationKey: [QUERY_KEYS.verifyResetPinOTP],
+    mutationFn: verifyResetPinOTP,
+});
+
+export const useRequestPinResetOTP = () => useMutation({
+    mutationKey: [QUERY_KEYS.requestPinResetOTP],
+    mutationFn: requestPinResetOTP,
 });

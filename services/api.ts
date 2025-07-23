@@ -189,7 +189,7 @@ export const getTransaction = async (id: string): Promise<Response<Tables<'histo
  */
 export const processTransaction = async (transactionData: Record<string, any>): Promise<Response<Tables<'history'>>> => {
     try {
-        const { data, status } = await microservice.post('/mobile/process-transactions/', transactionData)
+        const { data, status } = await microservice.post('/mobile/process-transactions/', { ...transactionData, source: 'mobile' })
         return data
     } catch (error: any) {
         return {
@@ -454,3 +454,50 @@ export const getNotifications = async () => {
     return { data }
 }
 
+export const requestPinResetOTP = async (): Promise<Response<{ message: string } | null>> => {
+    try {
+        const { data, status } = await microservice.post('/pin-reset/request/')
+        return data
+    } catch (error: any) {
+        return {
+            data: null,
+            error: {
+                message: error?.response?.data?.message || error?.message
+            },
+            status: error?.response?.status,
+            message: error?.response?.data?.message || error?.message
+        }
+    }
+}
+
+export const verifyResetPinOTP = async (params: { otp: string }): Promise<Response<{ message: string } | null>> => {
+    try {
+        const { data, status } = await microservice.post('/pin-reset/verify-otp/', params)
+        return data
+    } catch (error: any) {
+        return {
+            data: null,
+            error: {
+                message: error?.response?.data?.message || error?.message
+            },
+            status: error?.response?.status,
+            message: error?.response?.data?.message || error?.message
+        }
+    }
+}
+
+export const resetPinWithOTP = async (params: { otp: string, new_pin: string, requires_otp?: boolean }): Promise<Response<{ message: string } | null>> => {
+    try {
+        const { data, status } = await microservice.post('/pin-reset/reset/', params)
+        return data
+    } catch (error: any) {
+        return {
+            data: null,
+            error: {
+                message: error?.response?.data?.message || error?.message
+            },
+            status: error?.response?.status,
+            message: error?.response?.data?.message || error?.message
+        }
+    }
+}

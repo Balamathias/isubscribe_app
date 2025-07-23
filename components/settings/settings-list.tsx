@@ -64,6 +64,14 @@ export function SettingsList() {
       onToggle: toggleBiometric
     },
     {
+      id: 'reset-pin',
+      title: 'Reset Transaction PIN',
+      description: 'Change your 4-digit transaction PIN',
+      icon: 'key-outline',
+      type: 'link',
+      onPress: () => router.push('/reset-pin')
+    },
+    {
       id: 'notifications',
       title: 'Notifications',
       description: 'Manage notification preferences',
@@ -95,7 +103,7 @@ export function SettingsList() {
       description: 'Manage privacy settings',
       icon: 'shield-outline',
       type: 'link',
-      onPress: () => {}
+      onPress: () => router.push('/privacy')
     },
     {
       id: 'about',
@@ -103,7 +111,7 @@ export function SettingsList() {
       description: 'App version and information',
       icon: 'information-circle-outline',
       type: 'link',
-      onPress: () => {}
+      onPress: () => router.push('/about')
     },
     {
       id: 'auth-action',

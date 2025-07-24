@@ -188,10 +188,11 @@ const ResetPinScreen = () => {
 
     try {
       const payload = resetMethod === 'forgot' 
-        ? { otp: otpToken, new_pin: newPin, requires_otp: true }
+        ? { otp: otpToken, new_pin: newPin, requires_otp: false }
         : { otp: '', new_pin: newPin, requires_otp: false };
 
       const response = await resetPinMutation.mutateAsync(payload);
+      console.log('Reset PIN Response:', response);
       
       if (response.data) {
         setCurrentStep('reset-complete');
@@ -323,7 +324,7 @@ const ResetPinScreen = () => {
         >
           <View className="flex-row items-center">
             <View className="w-12 h-12 rounded-full bg-primary/10 items-center justify-center mr-4">
-              <Ionicons name="key-outline" size={24} color={colors.primary} />
+              <Ionicons name="key-outline" size={20} color={colors.primary} />
             </View>
             <View className="flex-1">
               <Text className="text-foreground font-semibold text-lg">I Remember My PIN</Text>
@@ -337,12 +338,12 @@ const ResetPinScreen = () => {
 
         <TouchableOpacity
           onPress={() => handleMethodSelect('forgot')}
-          className="bg-secondary/50 border border-border rounded-xl p-6 shadow-sm"
+          className="bg-secondary/50 border border-border rounded-xl p-6 shadow-none"
           disabled={requestOTPMutation.isPending}
         >
           <View className="flex-row items-center">
             <View className="w-12 h-12 rounded-full bg-orange-100/30 dark:bg-orange-900/30 items-center justify-center mr-4">
-              <Ionicons name="mail-outline" size={24} color="#f97316" />
+              <Ionicons name="mail-outline" size={20} color="#f97316" />
             </View>
             <View className="flex-1">
               <Text className="text-foreground font-semibold text-lg">I Forgot My PIN</Text>

@@ -156,7 +156,7 @@ export function SettingsList() {
           }`}>
             <Ionicons 
               name={item.icon} 
-              size={20} 
+              size={16} 
               color={item.isDangerous ? '#ef4444' : colors.primary} 
             />
           </View>
@@ -183,7 +183,7 @@ export function SettingsList() {
 
     return (
       <Pressable
-        className={`flex-row items-center p-4 border-b border-border/80 ${
+        className={`flex-row items-center p-4 rounded-xl ${
           item.disabled ? 'opacity-50' : ''
         } ${item.isDangerous ? 'bg-red-50 dark:bg-red-900/20' : ''}`}
         disabled={item.disabled}

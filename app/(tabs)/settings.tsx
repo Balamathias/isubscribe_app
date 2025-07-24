@@ -1,8 +1,7 @@
 import { SettingsList } from '@/components/settings/settings-list'
 import Header from '@/components/transactions/header'
 import React from 'react'
-import { useColorScheme } from 'react-native'
-import { ScrollView, View } from 'react-native'
+import { useColorScheme, View } from 'react-native'
 
 const Settings = () => {
   const colorScheme = useColorScheme()

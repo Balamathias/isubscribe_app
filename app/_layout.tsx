@@ -1,11 +1,10 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { DarkTheme, DefaultTheme, ThemeProvider as NavigationThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 import '../globals.css';
 
-import { useColorScheme } from '@/hooks/useColorScheme';
 import { supabase } from '@/lib/supabase';
 import { AppState } from 'react-native';
 
@@ -18,14 +17,8 @@ import Toast from 'react-native-toast-message';
 
 import * as SystemUI from 'expo-system-ui';
 
-export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-    Poppins: require('../assets/fonts/Poppins-Regular.ttf'),
-  });
-
-  const { theme, colors } = useThemedColors()
+function AppContent() {
+  const { theme, colors } = useThemedColors();
 
   AppState.addEventListener('change', (state) => {
     if (state === 'active') {
@@ -33,19 +26,15 @@ export default function RootLayout() {
     } else {
       supabase.auth.stopAutoRefresh()
     }
-  })
+  });
 
-  const client = new QueryClient()
-
-  if (!loaded) {
-    return null;
-  }
+  const client = new QueryClient();
 
   SystemUI.setBackgroundColorAsync(colors.background);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }} className={theme}>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+      <NavigationThemeProvider value={theme === 'dark' ? DarkTheme : DefaultTheme}>
         <QueryClientProvider client={client}>
           <SessionProvider>
               <Stack
@@ -64,13 +53,32 @@ export default function RootLayout() {
                 <Stack.Screen name="coming-soon" />
                 <Stack.Screen name="accounts" />
                 <Stack.Screen name="faq" />
+                <Stack.Screen name="reset-pin" />
+                <Stack.Screen name="privacy" />
+                <Stack.Screen name="about" />
+                <Stack.Screen name="terms" />
                 <Stack.Screen name="+not-found" />
               </Stack>
-              <StatusBar style="auto" />
+              <StatusBar style={theme === 'dark' ? 'light' : 'dark'} />
               <Toast config={toastConfig} />
           </SessionProvider>
         </QueryClientProvider>
-      </ThemeProvider>
+      </NavigationThemeProvider>
     </GestureHandlerRootView>
+  );
+}
+
+export default function RootLayout() {
+  const [loaded] = useFonts({
+    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
+    Poppins: require('../assets/fonts/Poppins-Regular.ttf'),
+  });
+
+  if (!loaded) {
+    return null;
+  }
+
+  return (
+    <AppContent />
   );
 }

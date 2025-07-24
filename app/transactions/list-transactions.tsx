@@ -51,23 +51,14 @@ const ListTransactions = () => {
     />
   );
 
-  // if (isPending) {
-  //   return (
-  //     <View className="flex-1 items-center justify-center">
-  //       <ActivityIndicator size="large" color={COLORS.light.primary} />
-  //     </View>
-  //   );
-  // }
-
-
   if (isPending || isRefetching) {
-  return (
-    <View className="flex-1 px-4 py-6">
-      {[...Array(20)].map((_, index) => (
-        <SkeletonTransactionItem key={index} />
-      ))}
-    </View>
-  );
+    return (
+      <View className="flex-1 px-4 py-6">
+        {[...Array(20)].map((_, index) => (
+          <SkeletonTransactionItem key={index} />
+        ))}
+      </View>
+    );
 }
 
 

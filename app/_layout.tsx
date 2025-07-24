@@ -28,7 +28,21 @@ function AppContent() {
     }
   });
 
-  const client = new QueryClient();
+  const client = new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: 300000,
+        gcTime: 600000,
+        retry: 2,
+        refetchOnWindowFocus: false,
+        refetchOnMount: false,
+        refetchOnReconnect: 'always',
+      },
+      mutations: {
+        retry: 1,
+      },
+    },
+  });
 
   SystemUI.setBackgroundColorAsync(colors.background);
 
@@ -69,6 +83,11 @@ function AppContent() {
 }
 
 export default function RootLayout() {
+
+  const { colors } = useThemedColors();
+
+  SystemUI.setBackgroundColorAsync(colors.background);
+
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
     Poppins: require('../assets/fonts/Poppins-Regular.ttf'),

@@ -29,8 +29,9 @@ export function SettingsList() {
           type: 'success',
           text1: 'Signed out successfully.'
         });
-        queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.getWalletBalance] });
+        
         queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.getLatestTransactions] });
+        queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.getWalletBalance] });
         
         try {
           supabase.removeAllChannels();

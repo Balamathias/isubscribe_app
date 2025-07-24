@@ -1,7 +1,10 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
+    createRating,
+    deleteAccount,
     generatePalmpayAccount,
     getAccount,
+    getAppConfig,
     getBeneficiaries,
     getLatestTransactions,
     getNotifications,
@@ -10,19 +13,16 @@ import {
     getUserProfile,
     getWalletBalance,
     listDataPlans,
+    listElectricityServices,
+    listRatings,
+    listTVServices,
     processTransaction,
+    requestPinResetOTP,
+    resetPinWithOTP,
+    verifyMerchant,
     verifyPhone,
     verifyPin,
-    listElectricityServices,
-    listTVServices,
-    getAppConfig,
-    verifyMerchant,
-    listRatings,
-    createRating,
-    deleteAccount,
-    resetPinWithOTP,
     verifyResetPinOTP,
-    requestPinResetOTP,
 } from "./api";
 
 export const QUERY_KEYS = {
@@ -70,13 +70,19 @@ export const useGetUserProfile = () => useQuery({
 export const useGetWalletBalance = () => useQuery({
     queryKey: [QUERY_KEYS.getWalletBalance],
     queryFn: getWalletBalance,
-    refetchOnMount: true
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+    staleTime: 30000,
+    gcTime: 300000,
 })
 
 export const useGetLatestTransactions = () => useQuery({
     queryKey: [QUERY_KEYS.getLatestTransactions],
     queryFn: getLatestTransactions,
-    refetchOnMount: true
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+    staleTime: 60000,
+    gcTime: 300000,
 })
 
 export const useGetTransactions = (limit: number = 30, offset: number = 0) => useQuery({
@@ -102,7 +108,10 @@ export const useVerifyPin = () => useMutation({
 export const useListDataPlans = () => useQuery({
     queryKey: [QUERY_KEYS.listDataPlans],
     queryFn: listDataPlans,
-    refetchOnMount: true
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    staleTime: 600000,
+    gcTime: 1800000,
 })
 
 export const useVerifyPhone = () => useMutation({
@@ -119,25 +128,37 @@ export const useGetNotifications = () => useQuery({
 export const useGetBeneficiaries = (limit: number = 5) => useQuery({
     queryKey: [QUERY_KEYS.getBeneficiaries, limit],
     queryFn: () => getBeneficiaries(limit),
-    refetchOnMount: true
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    staleTime: 300000,
+    gcTime: 600000,
 })
 
 export const useListElectricityServices = () => useQuery({
     queryKey: [QUERY_KEYS.listElectricityServices],
     queryFn: listElectricityServices,
-    refetchOnMount: true
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    staleTime: 1800000,
+    gcTime: 3600000,
 })
 
 export const useListTVServices = () => useQuery({
     queryKey: [QUERY_KEYS.listTVServices],
     queryFn: listTVServices,
-    refetchOnMount: true
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    staleTime: 1800000,
+    gcTime: 3600000,
 })
 
 export const useGetAppConfig = () => useQuery({
     queryKey: [QUERY_KEYS.getAppConfig],
     queryFn: getAppConfig,
-    refetchOnMount: true
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    staleTime: 3600000,
+    gcTime: 7200000,
 })
 
 export const useVerifyMerchant = () => useMutation({

@@ -21,6 +21,8 @@ import LoadingSpinner from '../ui/loading-spinner';
 import EducationTypeSelector from './education-type-selector';
 import { formatNigerianNaira } from '@/utils/format-naira';
 import { useThemedColors } from '@/hooks/useThemedColors';
+import BottomSheet from '../ui/bottom-sheet';
+import ComingSoon from '../coming-soon';
 
 const electricitySchema = z.object({
   phoneNumber: z
@@ -44,6 +46,7 @@ const BuyEducationScreen = () => {
   const { user, refetchAppConfig, loadingAppConfig, appConfig } = useSession();
 
   const { colors } = useThemedColors()
+  const [comingSoon, setComingSoon] = useState(false);
 
   const {
     control,
@@ -195,7 +198,7 @@ const BuyEducationScreen = () => {
 
        <View className="flex-1 justify-end pb-4">
           <TouchableOpacity
-            onPress={handleSubmit(onSubmit)}
+            onPress={() => setComingSoon(true)}
             className="rounded-2xl overflow-hidden"
           >
             <LinearGradient
@@ -213,6 +216,13 @@ const BuyEducationScreen = () => {
           </TouchableOpacity>
         </View>
 
+        <BottomSheet
+          isVisible={comingSoon}
+          onClose={() => setComingSoon(false)}
+          title="Feature Coming Soon"
+        >
+          <ComingSoon />
+        </BottomSheet>
       </ScrollView>
     </SafeAreaView>
   );

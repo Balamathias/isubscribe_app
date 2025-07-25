@@ -21,6 +21,8 @@ import { useSession } from '../session-context';
 import LoadingSpinner from '../ui/loading-spinner';
 import TvPlanSelector from './tv-plan-selector';
 import TvProviderSelector, { Provider } from './tv-provider-selector';
+import BottomSheet from '../ui/bottom-sheet';
+import ComingSoon from '../coming-soon';
 
 const electricitySchema = z.object({
   phoneNumber: z
@@ -45,6 +47,8 @@ const BuyTvCableScreen = () => {
 
   const { user, tvServices } = useSession();
   const colors = useThemedColors().colors
+
+  const [comingSoon, setComingSoon] = useState(false);
 
   const {
     control,
@@ -170,7 +174,7 @@ const BuyTvCableScreen = () => {
 
         <View className="flex-1 justify-end pb-4">
           <TouchableOpacity
-            onPress={handleSubmit(onSubmit)}
+            onPress={() => setComingSoon(true)}
             className="rounded-2xl overflow-hidden"
           >
             <LinearGradient
@@ -187,6 +191,14 @@ const BuyTvCableScreen = () => {
             </LinearGradient>
           </TouchableOpacity>
         </View>
+
+        <BottomSheet
+          isVisible={comingSoon}
+          onClose={() => setComingSoon(false)}
+          title="Feature Coming Soon"
+        >
+          <ComingSoon />
+        </BottomSheet>
 
       </ScrollView>
     </SafeAreaView>

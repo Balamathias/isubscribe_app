@@ -1,11 +1,15 @@
 import { Stack } from 'expo-router'
 import React from 'react'
+import * as SystemUI from 'expo-system-ui'
+import { useThemedColors } from '@/hooks/useThemedColors'
 
 const Layout = () => {
+  const { colors } = useThemedColors()
+  SystemUI.setBackgroundColorAsync(colors.background);
   return (
     <Stack
       screenOptions={{
-        animation: 'slide_from_right',
+        animation: 'slide_from_left',
         animationDuration: 500,
         animationTypeForReplace: 'pop',
       }}

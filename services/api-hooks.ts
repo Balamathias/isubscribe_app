@@ -72,8 +72,6 @@ export const useGetWalletBalance = () => useQuery({
     queryFn: getWalletBalance,
     refetchOnMount: true,
     refetchOnWindowFocus: true,
-    staleTime: 30000,
-    gcTime: 300000,
 })
 
 export const useGetLatestTransactions = () => useQuery({
@@ -81,8 +79,6 @@ export const useGetLatestTransactions = () => useQuery({
     queryFn: getLatestTransactions,
     refetchOnMount: true,
     refetchOnWindowFocus: true,
-    staleTime: 60000,
-    gcTime: 300000,
 })
 
 export const useGetTransactions = (limit: number = 30, offset: number = 0) => useQuery({
@@ -108,10 +104,6 @@ export const useVerifyPin = () => useMutation({
 export const useListDataPlans = () => useQuery({
     queryKey: [QUERY_KEYS.listDataPlans],
     queryFn: listDataPlans,
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
-    staleTime: 600000,
-    gcTime: 1800000,
 })
 
 export const useVerifyPhone = () => useMutation({
@@ -139,8 +131,6 @@ export const useListElectricityServices = () => useQuery({
     queryFn: listElectricityServices,
     refetchOnMount: false,
     refetchOnWindowFocus: false,
-    staleTime: 1800000,
-    gcTime: 3600000,
 })
 
 export const useListTVServices = () => useQuery({
@@ -148,8 +138,6 @@ export const useListTVServices = () => useQuery({
     queryFn: listTVServices,
     refetchOnMount: false,
     refetchOnWindowFocus: false,
-    staleTime: 1800000,
-    gcTime: 3600000,
 })
 
 export const useGetAppConfig = () => useQuery({
@@ -157,8 +145,6 @@ export const useGetAppConfig = () => useQuery({
     queryFn: getAppConfig,
     refetchOnMount: false,
     refetchOnWindowFocus: false,
-    staleTime: 3600000,
-    gcTime: 7200000,
 })
 
 export const useVerifyMerchant = () => useMutation({

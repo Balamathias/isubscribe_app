@@ -28,21 +28,7 @@ function AppContent() {
     }
   });
 
-  const client = new QueryClient({
-    defaultOptions: {
-      queries: {
-        staleTime: 300000,
-        gcTime: 600000,
-        retry: 2,
-        refetchOnWindowFocus: false,
-        refetchOnMount: false,
-        refetchOnReconnect: 'always',
-      },
-      mutations: {
-        retry: 1,
-      },
-    },
-  });
+  const client = new QueryClient();
 
   SystemUI.setBackgroundColorAsync(colors.background);
 

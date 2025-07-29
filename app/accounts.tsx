@@ -1,6 +1,7 @@
 import FundWalletBottomSheet, { CreditCard } from '@/components/home/fund-wallet-sheet'
 import Header from '@/components/transactions/header'
 import { COLORS } from '@/constants/colors'
+import { useThemedColors } from '@/hooks/useThemedColors'
 import { useGetAccount } from '@/services/api-hooks'
 import React from 'react'
 import { ActivityIndicator, Clipboard, Platform, ToastAndroid, View } from 'react-native'
@@ -10,6 +11,7 @@ import Toast from 'react-native-toast-message'
 const Accounts = () => {
   const [showFundWalletBottomSheet, setShowFundWalletBottomSheet] = React.useState(false);
   const { data: accountData, isPending } = useGetAccount()
+  const { theme } = useThemedColors()
 
   const handleCopy = async (text: string) => {
     try {
@@ -33,7 +35,7 @@ const Accounts = () => {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-background p-4">
+    <SafeAreaView className={`flex-1 bg-background p-4 ${theme}`}>
         <Header title={'Accounts'} />
       {isPending ? (
         <ActivityIndicator color={COLORS.light.primary} size={'large'}/>

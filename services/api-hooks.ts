@@ -70,7 +70,6 @@ export const useGetUserProfile = () => useQuery({
 export const useGetWalletBalance = () => useQuery({
     queryKey: [QUERY_KEYS.getWalletBalance],
     queryFn: getWalletBalance,
-    refetchInterval: 30000,
 })
 
 export const useGetLatestTransactions = () => useQuery({

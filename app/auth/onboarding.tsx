@@ -181,7 +181,7 @@ const OnboardingScreen = () => {
           <View key={index} className="relative">
             <TextInput
               ref={(ref) => { pinRefs.current[index] = ref }}
-              className={`w-16 h-16 rounded-2xl text-center text-2xl font-bold border-2 ${
+              className={`w-14 h-14 rounded-2xl text-center text-2xl font-bold border-2 ${
                 pin[index] 
                   ? 'border-primary bg-primary/5 text-foreground' 
                   : 'border-border bg-card text-muted-foreground'

@@ -1,3 +1,4 @@
+import { useThemedColors } from '@/hooks/useThemedColors';
 import { Ionicons } from '@expo/vector-icons';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -8,7 +9,6 @@ import { KeyboardTypeOptions, Text, TextInput, TouchableOpacity, View } from 're
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as z from 'zod';
 import IsubscribeLogo from './logo-isubscribe';
-import { useThemedColors } from '@/hooks/useThemedColors';
 
 interface CustomTextInputProps {
   icon: keyof typeof Ionicons.glyphMap;
@@ -27,9 +27,11 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
 }) => {
   const { colors } = useThemedColors();
   return (
-    <View className="mb-4">
-      <View className="flex-row items-center bg-input border border-secondary rounded-xl px-4 py-2 shadow-sm w-full">
-        <Ionicons name={icon} size={20} color={colors.mutedForeground} className="mr-3" />
+    <View className="mb-1">
+      <View className={`flex-row items-center bg-card border rounded-2xl px-4 py-4 shadow-sm ${
+        error ? 'border-destructive' : 'border-border'
+      }`}>
+        <Ionicons name={icon} size={20} color={error ? colors.destructive : colors.mutedForeground} className="mr-3" />
         <TextInput
           className="flex-1 text-base text-foreground"
           placeholder={placeholder}
@@ -41,12 +43,18 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
           autoCapitalize="none"
         />
         {secureTextEntry !== undefined && (
-          <TouchableOpacity onPress={toggleVisibility} className="p-1">
-            <Ionicons name={isPasswordVisible ? "eye-off-outline" : "eye-outline"} size={20} color={colors.mutedForeground} />
+          <TouchableOpacity onPress={toggleVisibility} className="p-1 active:scale-95">
+            <Ionicons 
+              name={isPasswordVisible ? "eye-off-outline" : "eye-outline"} 
+              size={20} 
+              color={colors.mutedForeground} 
+            />
           </TouchableOpacity>
         )}
       </View>
-      {error && <Text className="text-destructive text-sm mt-1 ml-2">{error}</Text>}
+      {error && (
+        <Text className="text-destructive text-xs mt-1 ml-3 font-medium">{error}</Text>
+      )}
     </View>
   );
 };
@@ -72,45 +80,74 @@ const ForgotPasswordForm = () => {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-background justify-center px-4 w-full">
-      <IsubscribeLogo />
+    <SafeAreaView className="flex-1 bg-background">
+      <View className="flex-1 px-6 py-4 justify-center">
+        {/* Header Section */}
+        <View className="items-center mb-12 gap-y-2">
+          <IsubscribeLogo />
+          
+          {/* Icon with background */}
+          <View className="w-20 h-20 rounded-full bg-primary/10 items-center justify-center mb-6 mt-8">
+            <Ionicons name="mail-outline" size={32} color="#7B2FF2" />
+          </View>
+          
+          <Text className="text-foreground text-2xl font-bold mb-3">Forgot Password?</Text>
+          <Text className="text-muted-foreground text-center text-base leading-6 px-4 hidden">
+            No worries! Enter your email address and we'll send you a verification code to reset your password.
+          </Text>
+        </View>
 
-      <View className="w-full max-w-sm ">
-        <Text className="text-foreground text-2xl font-bold mb-4">Forgot Password?</Text>
-        <Text className="text-muted-foreground mb-8">
-          Enter your registered email address to receive a verification code.
-        </Text>
+        {/* Form Section */}
+        <View className="mb-8 mt-4">
+          <Text className="text-foreground text-sm font-semibold mb-2">Email Address</Text>
+          <Controller
+            control={control}
+            name="email"
+            render={({ field: { onChange, value } }) => (
+              <CustomTextInput
+                icon="mail-outline"
+                placeholder="Enter your registered email"
+                value={value}
+                onChange={onChange}
+                keyboardType="email-address"
+                error={errors.email?.message}
+              />
+            )}
+          />
+        </View>
 
-        <Text className="text-foreground text-base font-semibold mb-2 ml-2">Email</Text>
-        <Controller
-          control={control}
-          name="email"
-          render={({ field: { onChange, value } }) => (
-            <CustomTextInput
-              icon="mail-outline"
-              placeholder="your-email@example.com"
-              value={value}
-              onChange={onChange}
-              keyboardType="email-address"
-              error={errors.email?.message}
-            />
-          )}
-        />
-
-        <TouchableOpacity onPress={handleSubmit(onSubmit)} className="w-full rounded-2xl overflow-hidden mt-4">
+        {/* Send OTP Button */}
+        <TouchableOpacity 
+          onPress={handleSubmit(onSubmit)} 
+          className="w-full rounded-2xl overflow-hidden mb-8 active:scale-98"
+          style={{ 
+            shadowColor: '#7B2FF2', 
+            shadowOffset: { width: 0, height: 4 }, 
+            shadowOpacity: 0.3, 
+            shadowRadius: 8,
+            elevation: 8 
+          }}
+        >
           <LinearGradient
             colors={['#7B2FF2', '#F357A8']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             className="py-4 items-center justify-center rounded-2xl"
           >
-            <Text className="text-white font-bold text-lg">Send OTP</Text>
+            <View className="flex-row items-center">
+              <Ionicons name="send-outline" size={20} color="white" />
+              <Text className="text-white font-bold text-lg ml-2">Send Verification Code</Text>
+            </View>
           </LinearGradient>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => router.push('/auth/login')} className="items-center mt-8">
-          <Text className="text-primary font-semibold text-base">Go back to login</Text>
-        </TouchableOpacity>
+        {/* Back to Login */}
+        <View className="flex-row justify-center items-center">
+          <Ionicons name="arrow-back-outline" size={18} color="#7B2FF2" />
+          <TouchableOpacity onPress={() => router.push('/auth/login')} className="ml-2 active:scale-95">
+            <Text className="text-primary font-semibold text-base">Back to Sign In</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </SafeAreaView>
   );

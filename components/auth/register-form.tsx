@@ -1,3 +1,6 @@
+import { useThemedColors } from '@/hooks/useThemedColors';
+import { performOAuth } from '@/services/auth';
+import { useSignUp } from '@/services/auth-hooks';
 import { Ionicons } from '@expo/vector-icons';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -6,12 +9,9 @@ import React, { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { ActivityIndicator, Image, KeyboardTypeOptions, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Toast from 'react-native-toast-message';
 import * as z from 'zod';
 import IsubscribeLogo from './logo-isubscribe';
-import { performOAuth } from '@/services/auth';
-import { useSignUp } from '@/services/auth-hooks';
-import Toast from 'react-native-toast-message';
-import { useThemedColors } from '@/hooks/useThemedColors';
 
 interface CustomTextInputProps {
   icon: keyof typeof Ionicons.glyphMap;
@@ -30,9 +30,11 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
 }) => {
   const { colors } = useThemedColors();
   return (
-    <View className="mb-4">
-      <View className="flex-row items-center bg-input border border-secondary rounded-xl px-4 py-2 shadow-sm">
-        <Ionicons name={icon} size={20} color={colors.mutedForeground} className="mr-3" />
+    <View className="mb-1">
+      <View className={`flex-row items-center bg-card border rounded-2xl px-4 py-4 shadow-sm ${
+        error ? 'border-destructive' : 'border-border'
+      }`}>
+        <Ionicons name={icon} size={20} color={error ? colors.destructive : colors.mutedForeground} className="mr-3" />
         <TextInput
           className="flex-1 text-base text-foreground"
           placeholder={placeholder}
@@ -44,12 +46,18 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
           autoCapitalize="none"
         />
         {secureTextEntry !== undefined && (
-          <TouchableOpacity onPress={toggleVisibility} className="p-1">
-            <Ionicons name={isPasswordVisible ? "eye-off-outline" : "eye-outline"} size={20} color={colors.mutedForeground} />
+          <TouchableOpacity onPress={toggleVisibility} className="p-1 active:scale-95">
+            <Ionicons 
+              name={isPasswordVisible ? "eye-off-outline" : "eye-outline"} 
+              size={20} 
+              color={colors.mutedForeground} 
+            />
           </TouchableOpacity>
         )}
       </View>
-      {error && <Text className="text-destructive text-sm mt-1 ml-2">{error}</Text>}
+      {error && (
+        <Text className="text-destructive text-xs mt-1 ml-3 font-medium">{error}</Text>
+      )}
     </View>
   );
 };
@@ -125,135 +133,182 @@ const RegisterForm = () => {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-background justify-center items-center px-4">
-      <IsubscribeLogo />
-
-      <TouchableOpacity onPress={performOAuth} className="flex-row items-center bg-input border border-secondary rounded-xl px-6 py-4 shadow-sm w-full max-w-sm justify-center mb-8">
-        <Image source={require('../../assets/images/google-icon.png')} className="w-6 h-6 mr-3" />
-        <Text className="text-foreground font-semibold text-base">Sign up with Google</Text>
-      </TouchableOpacity>
-
-      <View className="flex-row items-center w-full max-w-sm mb-8">
-        <View className="flex-1 h-px bg-gray-300 dark:bg-gray-700" />
-        <Text className="text-muted-foreground mx-4 text-base">Or</Text>
-        <View className="flex-1 h-px bg-gray-300 dark:bg-gray-700" />
-      </View>
-
-      <View className="w-full max-w-sm">
-        <Text className="text-foreground text-base font-semibold mb-2 ml-2">Full Name</Text>
-        <Controller
-          control={control}
-          name="fullName"
-          render={({ field: { onChange, value } }) => (
-            <CustomTextInput
-              icon="person-outline"
-              placeholder="John Doe"
-              value={value}
-              onChange={onChange}
-              error={errors.fullName?.message}
-            />
-          )}
-        />
-
-        <Text className="text-foreground text-base font-semibold mb-2 ml-2">Phone Number</Text>
-        <Controller
-          control={control}
-          name="phoneNumber"
-          render={({ field: { onChange, value } }) => (
-            <CustomTextInput
-              icon="call-outline"
-              placeholder="e.g., 08012345678"
-              value={value}
-              onChange={onChange}
-              keyboardType="phone-pad"
-              error={errors.phoneNumber?.message}
-            />
-          )}
-        />
-
-        <Text className="text-foreground text-base font-semibold mb-2 ml-2">Email</Text>
-        <Controller
-          control={control}
-          name="email"
-          render={({ field: { onChange, value } }) => (
-            <CustomTextInput
-              icon="mail-outline"
-              placeholder="your-email@example.com"
-              value={value}
-              onChange={onChange}
-              keyboardType="email-address"
-              error={errors.email?.message}
-            />
-          )}
-        />
-
-        <Text className="text-foreground text-base font-semibold mb-2 ml-2">Password</Text>
-        <Controller
-          control={control}
-          name="password"
-          render={({ field: { onChange, value } }) => (
-            <CustomTextInput
-              icon="lock-closed-outline"
-              placeholder="••••••"
-              value={value}
-              onChange={onChange}
-              secureTextEntry={!isPasswordVisible}
-              toggleVisibility={togglePasswordVisibility}
-              isPasswordVisible={isPasswordVisible}
-              error={errors.password?.message}
-            />
-          )}
-        />
-
-        <Text className="text-foreground text-base font-semibold mb-2 ml-2">Confirm Password</Text>
-        <Controller
-          control={control}
-          name="confirmPassword"
-          render={({ field: { onChange, value } }) => (
-            <CustomTextInput
-              icon="lock-closed-outline"
-              placeholder="••••••"
-              value={value}
-              onChange={onChange}
-              secureTextEntry={!isConfirmPasswordVisible}
-              toggleVisibility={toggleConfirmPasswordVisibility}
-              isPasswordVisible={isConfirmPasswordVisible}
-              error={errors.confirmPassword?.message}
-            />
-          )}
-        />
-
-        <TouchableOpacity 
-          onPress={handleSubmit(onSubmit)} 
-          className="w-full rounded-2xl overflow-hidden mt-4"
-          disabled={isPending}
-        >
-          <LinearGradient
-            colors={['#7B2FF2', '#F357A8']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            className="py-4 items-center justify-center rounded-2xl"
-          >
-            {isPending ? (
-              <ActivityIndicator color="white" />
-            ) : (
-              <Text className="text-white font-bold text-lg">Sign Up</Text>
-            )}
-          </LinearGradient>
-        </TouchableOpacity>
-
-        <View className="flex-row justify-center mt-6">
-          <Text className="text-muted-foreground text-base">Already have an account? </Text>
-          <TouchableOpacity onPress={() => router.push(`/auth/login`)}>
-            <Text className="text-primary font-semibold text-base">Log In.</Text>
-          </TouchableOpacity>
+    <SafeAreaView className="flex-1 bg-background">
+      <View className="flex-1 px-4 py-4">
+        <View className="items-center mb-8 mt-4">
+          <IsubscribeLogo />
+          <Text className="text-foreground text-2xl font-bold mt-6 mb-2">Create Account</Text>
+          <Text className="text-muted-foreground text-center text-base">
+            Join thousands of users managing their subscriptions
+          </Text>
         </View>
 
-        <Text className="text-muted-foreground text-center text-xs mt-8 px-4">
-          By signing up, you agree to our 
-          <Text className="text-primary"> Terms and Conditions</Text> and 
-          <Text className="text-primary"> Privacy Policy</Text>.
-        </Text>
+        <TouchableOpacity 
+          onPress={performOAuth} 
+          className="flex-row items-center bg-card border border-border rounded-2xl px-6 py-4 shadow-sm w-full justify-center mb-6 active:scale-95"
+          style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4 }}
+        >
+          <Image source={require('../../assets/images/google-icon.png')} className="w-5 h-5 mr-3" />
+          <Text className="text-foreground font-semibold text-base">Continue with Google</Text>
+        </TouchableOpacity>
+
+        <View className="flex-row items-center w-full mb-6">
+          <View className="flex-1 h-px bg-border" />
+          <Text className="text-muted-foreground mx-4 text-sm font-medium">or sign up with email</Text>
+          <View className="flex-1 h-px bg-border" />
+        </View>
+
+        <View className="flex-1">
+          <View className="mb-4">
+            <Text className="text-foreground text-sm font-semibold mb-2">Full Name</Text>
+            <Controller
+              control={control}
+              name="fullName"
+              render={({ field: { onChange, value } }) => (
+                <CustomTextInput
+                  icon="person-outline"
+                  placeholder="Enter your full name"
+                  value={value}
+                  onChange={onChange}
+                  error={errors.fullName?.message}
+                />
+              )}
+            />
+          </View>
+
+          <View className="mb-4">
+            <Text className="text-foreground text-sm font-semibold mb-2">Phone Number</Text>
+            <Controller
+              control={control}
+              name="phoneNumber"
+              render={({ field: { onChange, value } }) => (
+                <CustomTextInput
+                  icon="call-outline"
+                  placeholder="e.g., 08012345678"
+                  value={value}
+                  onChange={onChange}
+                  keyboardType="phone-pad"
+                  error={errors.phoneNumber?.message}
+                />
+              )}
+            />
+          </View>
+
+          <View className="mb-4">
+            <Text className="text-foreground text-sm font-semibold mb-2">Email Address</Text>
+            <Controller
+              control={control}
+              name="email"
+              render={({ field: { onChange, value } }) => (
+                <CustomTextInput
+                  icon="mail-outline"
+                  placeholder="your-email@example.com"
+                  value={value}
+                  onChange={onChange}
+                  keyboardType="email-address"
+                  error={errors.email?.message}
+                />
+              )}
+            />
+          </View>
+
+          {/* Password Row */}
+          <View className="flex-row gap-3 mb-4">
+            <View className="flex-1">
+              <Text className="text-foreground text-sm font-semibold mb-2">Password</Text>
+              <Controller
+                control={control}
+                name="password"
+                render={({ field: { onChange, value } }) => (
+                  <CustomTextInput
+                    icon="lock-closed-outline"
+                    placeholder="••••••"
+                    value={value}
+                    onChange={onChange}
+                    secureTextEntry={!isPasswordVisible}
+                    toggleVisibility={togglePasswordVisibility}
+                    isPasswordVisible={isPasswordVisible}
+                    error={errors.password?.message}
+                  />
+                )}
+              />
+            </View>
+            <View className="flex-1">
+              <Text className="text-foreground text-sm font-semibold mb-2">Confirm</Text>
+              <Controller
+                control={control}
+                name="confirmPassword"
+                render={({ field: { onChange, value } }) => (
+                  <CustomTextInput
+                    icon="lock-closed-outline"
+                    placeholder="••••••"
+                    value={value}
+                    onChange={onChange}
+                    secureTextEntry={!isConfirmPasswordVisible}
+                    toggleVisibility={toggleConfirmPasswordVisibility}
+                    isPasswordVisible={isConfirmPasswordVisible}
+                    error={errors.confirmPassword?.message}
+                  />
+                )}
+              />
+            </View>
+          </View>
+
+            <View className="mb-6">
+            <Text className="text-muted-foreground text-center text-xs leading-5">
+              By creating an account, you agree to our{' '}
+              <Text 
+              className="text-primary text-xs font-medium" 
+              onPress={() => router.push('/terms')}
+              >
+              Terms of Service
+              </Text>
+              {' '}and{' '}
+              <Text 
+              className="text-primary text-xs font-medium" 
+              onPress={() => router.push('/privacy')}
+              >
+              Privacy Policy
+              </Text>
+            </Text>
+            </View>
+
+          <TouchableOpacity 
+            onPress={handleSubmit(onSubmit)} 
+            className="w-full rounded-2xl overflow-hidden mb-6 active:scale-98"
+            disabled={isPending}
+            style={{ 
+              shadowColor: '#7B2FF2', 
+              shadowOffset: { width: 0, height: 4 }, 
+              shadowOpacity: 0.3, 
+              shadowRadius: 8,
+              elevation: 8 
+            }}
+          >
+            <LinearGradient
+              colors={['#7B2FF2', '#F357A8']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              className="py-4 items-center justify-center rounded-2xl"
+            >
+              {isPending ? (
+                <View className="flex-row items-center">
+                  <ActivityIndicator color="white" size="small" />
+                  <Text className="text-white font-bold text-lg ml-2">Creating Account...</Text>
+                </View>
+              ) : (
+                <Text className="text-white font-bold text-lg">Create Account</Text>
+              )}
+            </LinearGradient>
+          </TouchableOpacity>
+
+          <View className="flex-row justify-center items-center">
+            <Text className="text-muted-foreground text-base">Already have an account? </Text>
+            <TouchableOpacity onPress={() => router.push('/auth/login')} className="active:scale-95">
+              <Text className="text-primary font-semibold text-base">Sign In</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       </View>
     </SafeAreaView>
   );

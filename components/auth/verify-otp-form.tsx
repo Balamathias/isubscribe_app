@@ -1,3 +1,5 @@
+import { useThemedColors } from '@/hooks/useThemedColors';
+import { useResendOtp, useVerifyOtp } from '@/services/auth-hooks';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -5,11 +7,9 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { ActivityIndicator, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Toast from 'react-native-toast-message';
 import * as z from 'zod';
 import IsubscribeLogo from './logo-isubscribe';
-import { useResendOtp, useVerifyOtp } from '@/services/auth-hooks';
-import Toast from 'react-native-toast-message';
-import { useThemedColors } from '@/hooks/useThemedColors';
 
 interface OtpInputProps {
   length: number;
@@ -138,7 +138,7 @@ const VerifyOtpForm = () => {
           text1: 'Success',
           text2: 'Email verified successfully!',
         })
-        router.replace('/auth/onboarding')
+        router.push('/auth/onboarding')
       },
       onError: (error) => {
         Toast.show({

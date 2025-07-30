@@ -14,6 +14,8 @@ export const COLORS = {
         mutedForeground: 'hsl(215.4 16.3% 46.9%)',
         border: 'hsl(210 20% 98%)',
         input: 'hsl(210 20% 98%)',
+
+        destructive: 'hsl(0 100% 50%)',
     },
     dark: {
         primary: 'hsl(263.4 70% 65%)',
@@ -30,5 +32,6 @@ export const COLORS = {
         mutedForeground: 'hsl(215 20.2% 65.1%)',
         border: 'hsl(210 20% 98%)',
         input: 'hsl(210 20% 98%)',
+        destructive: 'hsl(0 100% 50%)',
     },
 }

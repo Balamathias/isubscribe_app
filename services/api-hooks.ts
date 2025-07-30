@@ -70,15 +70,12 @@ export const useGetUserProfile = () => useQuery({
 export const useGetWalletBalance = () => useQuery({
     queryKey: [QUERY_KEYS.getWalletBalance],
     queryFn: getWalletBalance,
-    refetchOnMount: true,
-    refetchOnWindowFocus: true,
+    refetchInterval: 30000,
 })
 
 export const useGetLatestTransactions = () => useQuery({
     queryKey: [QUERY_KEYS.getLatestTransactions],
     queryFn: getLatestTransactions,
-    refetchOnMount: true,
-    refetchOnWindowFocus: true,
 })
 
 export const useGetTransactions = (limit: number = 30, offset: number = 0) => useQuery({
@@ -120,17 +117,11 @@ export const useGetNotifications = () => useQuery({
 export const useGetBeneficiaries = (limit: number = 5) => useQuery({
     queryKey: [QUERY_KEYS.getBeneficiaries, limit],
     queryFn: () => getBeneficiaries(limit),
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
-    staleTime: 300000,
-    gcTime: 600000,
 })
 
 export const useListElectricityServices = () => useQuery({
     queryKey: [QUERY_KEYS.listElectricityServices],
     queryFn: listElectricityServices,
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
 })
 
 export const useListTVServices = () => useQuery({
@@ -143,8 +134,6 @@ export const useListTVServices = () => useQuery({
 export const useGetAppConfig = () => useQuery({
     queryKey: [QUERY_KEYS.getAppConfig],
     queryFn: getAppConfig,
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
 })
 
 export const useVerifyMerchant = () => useMutation({
@@ -155,7 +144,6 @@ export const useVerifyMerchant = () => useMutation({
 export const useListRatings = (limit: number, offset: number) => useQuery({
     queryKey: [QUERY_KEYS.listRatings, limit, offset],
     queryFn: () => listRatings(limit, offset),
-    refetchOnMount: true
 });
 
 export const useCreateRating = () => useMutation({

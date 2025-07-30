@@ -1,20 +1,13 @@
 import React from 'react';
 import { View, Image, Text } from 'react-native';
-import { useSession } from './session-context';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useColorScheme } from 'react-native';
-import { COLORS } from '@/constants/colors';
+import { useThemedColors } from '@/hooks/useThemedColors';
 
 const SplashScreen = () => {
-  const { isLoading, user } = useSession();
-  const colorScheme = useColorScheme()
-  const theme = colorScheme === 'dark' ? 'dark' : 'light'
-  const colors = COLORS[theme];
-
-  if (!isLoading) return null;
+  const { colors, theme } = useThemedColors()
 
   return (
-    <SafeAreaView className={`flex-1 bg-background items-center justify-center ${theme}`}>
+    <SafeAreaView className={`flex-1 bg-background items-center justify-center`}>
       <View className="flex-1 items-center justify-center">
         <View className="flex-row items-center justify-center mb-10">
           <Image

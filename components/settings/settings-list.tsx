@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase';
 import { QUERY_KEYS } from '@/services/api-hooks';
 import { useSignOut } from '@/services/auth-hooks';
 import { Ionicons } from '@expo/vector-icons';
-import { useQueryClient } from '@tanstack/react-query';
+import { QueryClient, useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, Switch, Text, useColorScheme, View } from 'react-native';
@@ -12,14 +12,15 @@ import Toast from 'react-native-toast-message';
 import { useSession } from '../session-context';
 import DeleteAccountModal from './delete-account-modal';
 
+const queryClient = new QueryClient()
+
 export function SettingsList() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const colors = COLORS[isDark ? 'dark' : 'light'];
   const { isBiometricSupported, isBiometricEnabled, toggleBiometric } = useLocalAuth();
   const { mutate: logout, isPending: loggingOut } = useSignOut();
-  const queryClient = useQueryClient();
-  const { user } = useSession();
+  const { user, refetchTransactions } = useSession();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const handleLogout = () => {
@@ -30,16 +31,16 @@ export function SettingsList() {
           text1: 'Signed out successfully.'
         });
         
-        queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.getLatestTransactions] });
-        queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.getWalletBalance] });
+        queryClient.clear();
+        refetchTransactions();
         
         try {
           supabase.removeAllChannels();
         } catch (error: any) {
           console.error(error);
+          router.push('/');
         }
 
-        router.replace('/');
       },
       onError: (error) => {
         Toast.show({
@@ -117,7 +118,7 @@ export function SettingsList() {
     {
       id: 'auth-action',
       title: user ? 'Logout' : 'Login',
-      description: user ? 'Sign out of your account' : 'Sign in to your account',
+      description: user ? `Sign out of ${user?.email}` : 'Sign in to your account',
       icon: user ? 'log-out-outline' : 'log-in-outline',
       type: 'auth-action',
       onPress: user ? handleLogout : () => router.push('/auth/login'),

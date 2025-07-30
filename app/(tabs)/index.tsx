@@ -21,16 +21,16 @@ export default function Index() {
   const [showRatingsModal, setShowRatingsModal] = useState(false);
   const colors = useThemedColors().colors
   
-  const getUserInitials = () => user?.user_metadata?.full_name?.split(' ')[0] || user?.email?.split(`@`)[0]
-
   const handleRefresh = useCallback(() => {
     refetchTransactions()
     refetchBalance()
   }, [refetchTransactions, refetchBalance])
-
+  
   useEffect(() => {
     handleRefresh()
   }, [handleRefresh])
+
+  const getUserInitials = () => user?.user_metadata?.full_name?.split(' ')[0] || user?.email?.split(`@`)[0]
 
   return (
     <>
@@ -39,7 +39,7 @@ export default function Index() {
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
-            refreshing={loadingBalance || loadingTransactions}
+            refreshing={loadingTransactions || loadingBalance}
             onRefresh={handleRefresh}
             colors={[COLORS.light.primary]}
             style={{ backgroundColor: 'transparent' }}

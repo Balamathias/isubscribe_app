@@ -13,7 +13,14 @@ const Layout = () => {
 
   const { profile, loadingProfile } = useSession()
 
-  if (profile && profile?.onboarded !== true && !loadingProfile) {
+  const { session, isLoading } = useSession()
+  if (isLoading || loadingProfile) {
+    return null
+  }
+  if (!session) {
+    return <Redirect href="/auth/login" />
+  }
+  if (!profile?.onboarded) {
     return <Redirect href="/auth/onboarding" />
   }
 

@@ -3,10 +3,9 @@ import { useVerifyMerchant } from '@/services/api-hooks';
 import { Ionicons } from '@expo/vector-icons';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import {
-  ActivityIndicator,
   RefreshControl,
   ScrollView,
   Switch,
@@ -74,6 +73,9 @@ const BuyElectricityScreen = () => {
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const [verificationStatus, setVerificationStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [customerInfo, setCustomerInfo] = useState<any>(null);
+  const [lastVerifiedMeter, setLastVerifiedMeter] = useState<string>('');
+  const [lastVerifiedProvider, setLastVerifiedProvider] = useState<string | number | null>(null);
+  const [lastVerifiedType, setLastVerifiedType] = useState<boolean | null>(null);
 
   const { mutateAsync: verifyMerchant, isPending: isVerifyingMeter } = useVerifyMerchant();
   
@@ -121,37 +123,43 @@ const BuyElectricityScreen = () => {
   const handleVerifyMeter = useCallback(async () => {
     try {
       if (isVerifyingMeter || verificationStatus === 'loading') {
-        console.log('Verification already in progress, skipping...');
         return;
       }
 
       if (!selectedProvider || !watchedMeterNumber || watchedMeterNumber.length < 5) {
-        console.log('Invalid input for verification');
         return;
       }
 
-    const selectedProviderData = electricityServices?.find(p => p.id === selectedProvider);
-    
-    if (!selectedProviderData?.service_id) {
-      Toast.show({ type: 'error', text1: 'Invalid provider selected.' });
-      return;
-    }
+      // Check if we already verified this exact combination
+      if (lastVerifiedMeter === watchedMeterNumber && 
+          lastVerifiedProvider === selectedProvider && 
+          lastVerifiedType === watchedIsPrepaid && 
+          verificationStatus === 'success') {
+        return; // Already verified, no need to verify again
+      }
 
-      console.log('Starting meter verification...');
+      const selectedProviderData = electricityServices?.find(p => p.id === selectedProvider);
+      
+      if (!selectedProviderData?.service_id) {
+        Toast.show({ type: 'error', text1: 'Invalid provider selected.' });
+        return;
+      }
+
       setVerificationStatus('loading');
       setCustomerInfo(null);
 
       const result = await verifyMerchant({
-        type: watchedIsPrepaid ? 'prepaid' : 'postpaid', // Use form state
+        type: watchedIsPrepaid ? 'prepaid' : 'postpaid',
         billersCode: watchedMeterNumber,
         serviceID: selectedProviderData.service_id
       });
 
-      console.log('Verification result:', result);
-
       if (result?.data && !result.data.WrongBillersCode) {
         setVerificationStatus('success');
         setCustomerInfo(result.data);
+        setLastVerifiedMeter(watchedMeterNumber);
+        setLastVerifiedProvider(selectedProvider);
+        setLastVerifiedType(watchedIsPrepaid);
         Toast.show({ 
           type: 'success', 
           text1: 'Meter verified successfully!',
@@ -160,30 +168,69 @@ const BuyElectricityScreen = () => {
       } else {
         setVerificationStatus('error');
         setCustomerInfo(null);
-        // Toast.show({ 
-        //   type: 'error', 
-        //   text1: 'Meter verification failed',
-        //   text2: result.data?.WrongBillersCode ? 'Invalid meter number' : result.message || 'Unknown error'
-        // });
+        setLastVerifiedMeter('');
+        setLastVerifiedProvider(null);
+        setLastVerifiedType(null);
       }
     } catch (error: any) {
-      console.log('Verification error:', error);
       setVerificationStatus('error');
       setCustomerInfo(null);
+      setLastVerifiedMeter('');
+      setLastVerifiedProvider(null);
+      setLastVerifiedType(null);
       Toast.show({ 
         type: 'error', 
         text1: 'Verification failed',
         text2: error?.message || 'Please try again'
       });
     }
-  }, [isVerifyingMeter, verificationStatus, selectedProvider, watchedMeterNumber, electricityServices, watchedIsPrepaid]);
+  }, [isVerifyingMeter, verificationStatus, selectedProvider, watchedMeterNumber, electricityServices, watchedIsPrepaid, lastVerifiedMeter, lastVerifiedProvider, lastVerifiedType]);
 
   // Replace the useState toggle handler with a form setter
   const handleMeterTypeChange = useCallback((newIsPrepaid: boolean) => {
-    console.log('handleMeterTypeChange called with:', newIsPrepaid);
     setValue('isPrepaid', newIsPrepaid);
-    trigger('isPrepaid'); // Trigger validation/re-render
-  }, [setValue, trigger]);
+    // Reset verification when payment type changes
+    if (lastVerifiedType !== newIsPrepaid) {
+      setVerificationStatus('idle');
+      setCustomerInfo(null);
+      setLastVerifiedMeter('');
+      setLastVerifiedProvider(null);
+      setLastVerifiedType(null);
+    }
+  }, [setValue, lastVerifiedType]);
+
+  // Auto-verify meter when conditions are met
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (
+        selectedProvider &&
+        watchedMeterNumber &&
+        watchedMeterNumber.length >= 8 && // Minimum meter number length
+        watchedMeterNumber.length <= 15 && // Maximum meter number length
+        !isVerifyingMeter &&
+        verificationStatus !== 'loading' &&
+        // Only auto-verify if we haven't already verified this exact combination
+        !(lastVerifiedMeter === watchedMeterNumber && 
+          lastVerifiedProvider === selectedProvider && 
+          lastVerifiedType === watchedIsPrepaid &&
+          verificationStatus === 'success')
+      ) {
+        handleVerifyMeter();
+      }
+    }, 1000); // 1 second delay to avoid too many API calls while typing
+
+    return () => clearTimeout(timer);
+  }, [
+    selectedProvider, 
+    watchedMeterNumber, 
+    watchedIsPrepaid, 
+    isVerifyingMeter, 
+    verificationStatus,
+    lastVerifiedMeter,
+    lastVerifiedProvider,
+    lastVerifiedType,
+    handleVerifyMeter
+  ]);
 
   const onSubmit = useCallback((data: ElectricityFormInputs) => {
     if (!selectedProvider) {
@@ -267,53 +314,29 @@ const BuyElectricityScreen = () => {
             <Text className="text-base font-semibold text-foreground ml-2">Meter Information</Text>
           </View>
           <View className="space-y-3">
-            <View className="flex-row items-stretch gap-3">
-              <Controller
-                control={control}
-                name="meterNumber"
-                render={({ field: { onChange, value } }) => (
-                  <View className="flex-1">
-                    <TextInput
-                      placeholder="Enter meter number"
-                      value={value}
-                      placeholderTextColor={colors.mutedForeground}
-                      onChangeText={(text) => {
-                        console.log('Meter number changed:', text);
-                        onChange(text);
-                      }}
-                      className="bg-input border border-border rounded-xl px-4 py-4 text-base text-foreground font-medium"
-                      keyboardType="numeric"
-                    />
-                  </View>
-                )}
-              />
-              <TouchableOpacity
-                onPress={handleVerifyMeter}
-                disabled={
-                  isVerifyingMeter || 
-                  verificationStatus === 'loading' || 
-                  !watchedMeterNumber || 
-                  watchedMeterNumber.length < 5
-                }
-                className={`px-6 py-4 rounded-xl items-center justify-center ${
-                  isVerifyingMeter || 
-                  verificationStatus === 'loading' || 
-                  !watchedMeterNumber || 
-                  watchedMeterNumber.length < 5
-                    ? 'bg-primary/50 shadow-none'
-                    : 'bg-primary shadow-none'
-                }`}
-                style={{ elevation: 4 }}
-              >
-                {(isVerifyingMeter || verificationStatus === 'loading') ? (
-                  <ActivityIndicator size="small" color="white" />
-                ) : (
-                  <View className="items-center">
-                    <Ionicons name="checkmark-circle" size={20} color="white" />
-                  </View>
-                )}
-              </TouchableOpacity>
-            </View>
+            <Controller
+              control={control}
+              name="meterNumber"
+              render={({ field: { onChange, value } }) => (
+                <View className="relative">
+                  <TextInput
+                    placeholder="Enter meter number"
+                    value={value}
+                    placeholderTextColor={colors.mutedForeground}
+                    onChangeText={(text) => {
+                      onChange(text);
+                      // Reset verification status when meter number changes
+                      if (text !== lastVerifiedMeter) {
+                        setVerificationStatus('idle');
+                        setCustomerInfo(null);
+                      }
+                    }}
+                    className="bg-input border border-border rounded-xl px-4 py-5 text-base text-foreground font-medium"
+                    keyboardType="numeric"
+                  />
+                </View>
+              )}
+            />
           </View>
           
           {verificationStatus !== 'idle' && (

@@ -6,10 +6,11 @@ import { Text, TouchableOpacity, useColorScheme, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 interface Props {
-    title?: string | null
+    title?: string | null,
+    onBackPress?: () => void
 }
 
-const StackHeader = ({ title }: Props) => {
+const StackHeader = ({ title, onBackPress }: Props) => {
   const colorScheme = useColorScheme()
   const theme = colorScheme === 'dark' ? 'dark' : 'light'
 
@@ -22,7 +23,7 @@ const StackHeader = ({ title }: Props) => {
             header: ({navigation}) => (
                 <View className={`${theme} flex-row bg-background`}>
                     <SafeAreaView edges={['top']} className="flex-row items-center justify-between px-4 w-full py-4">
-                        <TouchableOpacity className="flex-row items-center gap-x-1.5" onPress={() => navigation.canGoBack() ? navigation.goBack() : undefined}>
+                        <TouchableOpacity className="flex-row items-center gap-x-1.5" onPress={onBackPress || (() => navigation.goBack())}>
                             <Ionicons name="arrow-back" color={colors.foreground} size={24} />
                             <Text className="text-xl font-medium text-foreground" numberOfLines={1}>{title || 'Transaction'}</Text>
                         </TouchableOpacity>

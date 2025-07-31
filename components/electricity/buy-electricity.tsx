@@ -8,7 +8,6 @@ import { Controller, useForm } from 'react-hook-form';
 import {
   RefreshControl,
   ScrollView,
-  Switch,
   Text,
   TextInput,
   TouchableOpacity,
@@ -49,17 +48,29 @@ const PaymentTypeToggle = React.memo(({
   const { colors } = useThemedColors()
 
   return (
-    <View className="flex-row items-center justify-between bg-card rounded-2xl p-4">
-      <Text className="text-sm font-medium text-foreground">Payment Type</Text>
-      <Switch
-        value={isPrepaid}
-        onValueChange={onToggle}
-        trackColor={{ false: colors.mutedForeground, true: colors.primary }}
-        thumbColor={isPrepaid ? colors.primary : colors.mutedForeground}
-      />
-      <Text className="text-sm font-medium text-foreground">
-        {isPrepaid ? 'Prepaid' : 'Postpaid'}
-      </Text>
+    <View className="bg-muted/30 rounded-2xl p-1">
+      <View className="flex-row items-center justify-center">
+        <Text
+          onPress={() => onToggle(true)}
+          className={`flex-1 py-3 px-4 rounded-xl text-center font-semibold ${
+            isPrepaid 
+              ? 'bg-primary shadow-sm text-white' 
+              : 'bg-transparent text-muted-foreground'
+          }`}
+        >
+          Prepaid
+        </Text>
+        <Text
+          onPress={() => onToggle(false)}
+          className={`flex-1 py-3 px-4 rounded-xl text-center font-semibold ${
+            !isPrepaid 
+              ? 'bg-primary shadow-sm text-white' 
+              : 'bg-transparent text-muted-foreground'
+          }`}
+        >
+          Postpaid
+        </Text>
+      </View>
     </View>
   )
   }
@@ -217,7 +228,7 @@ const BuyElectricityScreen = () => {
       ) {
         handleVerifyMeter();
       }
-    }, 1000); // 1 second delay to avoid too many API calls while typing
+    }, 700); // 0.7 second delay to avoid too many API calls while typing
 
     return () => clearTimeout(timer);
   }, [
@@ -260,18 +271,6 @@ const BuyElectricityScreen = () => {
   return (
     <SafeAreaView edges={['bottom']} className="flex-1 bg-background h-full">
       <StackHeader title={'Electricity'} />
-      {/* Header Section */}
-      {/* <View className="px-6 py-4 bg-card/50 border-b border-border/30">
-        <View className="flex-row items-center mb-2">
-          <View className="w-10 h-10 bg-primary/10 rounded-2xl items-center justify-center mr-3">
-            <Ionicons name="flash" size={20} color={colors.primary} />
-          </View>
-          <View className="flex-1">
-            <Text className="text-xl font-bold text-foreground">Electricity Bills</Text>
-            <Text className="text-sm text-muted-foreground">Pay your electricity bills instantly</Text>
-          </View>
-        </View>
-      </View> */}
 
       <ScrollView
         showsVerticalScrollIndicator={false}

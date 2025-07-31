@@ -63,9 +63,8 @@ const BuyEducationScreen = () => {
     },
   });
 
-  const handleJambTypeChange = (type: 'utme' | 'not-utme') => () => {
-    setIsUTME(type === 'utme');
-    // setValue('amount', type === 'utme' ? appConfig?.jamb_price : appConfig?.jamb_price);
+  const handleToggleExamType = () => {
+    setIsUTME(prev => !prev);
   };
 
   const onSubmit = (data: EducationFormInputs) => {
@@ -122,35 +121,29 @@ const BuyEducationScreen = () => {
               <Text className="text-base font-semibold text-foreground ml-2">Exam Type</Text>
             </View>
             
-            <View className="flex-row items-center justify-center bg-muted/30 rounded-2xl p-1">
-              <TouchableOpacity
-                activeOpacity={0.7}
-                key={'utme'}
-                onPress={handleJambTypeChange('utme')}
-                className={`flex-1 py-3 px-4 rounded-xl ${
-                  isUTME ? 'bg-primary shadow-sm' : 'bg-transparent'
-                }`}
-              >
-                <Text className={`text-center font-semibold ${
-                  isUTME ? 'text-white' : 'text-muted-foreground'
-                }`}>
+            <View className="bg-muted/30 rounded-2xl p-1">
+              <View className="flex-row items-center justify-center">
+                <Text
+                  onPress={handleToggleExamType}
+                  className={`flex-1 py-3 px-4 rounded-xl text-center font-semibold ${
+                    isUTME 
+                      ? 'bg-primary shadow-sm text-white' 
+                      : 'bg-transparent text-muted-foreground'
+                  }`}
+                >
                   UTME
                 </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                activeOpacity={0.7}
-                key={'not-utme'}
-                onPress={handleJambTypeChange('not-utme')}
-                className={`flex-1 py-3 px-4 rounded-xl ${
-                  !isUTME ? 'bg-primary shadow-sm' : 'bg-transparent'
-                }`}
-              >
-                <Text className={`text-center font-semibold ${
-                  !isUTME ? 'text-white' : 'text-muted-foreground'
-                }`}>
+                <Text
+                  onPress={handleToggleExamType}
+                  className={`flex-1 py-3 px-4 rounded-xl text-center font-semibold ${
+                    !isUTME 
+                      ? 'bg-primary shadow-sm text-white' 
+                      : 'bg-transparent text-muted-foreground'
+                  }`}
+                >
                   Direct Entry
                 </Text>
-              </TouchableOpacity>
+              </View>
             </View>
           </View>
         )}

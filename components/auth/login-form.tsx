@@ -109,9 +109,7 @@ const LoginForm = () => {
     <SafeAreaView className="flex-1 bg-background">
       <View className="flex-1 px-6 py-4 justify-center">
         {/* Header Section */}
-        <View className="items-center mb-12">
-          {/* <IsubscribeLogo /> */}
-          
+        <View className="items-center mb-12">          
           {/* Icon with background */}
           <View className="w-20 h-20 rounded-full bg-primary/10 items-center justify-center mb-6 mt-8">
             <Ionicons name="log-in-outline" size={32} color="#7B2FF2" />

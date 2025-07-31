@@ -10,20 +10,20 @@ const Layout = () => {
   const colorScheme = useColorScheme();
   const theme = colorScheme === 'dark' ? COLORS.dark : COLORS.light;
 
-  const { profile, loadingProfile } = useSession()
+  const { profile, loadingProfile, session, isLoading } = useSession()
 
-  const { session, isLoading } = useSession()
   if (isLoading || loadingProfile) {
     return null
+  }
+
+  if (session && profile && !profile?.onboarded) {
+    return <Redirect href="/auth/onboarding" />
   }
 
 //   if (!session) {
 //     return <Redirect href="/auth/login" />
 //   }
 
-  if (session && !profile?.onboarded) {
-    return <Redirect href="/auth/onboarding" />
-  }
 
   return (
       <Tabs

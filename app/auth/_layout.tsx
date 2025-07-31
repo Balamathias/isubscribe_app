@@ -40,7 +40,7 @@ const Layout = () => {
         </Stack.Protected>
 
         <Stack.Protected guard={
-            profile?.onboarded ? false : true
+            (profile && profile?.onboarded) ? false : true
         }>
             <Stack.Screen
                 name="onboarding"

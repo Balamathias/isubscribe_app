@@ -1,10 +1,9 @@
 import { COLORS } from '@/constants/colors';
 import { useLocalAuth } from '@/hooks/useLocalAuth';
 import { supabase } from '@/lib/supabase';
-import { QUERY_KEYS } from '@/services/api-hooks';
 import { useSignOut } from '@/services/auth-hooks';
 import { Ionicons } from '@expo/vector-icons';
-import { QueryClient, useQueryClient } from '@tanstack/react-query';
+import { QueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, Switch, Text, useColorScheme, View } from 'react-native';

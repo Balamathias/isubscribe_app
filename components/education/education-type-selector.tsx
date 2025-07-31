@@ -1,23 +1,20 @@
-// components/provider-selector.tsx
-
+import { useThemedColors } from '@/hooks/useThemedColors';
+import { EducationProviders } from '@/types/utils';
+import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import {
-  View,
-  Text,
-  TouchableOpacity,
-  Modal,
   FlatList,
-  TextInput,
   Image,
+  Modal,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import LoadingSpinner from '../ui/loading-spinner';
-import { EducationProviders } from '@/types/utils';
-import { useThemedColors } from '@/hooks/useThemedColors';
 
 const providers: { id: EducationProviders; name: string; logo: any }[] = [
-  { id: 'waec', name: 'WACE', logo: require('../../assets/services/education/waec.png') },
+  { id: 'waec', name: 'WAEC', logo: require('../../assets/services/education/waec.png') },
   { id: 'gce', name: 'GCE', logo: require('../../assets/services/education/gce.jpg') },
   { id: 'jamb', name: 'JAMB', logo: require('../../assets/services/education/jamb.png') },
 ]
@@ -45,78 +42,127 @@ const EducationTypeSelector: React.FC<Props> = ({ selectedProvider, onSelect }) 
     <>
       <TouchableOpacity
         onPress={() => setModalVisible(true)}
-        className="bg-background p-2 rounded-lg flex-row justify-between items-center"
+        activeOpacity={0.7}
+        className="bg-input border border-border rounded-xl px-4 py-3 flex-row justify-between items-center"
       >
-        <View className=' flex flex-row items-center gap-2'>
-          <Image
-            source={providers?.find(p => p.id === selectedProvider)?.logo || providers?.[0]?.logo}
-            className="w-8 h-8 rounded-full bg-secondary"
-            resizeMode="contain"
-          />
-          <Text className="text-base font-medium text-foreground">
-            {selectedProvider
-              ? providers.find(p => p.id === selectedProvider)?.name
-              : 'Select Exam Type'}
-          </Text>
+        <View className="flex-row items-center space-x-3">
+          {selectedProvider ? (
+            <>
+              <View className="w-10 h-10 rounded-full bg-background border border-border items-center justify-center overflow-hidden">
+                <Image
+                  source={
+                    providers.find(p => p.id === selectedProvider)?.logo ??
+                    providers[0].logo
+                  }
+                  className="w-8 h-8 rounded-full"
+                  resizeMode="contain"
+                />
+              </View>
+              <View className="flex-1">
+                <Text className="text-base font-semibold text-foreground">
+                  {providers.find(p => p.id === selectedProvider)?.name}
+                </Text>
+                <Text className="text-xs text-muted-foreground">
+                  Examination Board
+                </Text>
+              </View>
+            </>
+          ) : (
+            <>
+              <View className="w-10 h-10 rounded-full bg-muted/50 border border-border items-center justify-center">
+                <Ionicons name="school" size={20} color={colors.mutedForeground} />
+              </View>
+              <View className="flex-1">
+                <Text className="text-base font-medium text-muted-foreground">
+                  Select Exam Type
+                </Text>
+                <Text className="text-xs text-muted-foreground">
+                  Choose examination board
+                </Text>
+              </View>
+            </>
+          )}
+
+          <View className="ml-2">
+            <Ionicons name="chevron-down" size={20} color={colors.foreground} />
+          </View>
         </View>
-        <Ionicons name="chevron-down" size={20} color={colors.mutedForeground} />
       </TouchableOpacity>
 
-      <Modal visible={isModalVisible} animationType="slide" onRequestClose={() => setModalVisible(false)}   transparent={true} className="flex-1 justify-end bg-black/50">
-        <SafeAreaView  className="flex-1 bg-black/50 bg-opacity-50 justify-end ">
-        <LoadingSpinner isPending={false} />
-          <View className="bg-background rounded-t-2xl p-4 max-h-[85%] ">
-            <View className="flex-row items-center bg-secondary px-4 py-2 rounded-lg mb-4">
-              <Ionicons name="search" size={20} color={colors.mutedForeground} />
-              <TextInput
-                placeholder="Filter exam type..."
-                className="ml-2 flex-1 text-sm"
-                value={search}
-                onChangeText={setSearch}
-                placeholderTextColor={colors.mutedForeground}
-              />
-              <TouchableOpacity onPress={() => setModalVisible(false)}>
-                <Ionicons name="close" size={20} color={colors.mutedForeground} />
-              </TouchableOpacity>
+      <Modal visible={isModalVisible} animationType="slide" onRequestClose={() => setModalVisible(false)} transparent={true}>
+        <View className="flex-1 bg-black/60 justify-end">
+          <SafeAreaView className="bg-card rounded-t-3xl max-h-[85%] shadow-2xl">
+            
+            <View className="p-6 border-b border-border/30">
+              <View className="flex-row items-center justify-between">
+                <View>
+                  <Text className="text-xl font-bold text-foreground">Select Exam Type</Text>
+                </View>
+                <TouchableOpacity 
+                  onPress={() => setModalVisible(false)}
+                  className="w-10 h-10 bg-muted/50 rounded-full items-center justify-center"
+                >
+                  <Ionicons name="close" color={colors.foreground} size={20} />
+                </TouchableOpacity>
+              </View>
+              
+              <View className="flex-row items-center bg-input border border-border rounded-xl px-4 py-3 mt-4">
+                <Ionicons name="search" size={18} color={colors.mutedForeground} />
+                <TextInput
+                  placeholder="Search examination boards..."
+                  className="ml-3 flex-1 text-base text-foreground"
+                  value={search}
+                  placeholderTextColor={colors.mutedForeground}
+                  onChangeText={setSearch}
+                />
+                {search.length > 0 && (
+                  <TouchableOpacity onPress={() => setSearch('')}>
+                    <Ionicons name="close-circle" color={colors.mutedForeground} size={18} />
+                  </TouchableOpacity>
+                )}
+              </View>
             </View>
 
             <FlatList
               data={filteredProviders}
               keyExtractor={item => item.id}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ padding: 16 }}
               renderItem={({ item }) => (
                 <TouchableOpacity
                   onPress={() => handleSelect(item.id)}
-                  className="flex-row items-center justify-between px-2 py-3"
+                  activeOpacity={0.7}
+                  className="flex-row items-center justify-between p-4 mb-3 bg-background rounded-xl border border-border/30"
                 >
-                  <View className="flex-row items-center gap-x-3">
-                    <Image
-                      source={item.logo}
-                      className="w-8 h-8 rounded-full"
-                      resizeMode="contain"
-                    />
-                    <Text className="text-base text-foreground">{item.name}</Text>
+                  <View className="flex-row items-center gap-x-4 flex-1">
+                    <View className="w-12 h-12 rounded-full bg-muted/20 border border-border items-center justify-center overflow-hidden">
+                      <Image
+                        source={item.logo}
+                        className="w-10 h-10 rounded-full"
+                        resizeMode="contain"
+                      />
+                    </View>
+                    <View className="flex-1">
+                      <Text className="text-base font-semibold text-foreground">{item.name}</Text>
+                      <Text className="text-xs text-muted-foreground mt-1">Examination Board</Text>
+                    </View>
                   </View>
-                  <View
-                    className={`w-10 h-6 rounded-full justify-center ${
-                      selectedProvider === item.id
-                        ? 'bg-primary'
-                        : 'bg-secondary'
-                    }`}
-                  >
-                    <View
-                      className={`w-4 h-4 rounded-full bg-background ${
-                        selectedProvider === item.id
-                          ? 'ml-auto mr-1'
-                          : 'ml-1'
-                      }`}
-                    />
+                  
+                  <View className={`w-6 h-6 rounded-full border-2 items-center justify-center ${
+                    selectedProvider === item.id
+                      ? 'border-primary bg-primary'
+                      : 'border-border'
+                  }`}>
+                    {selectedProvider === item.id && (
+                      <Ionicons name="checkmark" size={14} color="white" />
+                    )}
                   </View>
                 </TouchableOpacity>
               )}
-              ItemSeparatorComponent={() => <View className="h-px bg-border" />}
+              ItemSeparatorComponent={() => <View className="h-1" />}
             />
-          </View>
-        </SafeAreaView>
+          </SafeAreaView>
+        </View>
       </Modal>
     </>
   );

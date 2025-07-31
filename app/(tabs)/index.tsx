@@ -35,7 +35,7 @@ export default function Index() {
   return (
     <>
       <ScrollView
-        className={`${theme} flex-1 bg-background/50 dark:bg-background p-4 py-2 min-h-full`}
+        className={`${theme} flex-1 bg-background/90 dark:bg-background p-4 py-2 min-h-full`}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
@@ -63,7 +63,7 @@ export default function Index() {
 
           <RecentTransactions />
 
-          <TouchableOpacity activeOpacity={0.7} onPress={() => setShowRatingsModal(true)} className="bg-card border border-border rounded-xl p-4 shadow-sm">
+          <TouchableOpacity activeOpacity={0.7} onPress={() => setShowRatingsModal(true)} className="bg-card border border-border/20 rounded-xl p-4 shadow-sm">
             <View className="flex-row items-center justify-between mb-3">
               <View className="flex-row items-center">
                 <Ionicons name="person" size={20} color="#FFD700" />

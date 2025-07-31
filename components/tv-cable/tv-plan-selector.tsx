@@ -1,19 +1,17 @@
 // tv-plan-selector.tsx
+import { useThemedColors } from '@/hooks/useThemedColors';
+import { Tables } from '@/types/database';
+import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import {
-  View,
-  Text,
-  TouchableOpacity,
-  Modal,
   FlatList,
-  Image,
+  Modal,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import LoadingSpinner from '../ui/loading-spinner';
-import { TextInput } from 'react-native';
-import { Tables } from '@/types/database';
-import { useThemedColors } from '@/hooks/useThemedColors';
 
 interface PlanItem extends Tables<'tv'> {
 }
@@ -26,33 +24,42 @@ interface Props {
   setSelectedPlan?: any;
 }
 
-
 const TvPlanSelector: React.FC<Props> = ({ selectedProviderId, plans, selectedPlan, onSelectPlan, setSelectedPlan }) => {
   const [modalVisible, setModalVisible] = useState(false);
-   const [search, setSearch] = useState('');
-   const colors = useThemedColors().colors
+  const [search, setSearch] = useState('');
+  const { colors } = useThemedColors();
   
-    const filteredPlans = plans.filter(p =>
-      p?.name?.toLowerCase().includes(search.toLowerCase())
-    );
+  const filteredPlans = plans.filter(p =>
+    p?.name?.toLowerCase().includes(search.toLowerCase())
+  );
 
   const handleSelect = (plan: PlanItem) => {
     setSelectedPlan(plan);
-    setTimeout(() => {
-        setModalVisible(false);
-    }, 500);
+    setModalVisible(false);
   };
 
   return (
     <>
       <TouchableOpacity
         onPress={() => setModalVisible(true)}
-        className="bg-card p-3 rounded-lg flex-row justify-between items-center"
+        activeOpacity={0.7}
+        className="bg-input border border-border rounded-xl p-4 flex-row justify-between items-center"
       >
-        <Text className="text-base font-medium text-muted-foreground">
-          {selectedPlan ? selectedPlan?.name : 'Select Tv Plan'}
-        </Text>
-        <Ionicons name="chevron-down" size={20} color={colors.mutedForeground} />
+        <View className="flex-1">
+          <Text className="text-base font-medium text-foreground">
+            {selectedPlan ? selectedPlan?.name : 'Select TV Subscription Plan'}
+          </Text>
+          {selectedPlan && (
+            <Text className="text-sm text-muted-foreground mt-1">
+              ₦{parseFloat(selectedPlan?.amount || '0').toLocaleString()}
+            </Text>
+          )}
+        </View>
+        <Ionicons 
+          name="chevron-down" 
+          size={20} 
+          color={colors.foreground} 
+        />
       </TouchableOpacity>
 
       <Modal
@@ -61,56 +68,76 @@ const TvPlanSelector: React.FC<Props> = ({ selectedProviderId, plans, selectedPl
         transparent={true}
         onRequestClose={() => setModalVisible(false)}
       >
-        <SafeAreaView className="flex-1 justify-end bg-black/50">
-
-          <View className="bg-card rounded-t-2xl p-4 max-h-[85%] ">
-             {/* Search */}
-            <View className="flex-row items-center bg-input/70 px-4 py-2 rounded-lg mb-4">
-              <Ionicons name="search" size={20} color={colors.mutedForeground} />
-              <TextInput
-                placeholder="Filter plans..."
-                className="ml-2 flex-1 text-sm"
-                value={search}
-                onChangeText={setSearch}
-                placeholderTextColor={colors.mutedForeground}
-              />
-              <TouchableOpacity onPress={() => setModalVisible(false)}>
-                <Ionicons name="close" size={20} color={colors.mutedForeground} />
-              </TouchableOpacity>
+        <View className="flex-1 bg-black/60 justify-end">
+          <SafeAreaView className="bg-card rounded-t-3xl max-h-[85%] shadow-2xl">
+            <View className="p-6 border-b border-border/30">
+              <View className="flex-row items-center justify-between">
+                <View>
+                  <Text className="text-xl font-bold text-foreground">Select Subscription Plan</Text>
+                </View>
+                <TouchableOpacity 
+                  onPress={() => setModalVisible(false)}
+                  className="w-10 h-10 bg-muted/50 rounded-full items-center justify-center"
+                >
+                  <Ionicons name="close" color={colors.foreground} size={20} />
+                </TouchableOpacity>
+              </View>
+              
+              <View className="flex-row items-center bg-input border border-border rounded-xl px-4 py-3 mt-4">
+                <Ionicons name="search" size={18} color={colors.mutedForeground} />
+                <TextInput
+                  placeholder="Search subscription plans..."
+                  className="ml-3 flex-1 text-base text-foreground"
+                  value={search}
+                  placeholderTextColor={colors.mutedForeground}
+                  onChangeText={setSearch}
+                />
+                {search.length > 0 && (
+                  <TouchableOpacity onPress={() => setSearch('')}>
+                    <Ionicons name="close-circle" color={colors.mutedForeground} size={18} />
+                  </TouchableOpacity>
+                )}
+              </View>
             </View>
 
             <FlatList
               data={filteredPlans}
               keyExtractor={(item) => item.variation_code!}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ padding: 16 }}
               renderItem={({ item }) => (
                 <TouchableOpacity
                   onPress={() => handleSelect(item)}
-                  className="flex-row items-center justify-between px-2 py-4"
+                  activeOpacity={0.7}
+                  className="flex-row items-center justify-between p-4 mb-3 bg-background rounded-xl border border-border/30"
                 >
-                  <Text className="text-sm text-foreground">{item.name}</Text>
-
-                    <View
-                        className={`w-10 h-6 rounded-full justify-center ${
-                        selectedPlan?.variation_code === item.variation_code
-                            ? 'bg-primary'
-                            : 'bg-secondary'
-                        }`}
-                    >
-                        <View
-                        className={`w-4 h-4 rounded-full bg-card ${
-                            selectedPlan?.variation_code === item.variation_code
-                            ? 'ml-auto mr-1'
-                            : 'ml-1'
-                        }`}
-                        />
-                    </View>
+                  <View className="flex-1">
+                    <Text className="text-base font-semibold text-foreground">{item.name}</Text>
+                    <Text className="text-sm text-primary font-medium mt-1">
+                      ₦{item?.amount?.toLocaleString()}
+                    </Text>
+                    {item?.cashback && (
+                      <Text className="text-xs text-green-600 mt-1">
+                        Cashback: ₦{item.cashback} eqv.
+                      </Text>
+                    )}
+                  </View>
+                  
+                  <View className={`w-6 h-6 rounded-full border-2 items-center justify-center ${
+                    selectedPlan?.variation_code === item.variation_code
+                      ? 'border-primary bg-primary'
+                      : 'border-border'
+                  }`}>
+                    {selectedPlan?.variation_code === item.variation_code && (
+                      <Ionicons name="checkmark" size={14} color="white" />
+                    )}
+                  </View>
                 </TouchableOpacity>
-                
               )}
-                ItemSeparatorComponent={() => <View className="h-px bg-border" />}
+              ItemSeparatorComponent={() => <View className="h-1" />}
             />
-          </View>
-        </SafeAreaView>
+          </SafeAreaView>
+        </View>
       </Modal>
     </>
   );

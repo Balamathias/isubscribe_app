@@ -1,30 +1,29 @@
+import { useThemedColors } from '@/hooks/useThemedColors';
+import { formatNigerianNaira } from '@/utils/format-naira';
+import { Ionicons } from '@expo/vector-icons';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import {
-  View,
-  Text,
+  ActivityIndicator,
   ScrollView,
+  Text,
   TextInput,
   TouchableOpacity,
-  Switch,
-  RefreshControl,
-  ActivityIndicator,
+  View,
 } from 'react-native';
-import { Controller, useForm } from 'react-hook-form';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import * as z from 'zod';
-import { COLORS } from '@/constants/colors';
+import ComingSoon from '../coming-soon';
+import StackHeader from '../header.stack';
 import { useSession } from '../session-context';
-import { LinearGradient } from 'expo-linear-gradient';
+import BottomSheet from '../ui/bottom-sheet';
 import LoadingSpinner from '../ui/loading-spinner';
 import EducationTypeSelector from './education-type-selector';
-import { formatNigerianNaira } from '@/utils/format-naira';
-import { useThemedColors } from '@/hooks/useThemedColors';
-import BottomSheet from '../ui/bottom-sheet';
-import ComingSoon from '../coming-soon';
 
-const electricitySchema = z.object({
+const educationSchema = z.object({
   phoneNumber: z
     .string()
     .min(10, 'Phone number must be at least 10 digits')
@@ -37,7 +36,7 @@ const electricitySchema = z.object({
     .min(1, 'Amount is required'),
 });
 
-type ElectricityFormInputs = z.infer<typeof electricitySchema>;
+type EducationFormInputs = z.infer<typeof educationSchema>;
 
 const BuyEducationScreen = () => {
   const [isUTME, setIsUTME] = useState(true);
@@ -55,8 +54,8 @@ const BuyEducationScreen = () => {
     getValues,
     formState: { errors },
     trigger,
-  } = useForm<ElectricityFormInputs>({
-    resolver: zodResolver(electricitySchema),
+  } = useForm<EducationFormInputs>({
+    resolver: zodResolver(educationSchema),
     defaultValues: {
       phoneNumber: user?.user_metadata?.phone || '',
       profileCode: '',
@@ -64,9 +63,12 @@ const BuyEducationScreen = () => {
     },
   });
 
-//   console.log("selectedProvider:", selectedProvider);
+  const handleJambTypeChange = (type: 'utme' | 'not-utme') => () => {
+    setIsUTME(type === 'utme');
+    // setValue('amount', type === 'utme' ? appConfig?.jamb_price : appConfig?.jamb_price);
+  };
 
-  const onSubmit = (data: ElectricityFormInputs) => {
+  const onSubmit = (data: EducationFormInputs) => {
     if (!selectedProvider) {
       Toast.show({ type: 'error', text1: 'Please select a provider.' });
       return;
@@ -90,130 +92,201 @@ const BuyEducationScreen = () => {
   };
 
   return (
-    <SafeAreaView edges={['bottom']} className="flex-1 ">
+    <SafeAreaView edges={['bottom']} className="flex-1 bg-background">
+      <StackHeader title={'Education'} />
       <LoadingSpinner isPending={isPending} />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        className="p-4"
-        refreshControl={
-          <RefreshControl
-            refreshing={loadingAppConfig || false}
-            onRefresh={refetchAppConfig}
-            colors={[COLORS.light.primary]}
-          />
-        }
-        contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
+        className="flex-1 px-4"
+        contentContainerStyle={{ paddingVertical: 12, paddingBottom: 32 }}
       >
-        {/* Provider */}
-        <View className="bg-card rounded-xl p-4 mb-4 shadow-sm">
+        
+        {/* Education Provider Selection */}
+        <View className="bg-card rounded-2xl p-5 mb-4 shadow-sm border border-border/20">
+          <View className="flex-row items-center mb-3">
+            <Ionicons name="school" size={18} color={colors.primary} />
+            <Text className="text-base font-semibold text-foreground ml-2">Select Examination</Text>
+          </View>
           <EducationTypeSelector
             selectedProvider={selectedProvider}
             onSelect={setSelectedProvider as any}
           />
         </View>
 
-        {/* Profile code  / Jamb type only for Jamb */}
-        {
-            selectedProvider === "jamb" && 
-            (
-                <>
-                <View className="bg-card rounded-xl p-4 flex-row items-center justify-end gap-4 mb-4 shadow-sm py-5">
-                  <Text className={`text-base font-semibold ${isUTME ? 'text-primary' : 'text-foreground'}`}>UTME</Text>
-                  <TouchableOpacity
-                      className={`w-10 h-6 rounded-full justify-center ${
-                      isUTME === true
-                          ? 'bg-primary'
-                          : 'bg-primary'
-                      }`}
-                      onPress={() => setIsUTME(prev => !prev)}
-                    >
-                      <View
-                        className={`w-4 h-4 rounded-full bg-card ${
-                            isUTME === false
-                            ? 'ml-auto mr-1'
-                            : 'ml-1'
-                        }`}
-                      />
-                    </TouchableOpacity>
+        {/* JAMB Type Selection - Only for JAMB */}
+        {selectedProvider === "jamb" && (
+          <View className="bg-card rounded-2xl p-5 mb-4 shadow-sm border border-border/20">
+            <View className="flex-row items-center mb-4">
+              <Ionicons name="options" size={18} color={colors.primary} />
+              <Text className="text-base font-semibold text-foreground ml-2">Exam Type</Text>
+            </View>
+            
+            <View className="flex-row items-center justify-center bg-muted/30 rounded-2xl p-1">
+              <TouchableOpacity
+                activeOpacity={0.7}
+                key={'utme'}
+                onPress={handleJambTypeChange('utme')}
+                className={`flex-1 py-3 px-4 rounded-xl ${
+                  isUTME ? 'bg-primary shadow-sm' : 'bg-transparent'
+                }`}
+              >
+                <Text className={`text-center font-semibold ${
+                  isUTME ? 'text-white' : 'text-muted-foreground'
+                }`}>
+                  UTME
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                key={'not-utme'}
+                onPress={handleJambTypeChange('not-utme')}
+                className={`flex-1 py-3 px-4 rounded-xl ${
+                  !isUTME ? 'bg-primary shadow-sm' : 'bg-transparent'
+                }`}
+              >
+                <Text className={`text-center font-semibold ${
+                  !isUTME ? 'text-white' : 'text-muted-foreground'
+                }`}>
+                  Direct Entry
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
 
-                  <Text className={`text-base font-semibold ${!isUTME ? 'text-primary' : 'text-foreground'}`}>DE</Text>
-                </View>
-
-                <View className="bg-card rounded-xl p-4 mb-4 shadow-sm">
-                <Text className="text-sm font-medium text-muted-foreground mb-2">👤 Profile Code:</Text>
-                
-                <Controller
-                    control={control}
-                    name="profileCode"
-                    render={({ field: { onChange, value } }) => (
-                    <TextInput
-                        placeholder="Enter your profile code here."
-                        value={value}
-                        onChangeText={onChange}
-                        className="border border-border rounded-lg px-4 py-4 text-sm text-foreground"
-                        placeholderTextColor={colors.mutedForeground}
-                    />
-                    )}
+        {/* Profile Code - Only for JAMB */}
+        {selectedProvider === "jamb" && (
+          <View className="bg-card rounded-2xl p-5 mb-4 shadow-sm border border-border/20">
+            <View className="flex-row items-center mb-3">
+              <Ionicons name="person" size={18} color={colors.primary} />
+              <Text className="text-base font-semibold text-foreground ml-2">Profile Information</Text>
+            </View>
+            
+            <Controller
+              control={control}
+              name="profileCode"
+              render={({ field: { onChange, value } }) => (
+                <TextInput
+                  placeholder="Enter your JAMB profile code"
+                  value={value}
+                  onChangeText={onChange}
+                  placeholderTextColor={colors.mutedForeground}
+                  className="bg-input border border-border rounded-xl px-4 py-4 text-base text-foreground font-medium"
                 />
-                {errors.profileCode && (
-                    <Text className="text-destructive text-xs mt-1">{errors.profileCode.message}</Text>
-                )}
-                </View>
-                </>
-
-            )
-        }
+              )}
+            />
+            {errors.profileCode && (
+              <View className="mt-2 flex-row items-center">
+                <Ionicons name="alert-circle" size={16} color={colors.destructive} />
+                <Text className="text-destructive text-sm ml-2">{errors.profileCode.message}</Text>
+              </View>
+            )}
+          </View>
+        )}
 
         {/* Phone Number */}
-        <View className="bg-card rounded-xl p-4 mb-4 shadow-sm">
-          <Text className="text-sm font-medium text-muted-foreground mb-2">📞 Phone Number:</Text>
+        <View className="bg-card rounded-2xl p-5 mb-4 shadow-sm border border-border/20">
+          <View className="flex-row items-center mb-3">
+            <Ionicons name="call" size={18} color={colors.primary} />
+            <Text className="text-base font-semibold text-foreground ml-2">Contact Information</Text>
+          </View>
           <Controller
             control={control}
             name="phoneNumber"
             render={({ field: { onChange, value } }) => (
               <TextInput
-                placeholder="Enter Phone Number here."
+                placeholder="Enter phone number"
                 value={value}
                 placeholderTextColor={colors.mutedForeground}
                 onChangeText={onChange}
                 keyboardType="phone-pad"
-                className="border border-border rounded-lg px-4 py-4 text-sm text-foreground"
+                className="bg-input border border-border rounded-xl px-4 py-4 text-base text-foreground font-medium"
               />
             )}
           />
           {errors.phoneNumber && (
-            <Text className="text-destructive text-xs mt-1">{errors.phoneNumber.message}</Text>
+            <View className="mt-2 flex-row items-center">
+              <Ionicons name="alert-circle" size={16} color={colors.destructive} />
+              <Text className="text-destructive text-sm ml-2">{errors.phoneNumber.message}</Text>
+            </View>
           )}
         </View>
 
-        {/* Amount */}
-        <View className="bg-card flex flex-col gap-4 rounded-xl p-4 mb-4 shadow-sm">
-         <Text className=' text-lg font-bold text-primary'>Amount to pay:</Text>
-         <Text  className="border text-primary border-primary rounded-lg px-4 py-4 text-lg font-bold" >{selectedProvider === "jamb" ? formatNigerianNaira(4500) : formatNigerianNaira(3500)}</Text>
-        {/* Continue Button */}
-
+        {/* Payment Amount */}
+        <View className="bg-card rounded-2xl p-5 mb-6 shadow-sm border border-border/20">
+          <View className="flex-row items-center mb-4">
+            <Ionicons name="wallet" size={18} color={colors.primary} />
+            <Text className="text-base font-semibold text-foreground ml-2">Payment Amount</Text>
+          </View>
+          
+          <View className="bg-gradient-to-r from-primary/5 to-purple-500/5 rounded-xl p-4 border border-primary/20">
+            <Text className="text-sm font-semibold text-foreground mb-3">Fee Breakdown</Text>
+            <View className="space-y-2">
+              <View className="flex-row justify-between items-center">
+                <Text className="text-muted-foreground text-sm">
+                  {selectedProvider === "jamb" ? "JAMB Registration Fee" : "WAEC Registration Fee"}
+                </Text>
+                <Text className="text-foreground font-semibold">
+                  {selectedProvider === "jamb" ? formatNigerianNaira(4500) : formatNigerianNaira(3500)}
+                </Text>
+              </View>
+              <View className="h-px bg-border my-2" />
+              <View className="flex-row justify-between items-center">
+                <Text className="text-foreground font-bold text-base">Total Amount</Text>
+                <Text className="text-primary font-bold text-lg">
+                  {selectedProvider === "jamb" ? formatNigerianNaira(4500) : formatNigerianNaira(3500)}
+                </Text>
+              </View>
+            </View>
+          </View>
         </View>
 
-
-       <View className="flex-1 justify-end pb-4">
+        {/* Submit Button */}
+        <View className="pt-4 pb-6 px-4">
           <TouchableOpacity
             onPress={() => setComingSoon(true)}
-            className="rounded-2xl overflow-hidden"
+            disabled={isPending}
+            className={`rounded-2xl overflow-hidden shadow-lg`}
           >
             <LinearGradient
-              colors={['#7B2FF2', '#F357A8']}
+              colors={['#7B2FF2', '#F357A8', '#FF6B9D']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
-              className="py-4 items-center justify-center rounded-md"
+              className="py-5 items-center justify-center"
             >
-              {isPending ? (
-                <ActivityIndicator color="white" />
-              ) : (
-                <Text className="font-bold text-lg text-white">Continue</Text>
+              <View className="flex-row items-center">
+                {isPending ? (
+                  <>
+                    <ActivityIndicator color="white" size="small" />
+                    <Text className="text-white font-bold text-lg ml-2">Processing...</Text>
+                  </>
+                ) : (
+                  <>
+                    <Ionicons name="school" size={20} color="white" />
+                    <Text className="text-white font-bold text-lg ml-2">
+                      Pay {selectedProvider === "jamb" ? formatNigerianNaira(4500) : formatNigerianNaira(3500)}
+                    </Text>
+                  </>
+                )}
+              </View>
+              {!isPending && (
+                <Text className="text-white/80 text-sm mt-1">Instant exam registration</Text>
               )}
             </LinearGradient>
           </TouchableOpacity>
+          
+          <View className="mt-4 bg-muted/30 rounded-xl p-4">
+            <View className="flex-row items-center mb-2">
+              <Ionicons name="information-circle" size={16} color={colors.primary} />
+              <Text className="text-sm font-semibold text-foreground ml-2">Important Notes</Text>
+            </View>
+            <Text className="text-xs text-muted-foreground leading-4">
+              • Ensure all information is correct before payment{'\n'}
+              • {selectedProvider === "jamb" ? "JAMB profile code is required for registration" : "WAEC registration will be processed instantly"}{'\n'}
+              • You'll receive confirmation via SMS and email
+            </Text>
+          </View>
         </View>
 
         <BottomSheet

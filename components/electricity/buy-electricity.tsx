@@ -494,7 +494,7 @@ const BuyElectricityScreen = () => {
           )}
         </View>
 
-        <View className="pt-4 pb-6">
+        <View className="pt-4 pb-6 px-4">
           <TouchableOpacity
             onPress={handleSubmit(onSubmit)}
             activeOpacity={0.8}

@@ -46,7 +46,7 @@ const ProviderSelector: React.FC<Props> = ({ selectedProvider, onSelect }) => {
       <TouchableOpacity
         onPress={() => setModalVisible(true)}
         activeOpacity={0.7}
-        className="bg-input border border-border rounded-xl p-4 flex-row justify-between items-center pr-6"
+        className="bg-input border border-border rounded-xl p-4 flex-row justify-between items-center"
       >
         <View className="flex flex-row items-center gap-3">
           {selectedProvider ? (
@@ -78,14 +78,14 @@ const ProviderSelector: React.FC<Props> = ({ selectedProvider, onSelect }) => {
               </View>
             </>
           )}
-        </View>
-        <View className="">
-          <Ionicons 
-            name="chevron-down" 
-            size={20} 
-            color={colors.foreground} 
-            style={{ transform: [{ rotate: '0deg' }] }}
-          />
+          <View className="">
+            <Ionicons 
+              name="chevron-down" 
+              size={20} 
+              color={colors.foreground} 
+              style={{ transform: [{ rotate: '0deg' }] }}
+            />
+          </View>
         </View>
       </TouchableOpacity>
 
@@ -98,7 +98,6 @@ const ProviderSelector: React.FC<Props> = ({ selectedProvider, onSelect }) => {
               <View className="flex-row items-center justify-between">
                 <View>
                   <Text className="text-xl font-bold text-foreground">Select Provider</Text>
-                  <Text className="text-sm text-muted-foreground mt-1">Choose your electricity distribution company</Text>
                 </View>
                 <TouchableOpacity 
                   onPress={() => setModalVisible(false)}

@@ -35,7 +35,7 @@ const TvProviderSelector: React.FC<TvProviderSelectorProps> = ({
  
 
   return (
-    <View className="w-full max-w-sm px-4">
+    <View className="w-full max-w-sm px-4 py-2 bg-card rounded-xl border border-border/20 mb-4">
       <View className="flex-row justify-between mb-4 mt-8">
         {providers.map((provider) => {
           const isSelected = selectedProviderId === provider.id;

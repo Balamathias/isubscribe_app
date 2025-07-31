@@ -33,7 +33,7 @@ function AppContent() {
   SystemUI.setBackgroundColorAsync(colors.background);
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }} className={theme}>
+    <GestureHandlerRootView style={{ flex: 1 }}>
       <NavigationThemeProvider value={theme === 'dark' ? DarkTheme : DefaultTheme}>
         <QueryClientProvider client={client}>
           <SessionProvider>

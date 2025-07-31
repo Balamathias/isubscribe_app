@@ -5,7 +5,9 @@ import { useThemedColors } from '@/hooks/useThemedColors'
 
 const Layout = () => {
   const { colors } = useThemedColors()
+  
   SystemUI.setBackgroundColorAsync(colors.background);
+
   return (
     <Stack
       screenOptions={{

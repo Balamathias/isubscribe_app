@@ -135,13 +135,13 @@ const EmptyState = ({ isAuthenticated, colors }: { isAuthenticated: boolean, col
         </Text>
         <TouchableOpacity 
           onPress={() => router.push('/auth/login')}
-          className="bg-primary px-6 py-3 rounded-2xl flex flex-row gap-x-1 items-center overflow-hidden"
+          className="bg-primary px-6 py-3 rounded-xl flex flex-row gap-x-1 items-center overflow-hidden"
         >
           <LinearGradient
                           colors={[colors.primary, '#e65bf8']}
                           start={{ x: 0, y: 0 }}
                           end={{ x: 1, y: 0 }}
-                          className="absolute inset-0 rounded-2xl"
+                          className="absolute inset-0 rounded-xl"
                                     />
           <Ionicons name='log-in-outline' color={'white'} size={18} />
           <Text className="text-white font-semibold">Sign In</Text>

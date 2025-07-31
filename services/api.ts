@@ -304,6 +304,7 @@ export interface AppConfig {
     support_phone: string;
     jamb_price: number;
     waec_price: number;
+    electricity_commission_rate: number;
 }
 
 export const getAppConfig = async (): Promise<Response<AppConfig | null>> => {

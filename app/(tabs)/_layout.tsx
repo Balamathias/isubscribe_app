@@ -5,7 +5,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { Redirect, Tabs } from 'expo-router';
 import React from 'react';
 import { useColorScheme } from 'react-native';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 const Layout = () => {
   const colorScheme = useColorScheme();
@@ -17,15 +16,16 @@ const Layout = () => {
   if (isLoading || loadingProfile) {
     return null
   }
-  if (!session) {
-    return <Redirect href="/auth/login" />
-  }
-  if (!profile?.onboarded) {
+
+//   if (!session) {
+//     return <Redirect href="/auth/login" />
+//   }
+
+  if (session && !profile?.onboarded) {
     return <Redirect href="/auth/onboarding" />
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
       <Tabs
         screenOptions={{
             tabBarActiveTintColor: theme.primary,
@@ -71,7 +71,6 @@ const Layout = () => {
             ),
         }} />
     </Tabs>
-    </GestureHandlerRootView>
   )
 }
 

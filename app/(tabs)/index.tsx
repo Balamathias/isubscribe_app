@@ -63,7 +63,7 @@ export default function Index() {
 
           <RecentTransactions />
 
-          <TouchableOpacity activeOpacity={0.7} onPress={() => setShowRatingsModal(true)} className="bg-card dark:bg-secondary rounded-xl p-4 shadow-sm">
+          <TouchableOpacity activeOpacity={0.7} onPress={() => setShowRatingsModal(true)} className="bg-card border border-border rounded-xl p-4 shadow-sm">
             <View className="flex-row items-center justify-between mb-3">
               <View className="flex-row items-center">
                 <Ionicons name="person" size={20} color="#FFD700" />

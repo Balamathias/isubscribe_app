@@ -49,6 +49,7 @@ function AppContent() {
                 <Stack.Screen name="auth" />
                 <Stack.Screen name="services" />
                 <Stack.Screen name="transactions" />
+                <Stack.Screen name="reset-password" />
                 <Stack.Screen name="help" />
                 <Stack.Screen name="coming-soon" />
                 <Stack.Screen name="accounts" />

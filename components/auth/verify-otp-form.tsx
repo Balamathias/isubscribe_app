@@ -1,7 +1,8 @@
 import { useThemedColors } from '@/hooks/useThemedColors';
-import { useResendOtp, useVerifyOtp } from '@/services/auth-hooks';
+import { useRequestPasswordResetOTP, useResendOtp, useValidateResetPasswordOTP, useVerifyOtp } from '@/services/auth-hooks';
 import { Ionicons } from '@expo/vector-icons';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useQueryClient } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
@@ -10,7 +11,6 @@ import { ActivityIndicator, Text, TextInput, TouchableOpacity, View } from 'reac
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import * as z from 'zod';
-import IsubscribeLogo from './logo-isubscribe';
 
 interface OtpInputProps {
   length: number;
@@ -44,11 +44,11 @@ const OtpInput: React.FC<OtpInputProps> = ({ length, value, onChange, error }) =
 
   return (
     <View className="mb-6 w-full px-2">
-      <View className="flex-row justify-between">
+      <View className="flex-row justify-between gap-2 w-full">
         {otpDigits.map((digit, index) => (
           <View
             key={index}
-            className={`flex-1 aspect-square w-12 h-12 max-w-14 border-2 rounded-2xl items-center justify-center mx-1 ${
+            className={`flex-1 h-14 w-14 border-2 rounded-2xl items-center justify-center ${
               error ? 'border-destructive bg-destructive/5' : 
               digit && digit !== ' ' ? 'border-primary bg-primary/5' : 'border-border bg-card'
             }`}
@@ -96,12 +96,18 @@ type VerifyOtpFormInputs = z.infer<typeof verifyOtpSchema>;
 
 const VerifyOtpForm = () => {
 
-  const { email } = useLocalSearchParams()
+  const { email, action } = useLocalSearchParams()
   const { mutate: verifyOTP, isPending } = useVerifyOtp()
   const { mutate: resendOTP, isPending: isResending } = useResendOtp()
+  const { mutate: validateResetOTP, isPending: isValidatingReset } = useValidateResetPasswordOTP()
+  const { mutate: requestResetOTP, isPending: isRequestingReset } = useRequestPasswordResetOTP()
+
+  const queryClient = useQueryClient();
 
   const [resendTimer, setResendTimer] = useState(60);
   const [canResend, setCanResend] = useState(false);
+
+  const isPasswordReset = action === 'forgot-password';
 
   const { control, handleSubmit, formState: { errors }, setValue } = useForm<VerifyOtpFormInputs>({
     resolver: zodResolver(verifyOtpSchema),
@@ -123,48 +129,112 @@ const VerifyOtpForm = () => {
   }, [resendTimer]);
 
   const handleResendOtp = () => {
-    resendOTP({ email: email as string }, {
-      onSuccess: (data) => {
-        Toast.show({
-          type: 'success',
-          text1: 'Success',
-          text2: 'OTP resent successfully!',
-        })
-      },
-      onError: (error) => {
-        Toast.show({
-          type: 'error',
-          text1: 'Error!',
-          text2: error?.message || 'Failed to resend OTP'
-        })
-      }
-    })
+    if (isPasswordReset) {
+      // For password reset, use the password reset OTP endpoint
+      requestResetOTP(email as string, {
+        onSuccess: () => {
+          Toast.show({
+            type: 'success',
+            text1: 'Success',
+            text2: 'Reset code resent successfully!',
+          })
+        },
+        onError: (error) => {
+          Toast.show({
+            type: 'error',
+            text1: 'Error!',
+            text2: error?.message || 'Failed to resend reset code'
+          })
+        }
+      })
+    } else {
+      // For email verification, use the regular resend OTP
+      resendOTP({ email: email as string }, {
+        onSuccess: (data) => {
+          Toast.show({
+            type: 'success',
+            text1: 'Success',
+            text2: 'OTP resent successfully!',
+          })
+        },
+        onError: (error) => {
+          Toast.show({
+            type: 'error',
+            text1: 'Error!',
+            text2: error?.message || 'Failed to resend OTP'
+          })
+        }
+      })
+    }
     setResendTimer(60);
     setCanResend(false);
     setValue('otp', ''); // Clear OTP input on resend
   };
 
   const onSubmit = (data: VerifyOtpFormInputs) => {
-    verifyOTP({
-      otp: data?.otp,
-      email:  email as string
-    }, {
-      onSuccess: (data) => {
-        Toast.show({
-          type: 'success',
-          text1: 'Success',
-          text2: 'Email verified successfully!',
-        })
-        router.replace('/(tabs)')
-      },
-      onError: (error) => {
-        Toast.show({
-          type: 'error',
-          text1: 'Error!',
-          text2: error?.message || 'Failed to verify OTP'
-        })
-      }
-    })
+    if (isPasswordReset) {
+      // Handle password reset OTP validation
+      validateResetOTP({
+        token: data.otp,
+        email: email as string
+      }, {
+        onSuccess: (response) => {
+          if (response?.error) {
+            Toast.show({
+              type: 'error',
+              text1: 'Error!',
+              text2: response.error.message || 'Invalid or expired code'
+            });
+            return;
+          }
+
+          queryClient.clear();
+
+          Toast.show({
+            type: 'success',
+            text1: 'Success',
+            text2: 'Code verified! Set your new password.',
+          })
+          router.push({
+            pathname: '/reset-password',
+            params: { 
+              email: email as string,
+              token: data.otp,
+              validated: 'true'
+            }
+          })
+        },
+        onError: (error) => {
+          Toast.show({
+            type: 'error',
+            text1: 'Error!',
+            text2: error?.message || 'Invalid or expired code'
+          })
+        }
+      })
+    } else {
+      // Handle regular email verification
+      verifyOTP({
+        otp: data?.otp,
+        email: email as string
+      }, {
+        onSuccess: (data) => {
+          Toast.show({
+            type: 'success',
+            text1: 'Success',
+            text2: 'Email verified successfully!',
+          })
+          router.replace('/(tabs)')
+        },
+        onError: (error) => {
+          Toast.show({
+            type: 'error',
+            text1: 'Error!',
+            text2: error?.message || 'Failed to verify OTP'
+          })
+        }
+      })
+    }
   };
 
   return (
@@ -172,16 +242,21 @@ const VerifyOtpForm = () => {
       <View className="flex-1 px-6 py-4 justify-center">
         {/* Header Section */}
         <View className="items-center mb-12">
-          <IsubscribeLogo />
+          {/* <IsubscribeLogo /> */}
           
           {/* Icon with background */}
           <View className="w-20 h-20 rounded-full bg-green-100 dark:bg-green-900/20 items-center justify-center mb-6 mt-8">
             <Ionicons name="mail-open-outline" size={32} color="#10b981" />
           </View>
           
-          <Text className="text-foreground text-2xl font-bold mb-3">Check Your Email</Text>
+          <Text className="text-foreground text-2xl font-bold mb-3">
+            {isPasswordReset ? 'Check Your Email' : 'Check Your Email'}
+          </Text>
           <Text className="text-muted-foreground text-center text-base leading-6 px-4 mb-2">
-            We've sent a 6-digit verification code to
+            {isPasswordReset 
+              ? "We've sent a password reset code to"
+              : "We've sent a 6-digit verification code to"
+            }
           </Text>
           <Text className="text-foreground font-semibold text-base">
             {email || 'your email'}
@@ -191,7 +266,7 @@ const VerifyOtpForm = () => {
         {/* OTP Input Section */}
         <View className="mb-8">
           <Text className="text-foreground text-sm font-semibold mb-4 text-center">
-            Enter Verification Code
+            {isPasswordReset ? 'Enter Reset Code' : 'Enter Verification Code'}
           </Text>
           <Controller
             control={control}
@@ -211,7 +286,7 @@ const VerifyOtpForm = () => {
         <TouchableOpacity 
           onPress={handleSubmit(onSubmit)} 
           className="w-full rounded-2xl overflow-hidden mb-8 active:scale-98"
-          disabled={isPending}
+          disabled={isPending || isValidatingReset}
           style={{ 
             shadowColor: '#7B2FF2', 
             shadowOffset: { width: 0, height: 4 }, 
@@ -226,15 +301,23 @@ const VerifyOtpForm = () => {
             end={{ x: 1, y: 0 }}
             className="py-4 items-center justify-center rounded-2xl"
           >
-            {isPending ? (
+            {(isPending || isValidatingReset) ? (
               <View className="flex-row items-center">
                 <ActivityIndicator color="white" size="small" />
-                <Text className="text-white font-bold text-lg ml-2">Verifying...</Text>
+                <Text className="text-white font-bold text-lg ml-2">
+                  {isPasswordReset ? 'Validating...' : 'Verifying...'}
+                </Text>
               </View>
             ) : (
               <View className="flex-row items-center">
-                <Ionicons name="checkmark-circle-outline" size={20} color="white" />
-                <Text className="text-white font-bold text-lg ml-2">Verify Email</Text>
+                <Ionicons 
+                  name={isPasswordReset ? "key-outline" : "checkmark-circle-outline"} 
+                  size={20} 
+                  color="white" 
+                />
+                <Text className="text-white font-bold text-lg ml-2">
+                  {isPasswordReset ? 'Validate Code' : 'Verify Email'}
+                </Text>
               </View>
             )}
           </LinearGradient>
@@ -245,14 +328,14 @@ const VerifyOtpForm = () => {
           <Text className="text-muted-foreground text-base mb-3">Didn't receive the code?</Text>
           <TouchableOpacity 
             onPress={handleResendOtp} 
-            disabled={!canResend || isResending}
+            disabled={!canResend || isResending || isRequestingReset}
             className={`px-6 py-3 rounded-xl border active:scale-95 ${
-              canResend && !isResending 
+              canResend && !isResending && !isRequestingReset
                 ? 'border-primary bg-primary/5' 
                 : 'border-border bg-muted'
             }`}
           >
-            {isResending ? (
+            {(isResending || isRequestingReset) ? (
               <View className="flex-row items-center">
                 <ActivityIndicator color="#7B2FF2" size="small" />
                 <Text className="text-primary font-semibold text-base ml-2">Sending...</Text>

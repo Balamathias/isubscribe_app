@@ -1,14 +1,15 @@
 import { useThemedColors } from '@/hooks/useThemedColors';
+import { useRequestPasswordResetOTP } from '@/services/auth-hooks';
 import { Ionicons } from '@expo/vector-icons';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { KeyboardTypeOptions, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, KeyboardTypeOptions, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Toast from 'react-native-toast-message';
 import * as z from 'zod';
-import IsubscribeLogo from './logo-isubscribe';
 
 interface CustomTextInputProps {
   icon: keyof typeof Ionicons.glyphMap;
@@ -73,10 +74,28 @@ const ForgotPasswordForm = () => {
     },
   });
 
+  const { mutate: requestResetPasswordOTP, isPending } = useRequestPasswordResetOTP();
+
   const onSubmit = (data: ForgotPasswordFormInputs) => {
     console.log('Forgot password data:', data);
     // Here you would typically send the email to your backend to initiate OTP sending
-    router.push('/auth/verify-otp'); // Navigate to OTP verification screen after sending OTP
+    requestResetPasswordOTP(data.email, {
+      onSuccess: () => {
+        router.push({
+          pathname: '/auth/verify-otp',
+          params: { email: data.email, action: 'forgot-password' }
+        }); // Navigate to OTP verification screen after sending OTP
+      },
+      onError: (error) => {
+        console.error('Error requesting password reset OTP:', error);
+        Toast.show({
+          type: 'error',
+          text1: 'Error',
+          text2: error.message || 'Failed to send verification code. Please try again.',
+        });
+      }
+    });
+    
   };
 
   return (
@@ -92,7 +111,7 @@ const ForgotPasswordForm = () => {
           </View>
           
           <Text className="text-foreground text-2xl font-bold mb-3">Forgot Password?</Text>
-          <Text className="text-muted-foreground text-center text-base leading-6 px-4 hidden">
+          <Text className="text-muted-foreground text-center text-base leading-6 px-4">
             No worries! Enter your email address and we'll send you a verification code to reset your password.
           </Text>
         </View>
@@ -117,15 +136,17 @@ const ForgotPasswordForm = () => {
         </View>
 
         {/* Send OTP Button */}
-        <TouchableOpacity 
-          onPress={handleSubmit(onSubmit)} 
+        <TouchableOpacity
+          onPress={handleSubmit(onSubmit)}
+          disabled={isPending}
           className="w-full rounded-2xl overflow-hidden mb-8 active:scale-98"
-          style={{ 
-            shadowColor: '#7B2FF2', 
-            shadowOffset: { width: 0, height: 4 }, 
-            shadowOpacity: 0.3, 
+          style={{
+            shadowColor: '#7B2FF2',
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.3,
             shadowRadius: 8,
-            elevation: 8 
+            elevation: 8,
+            opacity: isPending ? 0.6 : 1,
           }}
         >
           <LinearGradient
@@ -134,10 +155,16 @@ const ForgotPasswordForm = () => {
             end={{ x: 1, y: 0 }}
             className="py-4 items-center justify-center rounded-2xl"
           >
-            <View className="flex-row items-center">
-              <Ionicons name="send-outline" size={20} color="white" />
-              <Text className="text-white font-bold text-lg ml-2">Send Verification Code</Text>
-            </View>
+            {isPending ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <View className="flex-row items-center">
+                <Ionicons name="send-outline" size={20} color="white" />
+                <Text className="text-white font-bold text-lg ml-2">
+                  Send Verification Code
+                </Text>
+              </View>
+            )}
           </LinearGradient>
         </TouchableOpacity>
 

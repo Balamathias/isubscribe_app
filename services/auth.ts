@@ -87,7 +87,7 @@ export const validateResetPasswordOTP = async (token: string, email: string) => 
 
   const { data, error } = await supabase.auth.verifyOtp({token, email, type: 'recovery'})
 
-  console.error(error, token, email)
+  console.log(error, token, email)
 
   
   if (error || !data) return { data: null, error: { message: error?.message } }
@@ -129,5 +129,22 @@ export async function resendOtp(payload: { email: string }) {
   return { data: data || null, error: error || null }
 }
 
+export const requestPasswordResetOTP = async (email: string) => {
+  const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: redirectTo,
+  })
 
+  if (error) throw error
 
+  return data
+}
+
+export const updateAuthUser = async (password: string, metadata?: Record<string, string>) => {
+    const {data,error} = await supabase.auth.updateUser({
+        password,
+        email: metadata?.email,
+    })
+    console.error(error)
+    if (error) return { error: { message: error?.message } }
+    return { data }
+}

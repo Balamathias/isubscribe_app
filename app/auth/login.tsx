@@ -1,7 +1,6 @@
 import LoginForm from '@/components/auth/login-form'
 import React from 'react'
 import { ScrollView, useColorScheme, View } from 'react-native'
-import Animated, { SlideInLeft, SlideInRight, SlideOutRight } from 'react-native-reanimated';
 
 
 const LoginScreen = () => {

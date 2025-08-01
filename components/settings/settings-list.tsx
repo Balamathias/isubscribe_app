@@ -37,8 +37,8 @@ export function SettingsList() {
           supabase.removeAllChannels();
         } catch (error: any) {
           console.error(error);
-          router.push('/');
         }
+        router.push('/(tabs)');
 
       },
       onError: (error) => {
@@ -234,7 +234,7 @@ export function SettingsList() {
 
   return (
     <View style={{ flex: 1 }}>
-      <View className="flex-1 bg-background p-4">
+      <View className="flex-1 bg-background p-4 pb-0">
         <FlatList
           data={settingsData}
           renderItem={renderSettingItem}

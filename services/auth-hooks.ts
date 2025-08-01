@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import { signUp, signIn, signOut, performOAuth, validateResetPasswordOTP, verifyOtp, resendOtp } from "./auth";
+import { signUp, signIn, signOut, performOAuth, validateResetPasswordOTP, verifyOtp, resendOtp, requestPasswordResetOTP, updateAuthUser } from "./auth";
 
 const QUERY_KEYS = {
     signUp: 'signUp',
@@ -9,6 +9,8 @@ const QUERY_KEYS = {
     validateResetPasswordOTP: 'validateResetPasswordOTP',
     verifyOtp: 'verifyOtp',
     resendOtp: 'resendOtp',
+    requestResetPasswordOTP: 'requestResetPasswordOTP',
+    updateAuthUser: 'updateAuthUser',
 }
 
 export const useSignUp = () => useMutation({
@@ -46,4 +48,15 @@ export const useVerifyOtp = () => useMutation({
 export const useResendOtp = () => useMutation({
     mutationKey: [QUERY_KEYS.resendOtp],
     mutationFn: resendOtp,
+})
+
+export const useRequestPasswordResetOTP = () => useMutation({
+    mutationKey: [QUERY_KEYS.requestResetPasswordOTP],
+    mutationFn: requestPasswordResetOTP,
+})
+
+export const useUpdateAuthUser = () => useMutation({
+    mutationKey: [QUERY_KEYS.updateAuthUser],
+    mutationFn: ({ password, metadata }: { password: string; metadata?: Record<string, string> }) => 
+        updateAuthUser(password, metadata),
 })

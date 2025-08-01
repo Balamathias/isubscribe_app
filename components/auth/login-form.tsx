@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import * as z from 'zod';
 import IsubscribeLogo from './logo-isubscribe';
+import { ScrollView } from 'react-native';
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address').min(1, 'Email is required'),
@@ -107,7 +108,7 @@ const LoginForm = () => {
 
   return (
     <SafeAreaView className="flex-1 bg-background">
-      <View className="flex-1 px-6 py-4 justify-center">
+      <ScrollView contentContainerClassName="flex-1 px-6 py-4 justify-center">
         {/* Header Section */}
         <View className="items-center mb-12">          
           {/* Icon with background */}
@@ -244,7 +245,7 @@ const LoginForm = () => {
             Privacy Policy
           </Text>
         </Text>
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 };

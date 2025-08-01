@@ -23,6 +23,7 @@ import {
     verifyPhone,
     verifyPin,
     verifyResetPinOTP,
+    generateReservedAccount
 } from "./api";
 
 export const QUERY_KEYS = {
@@ -49,6 +50,7 @@ export const QUERY_KEYS = {
     resetPinWithOTP: 'resetPinWithOTP',
     verifyResetPinOTP: 'verifyResetPinOTP',
     requestPinResetOTP: 'requestPinResetOTP',
+    generateReservedAccount: 'generateReservedAccount',
 } as const
 
 export const useGetAccount = (id?: string) => useQuery({
@@ -168,4 +170,9 @@ export const useVerifyResetPinOTP = () => useMutation({
 export const useRequestPinResetOTP = () => useMutation({
     mutationKey: [QUERY_KEYS.requestPinResetOTP],
     mutationFn: requestPinResetOTP,
+});
+
+export const useGenerateReservedAccount = () => useMutation({
+    mutationKey: [QUERY_KEYS.generateReservedAccount],
+    mutationFn: generateReservedAccount,
 });

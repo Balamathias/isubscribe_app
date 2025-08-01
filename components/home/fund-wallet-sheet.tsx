@@ -3,9 +3,10 @@ import { useGetAccount } from '@/services/api-hooks';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
-import { ActivityIndicator, Clipboard, Modal, Platform, Text, ToastAndroid, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Clipboard, Platform, Text, ToastAndroid, TouchableOpacity, View } from 'react-native';
 import Toast from 'react-native-toast-message';
 import BottomSheet from '../ui/bottom-sheet';
+import GenerateAccountForm from './generate-account-form';
 
 interface CreditCardProps {
   colors: string[];
@@ -67,9 +68,12 @@ interface FundWalletBottomSheetProps {
 
 const FundWalletBottomSheet: React.FC<FundWalletBottomSheetProps> = ({ isVisible, onClose }) => {
   const [copiedText, setCopiedText] = useState<string | null>(null);
+  const [showGenerateForm, setShowGenerateForm] = useState(false);
   const { data: accountData, isPending } = useGetAccount()
 
   const account = accountData?.data || null
+  const hasPalmPayAccount = account?.palmpay_account_number
+  const hasReservedAccount = account?.account_number
 
   const handleCopy = async (text: string) => {
     try {
@@ -93,6 +97,82 @@ const FundWalletBottomSheet: React.FC<FundWalletBottomSheetProps> = ({ isVisible
     }
   };
 
+  const handleGenerateAccount = () => {
+    setShowGenerateForm(true);
+  };
+
+  const handleCloseGenerateForm = () => {
+    setShowGenerateForm(false);
+  };
+
+  const renderNoAccountsAvailable = () => (
+    <View className="flex-col items-center justify-center p-6">
+      <View className="w-20 h-20 rounded-full bg-muted/20 items-center justify-center mb-4">
+        <Ionicons name="card-outline" size={40} color={COLORS.light.muted} />
+      </View>
+      <Text className="text-foreground font-semibold text-lg mb-2 text-center">
+        No Funding Account Available
+      </Text>
+      <Text className="text-muted-foreground text-center mb-6">
+        We couldn't generate a PalmPay account for you automatically. Generate a reserved account to fund your wallet.
+      </Text>
+      <TouchableOpacity
+        onPress={handleGenerateAccount}
+        className="bg-primary rounded-xl p-4 flex-row items-center"
+      >
+        <Ionicons name="add-circle-outline" size={20} color="#fff" style={{ marginRight: 8 }} />
+        <Text className="text-white font-semibold">Generate Reserved Account</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
+  const renderPartialAccounts = () => (
+    <View className="space-y-4">
+      <View className="flex-col md:flex-row justify-center items-center gap-4">
+        {hasPalmPayAccount && (
+          <CreditCard
+            colors={['#a13ae1', '#740faa']}
+            accountNumber={account?.palmpay_account_number || '**********'}
+            bankName={'Palmpay'}
+            accountName={account?.palmpay_account_name || '****** ******'}
+            onCopy={() => handleCopy(account?.palmpay_account_number || '**********')}
+          />
+        )}
+
+        {hasReservedAccount && (
+          <CreditCard
+            colors={['#6017b9', '#af5eed']}
+            accountNumber={account?.account_number || ''}
+            bankName="Moniepoint"
+            accountName={"iSubscribe Network Technology.-" + account?.account_name}
+            onCopy={() => handleCopy(account?.account_number || '')}
+          />
+        )}
+      </View>
+
+      {!hasReservedAccount && hasPalmPayAccount && (
+        <View className="mt-4 p-4 bg-muted/10 rounded-xl">
+          <View className="flex-row items-center justify-between">
+            <View className="flex-1 mr-3">
+              <Text className="text-foreground font-medium mb-1">
+                Need an Alternative?
+              </Text>
+              <Text className="text-muted-foreground text-sm">
+                Generate a reserved account for additional funding options
+              </Text>
+            </View>
+            <TouchableOpacity
+              onPress={handleGenerateAccount}
+              className="bg-primary rounded-lg px-4 py-2"
+            >
+              <Text className="text-white font-medium text-sm">Generate</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+    </View>
+  );
+
   return (
     <View>
       <BottomSheet
@@ -104,25 +184,19 @@ const FundWalletBottomSheet: React.FC<FundWalletBottomSheetProps> = ({ isVisible
           isPending && <ActivityIndicator color={COLORS.light.primary} />
         }
 
-        <View className="flex-col md:flex-row justify-center items-center gap-4">
-          <CreditCard
-            colors={['#a13ae1', '#740faa']}
-            accountNumber={account?.palmpay_account_number || '**********'}
-            bankName={'Palmpay'}
-            accountName={account?.palmpay_account_name || '****** ******'}
-            onCopy={() => handleCopy(account?.palmpay_account_number || '**********')}
-          />
-
-          {account?.account_number && <CreditCard
-            colors={['#6017b9', '#af5eed']}
-            accountNumber={account?.account_number || ''}
-            bankName="Moniepoint"
-            accountName={"iSubscribe Network Technology.-" + account?.account_name}
-            onCopy={() => handleCopy(account?.account_number || '')}
-          />}
-        </View>
+        {!isPending && !hasPalmPayAccount && !hasReservedAccount && renderNoAccountsAvailable()}
+        
+        {!isPending && (hasPalmPayAccount || hasReservedAccount) && renderPartialAccounts()}
             
       </BottomSheet>
+
+      <GenerateAccountForm
+        isVisible={showGenerateForm}
+        onClose={handleCloseGenerateForm}
+        onSuccess={() => {
+          // The account data will be automatically refetched due to query invalidation
+        }}
+      />
     </View>
   );
 };

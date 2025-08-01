@@ -126,6 +126,22 @@ export const getWalletBalance = async (): Promise<Response<WalletBalance | null>
     }
 }
 
+export const generateReservedAccount = async (params: { bvn?: string, nin?: string }): Promise<Response<Tables<'account'> | null>> => {
+    try {
+        const { data, status } = await microservice.post('/mobile/reserved-account/', params)
+        return data
+    } catch (error: any) {
+        return {
+            data: null,
+            error: {
+                message: error?.response?.data?.message || error?.message
+            },
+            status: error?.response?.status,
+            message: error?.response?.data?.message || error?.message
+        }
+    }
+}
+
 export const getLatestTransactions = async (): Promise<Response<Tables<'history'>[]>> => {
     try {
         const { data, status } = await microservice.get('/mobile/transactions/latest/')

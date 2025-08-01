@@ -20,8 +20,8 @@ const DataBundleCategorySelector: React.FC<DataBundleCategorySelectorProps> = ({
   const colors = useThemedColors().colors
 
   return (
-    <View className="w-full mt-4 bg-secondary rounded-xl">
-      <View className="flex-row bg-input rounded-xl overflow-hidden">
+    <View className="w-full mt-6 bg-card rounded-xl">
+      <View className="flex-row rounded-xl overflow-hidden">
         {categories.map((category) => {
           const isSelected = activeCategory === category.id;
           const scale = useSharedValue(1);
@@ -38,7 +38,7 @@ const DataBundleCategorySelector: React.FC<DataBundleCategorySelectorProps> = ({
             <TouchableOpacity
               key={category.id}
               onPress={() => onSelectCategory(category.id)}
-              className={`flex-1 items-center py-3 rounded-xl ${isSelected ? 'bg-primary/10' : ''}`}
+              className={`flex-1 items-center py-4 rounded-xl ${isSelected ? 'bg-primary/10' : ''}`}
             >
               <Animated.View style={animatedStyle} className="flex-row items-center">
                 <Text className="mr-2 text-xl">

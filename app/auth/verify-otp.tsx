@@ -1,10 +1,17 @@
 import VerifyOtp from '@/components/auth/verify-otp-form'
+import { useThemedColors } from '@/hooks/useThemedColors'
+import { useLocalSearchParams } from 'expo-router'
 import React from 'react'
-import { ScrollView, useColorScheme, View } from 'react-native'
+import { ScrollView, View } from 'react-native'
 
 const VerifyOTPScreen = () => {
-  const colorScheme = useColorScheme()
-  const theme = colorScheme === 'dark' ? 'dark' : 'light'
+  const { theme } = useThemedColors()
+  const { email } = useLocalSearchParams()
+
+  if (!email) {
+    return null;
+  }
+
   return (
     <View className={"flex flex-1 bg-background min-h-full justify-center items-center w-full py-4" + ` ${theme}`}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}>

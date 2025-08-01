@@ -12,7 +12,7 @@ const ComingSoon = () => {
       const theme = colorScheme === 'dark' ? 'dark' : 'light'
       const colors = COLORS[theme]
   return (
-    <View className={'flex-1 bg-background/60 ' + theme}>
+    <View className={'flex-1 bg-background/90 dark:bg-background ' + theme}>
       <Header title={'Coming Soon'} />
      <View className="bg-card p-6 rounded-xl items-center justify-center m-4">
       <View className="bg-card p-6 rounded-xl items-center justify-center">

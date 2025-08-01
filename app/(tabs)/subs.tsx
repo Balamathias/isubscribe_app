@@ -52,9 +52,9 @@ const services = [
 
 const Subs = () => {
   const router = useRouter()
-  const { colors, theme } = useThemedColors()
+  const { theme } = useThemedColors()
   return (
-    <View className={"flex-1 bg-background/80" + ` ${theme}`}>
+    <View className={"flex-1 bg-background/90 dark:bg-background" + ` ${theme}`}>
       <Header title="All Subs" />
       <ScrollView contentContainerStyle={{ padding: 16 }}>
         <Text className=' text-center text-2xl mt-3 text-primary font-bold'>Our Services</Text>

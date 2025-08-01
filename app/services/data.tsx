@@ -7,7 +7,7 @@ const DataScreen = () => {
   const colorScheme = useColorScheme()
   const theme = colorScheme === 'dark' ? 'dark' : 'light'
   return (
-    <View className={`flex flex-1 bg-background/50 relative ${theme}`}>
+    <View className={`flex flex-1 bg-background/75 dark:bg-background relative ${theme}`}>
         <BuyDataScreen />
     </View>
   )

@@ -1,11 +1,9 @@
-import { View, Text } from 'react-native'
 import React from 'react'
 import { Stack } from 'expo-router'
-import { SessionProvider, useSession } from '@/components/session-context'
-import { useLocalSearchParams } from 'expo-router'
+import { useSession } from '@/components/session-context'
 
 const Layout = () => {
-  const { user, profile, isLoading, loadingProfile } = useSession()
+  const { user, profile, isLoading, loadingProfile, session } = useSession()
 
   if (isLoading || loadingProfile) {
     return null
@@ -42,7 +40,7 @@ const Layout = () => {
         />
 
         <Stack.Protected guard={
-            (profile && profile?.onboarded) ? false : true
+            (session && profile && profile?.onboarded) ? false : true
         }>
             <Stack.Screen
                 name="onboarding"

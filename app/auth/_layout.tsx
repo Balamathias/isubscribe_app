@@ -30,6 +30,12 @@ const Layout = () => {
                     headerShown: false
                 }}
             />
+            <Stack.Screen
+                name="reset-password"
+                options={{
+                    headerShown: false
+                }}
+            />
         </Stack.Protected>
         
         <Stack.Screen

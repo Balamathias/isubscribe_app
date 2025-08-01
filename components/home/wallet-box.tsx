@@ -3,6 +3,7 @@ import { QUERY_KEYS, useGetAccount } from '@/services/api-hooks'
 import { Tables } from '@/types/database'
 import { formatNigerianNaira } from '@/utils/format-naira'
 import { Ionicons } from '@expo/vector-icons'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useQueryClient } from '@tanstack/react-query'
 import * as Haptics from 'expo-haptics'
 import { LinearGradient } from 'expo-linear-gradient'
@@ -16,6 +17,12 @@ import FundWalletBottomSheet from './fund-wallet-sheet'
 interface Props {
 }
 
+// AsyncStorage keys for wallet preferences
+const STORAGE_KEYS = {
+  SHOW_BALANCE: '@wallet_show_balance',
+  SHOW_BONUS: '@wallet_show_bonus',
+}
+
 const WalletBox = ({}: Props) => {
   const [showBalance, setShowBalance] = useState(true)
   const [showBonus, setShowBonus] = useState(true)
@@ -26,6 +33,29 @@ const WalletBox = ({}: Props) => {
 
   const { user, walletBalance: wallet, loadingBalance: isPending } = useSession()
   const { data: account } = useGetAccount()
+
+  // Load saved preferences on component mount
+  useEffect(() => {
+    const loadPreferences = async () => {
+      try {
+        const [savedShowBalance, savedShowBonus] = await Promise.all([
+          AsyncStorage.getItem(STORAGE_KEYS.SHOW_BALANCE),
+          AsyncStorage.getItem(STORAGE_KEYS.SHOW_BONUS),
+        ])
+
+        if (savedShowBalance !== null) {
+          setShowBalance(JSON.parse(savedShowBalance))
+        }
+        if (savedShowBonus !== null) {
+          setShowBonus(JSON.parse(savedShowBonus))
+        }
+      } catch (error) {
+        console.error('Error loading wallet preferences:', error)
+      }
+    }
+
+    loadPreferences()
+  }, [])
 
   useEffect(() => {
     if (!user) return
@@ -74,8 +104,25 @@ const WalletBox = ({}: Props) => {
     }
   }, [user?.id, wallet?.balance])
 
-  const toggleBalance = () => setShowBalance(!showBalance)
-  const toggleBonus = () => setShowBonus(!showBonus)
+  const toggleBalance = async () => {
+    const newValue = !showBalance
+    setShowBalance(newValue)
+    try {
+      await AsyncStorage.setItem(STORAGE_KEYS.SHOW_BALANCE, JSON.stringify(newValue))
+    } catch (error) {
+      console.error('Error saving show balance preference:', error)
+    }
+  }
+  
+  const toggleBonus = async () => {
+    const newValue = !showBonus
+    setShowBonus(newValue)
+    try {
+      await AsyncStorage.setItem(STORAGE_KEYS.SHOW_BONUS, JSON.stringify(newValue))
+    } catch (error) {
+      console.error('Error saving show bonus preference:', error)
+    }
+  }
 
   const formatNumber = (value: number) => {
     if (showBalance) {

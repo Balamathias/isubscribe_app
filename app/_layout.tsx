@@ -17,6 +17,8 @@ import Toast from 'react-native-toast-message';
 
 import * as SystemUI from 'expo-system-ui';
 
+const queryClient = new QueryClient();
+
 function AppContent() {
   const { theme, colors } = useThemedColors();
 
@@ -28,14 +30,12 @@ function AppContent() {
     }
   });
 
-  const client = new QueryClient();
-
   SystemUI.setBackgroundColorAsync(colors.background);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <NavigationThemeProvider value={theme === 'dark' ? DarkTheme : DefaultTheme}>
-        <QueryClientProvider client={client}>
+        <QueryClientProvider client={queryClient}>
           <SessionProvider>
               <Stack
                 screenOptions={{

@@ -80,7 +80,7 @@ const ForgotPasswordForm = () => {
     console.log('Forgot password data:', data);
     // Here you would typically send the email to your backend to initiate OTP sending
     requestResetPasswordOTP(data.email, {
-      onSuccess: () => {
+      onSuccess: (response) => {
         router.push({
           pathname: '/auth/verify-otp',
           params: { email: data.email, action: 'forgot-password' }

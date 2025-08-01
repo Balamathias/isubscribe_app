@@ -7,7 +7,7 @@ const History = () => {
   const theme = colorScheme === 'dark' ? 'dark' : 'light'
 
   return (
-    <View className={'flex-1 bg-background/75 dark:bg-background' + ` ${theme}`}>
+    <View className={'flex-1 bg-background/90 dark:bg-background' + ` ${theme}`}>
       <Header title={'Transactions'} />
       <ListTransactions />
     </View>

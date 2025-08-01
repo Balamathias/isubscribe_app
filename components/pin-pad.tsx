@@ -1,8 +1,10 @@
 import BottomSheet from '@/components/ui/bottom-sheet';
 import { COLORS } from '@/constants/colors';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, useColorScheme, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, useColorScheme, View } from 'react-native';
+import { useSession } from './session-context';
 import LoadingSpinner from './ui/loading-spinner';
 
 interface PinPadProps {
@@ -37,9 +39,13 @@ const PinPad: React.FC<PinPadProps> = ({
   const [error, setError] = useState<string>('');
   const [isSuccess, setIsSuccess] = useState<boolean>(false);
 
+  const { profile } = useSession();
   const colorScheme = useColorScheme();
   const theme = colorScheme === 'dark' ? 'dark' : 'light';
   const colors = COLORS[theme];
+
+  // Determine if user has a PIN set
+  const hasPin = profile?.pin !== null && profile?.pin !== undefined;
 
   useEffect(() => {
     if (pin.length === pinLength) {
@@ -87,6 +93,11 @@ const PinPad: React.FC<PinPadProps> = ({
     }
   };
 
+  const handleForgotPin = () => {
+    onClose(); // Close the pin pad first
+    router.push('/reset-pin');
+  };
+
   return (
     <BottomSheet isVisible={isVisible} onClose={onClose} title={title}>
       <LoadingSpinner isPending={isLoading} />
@@ -109,6 +120,13 @@ const PinPad: React.FC<PinPadProps> = ({
         ) : isSuccess ? (
           <Text className="text-primary text-center mb-4">{successMessage}</Text>
         ) : null}
+
+        {/* Forgot PIN / Set PIN Link */}
+        <TouchableOpacity onPress={handleForgotPin} className="mb-4">
+          <Text className="text-primary text-center font-medium">
+            {hasPin ? 'Forgot PIN?' : 'Set up your PIN'}
+          </Text>
+        </TouchableOpacity>
 
         {/* {isLoading && (
           <View className='bg-transparent inset-0 absolute flex justify-center items-center z-10 right-0 left-0 bottom-0 top-0'>

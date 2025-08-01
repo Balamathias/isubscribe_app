@@ -16,13 +16,14 @@ const Layout = () => {
     return null
   }
 
-  if (session && profile && !profile?.onboarded) {
+  if (session && profile && (profile?.onboarded !== true)) {
     return <Redirect href="/auth/onboarding" />
   }
 
-//   if (!session) {
-//     return <Redirect href="/auth/login" />
-//   }
+  // Allow unauthenticated users to access tabs for special experience
+  // if (!session) {
+  //   return <Redirect href="/auth/login" />
+  // }
 
 
   return (

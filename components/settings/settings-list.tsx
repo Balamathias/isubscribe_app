@@ -3,15 +3,13 @@ import { useLocalAuth } from '@/hooks/useLocalAuth';
 import { supabase } from '@/lib/supabase';
 import { useSignOut } from '@/services/auth-hooks';
 import { Ionicons } from '@expo/vector-icons';
-import { QueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, Switch, Text, useColorScheme, View } from 'react-native';
 import Toast from 'react-native-toast-message';
 import { useSession } from '../session-context';
 import DeleteAccountModal from './delete-account-modal';
-
-const queryClient = new QueryClient()
 
 export function SettingsList() {
   const colorScheme = useColorScheme();
@@ -21,25 +19,24 @@ export function SettingsList() {
   const { mutate: logout, isPending: loggingOut } = useSignOut();
   const { user, refetchTransactions } = useSession();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const queryClient = useQueryClient();
 
   const handleLogout = () => {
     logout(undefined, {
       onSuccess: () => {
+        
+        queryClient.clear();
+        supabase.removeAllChannels();
+        refetchTransactions();
+        
         Toast.show({
           type: 'success',
           text1: 'Signed out successfully.'
         });
-        
-        queryClient.clear();
-        refetchTransactions();
-        
-        try {
-          supabase.removeAllChannels();
-        } catch (error: any) {
-          console.error(error);
-        }
-        router.push('/(tabs)');
 
+        setTimeout(() => {
+          router.replace('/(tabs)');
+        }, 150);
       },
       onError: (error) => {
         Toast.show({

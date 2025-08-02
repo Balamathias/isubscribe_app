@@ -321,6 +321,9 @@ export interface AppConfig {
     jamb_price: number;
     waec_price: number;
     electricity_commission_rate: number;
+    update_available: boolean;
+    update_url: string;
+    update_message: string;
 }
 
 export const getAppConfig = async (): Promise<Response<AppConfig | null>> => {

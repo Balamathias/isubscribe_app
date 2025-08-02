@@ -16,8 +16,21 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Toast from 'react-native-toast-message';
 
 import * as SystemUI from 'expo-system-ui';
+import { NotificationProvider } from '@/contexts/notification-context';
+
+import * as Notifications from 'expo-notifications';
 
 const queryClient = new QueryClient();
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+    shouldShowBanner: true,
+    shouldShowList: true,
+  }),
+});
 
 function AppContent() {
   const { theme, colors } = useThemedColors();
@@ -33,39 +46,41 @@ function AppContent() {
   SystemUI.setBackgroundColorAsync(colors.background);
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <NavigationThemeProvider value={theme === 'dark' ? DarkTheme : DefaultTheme}>
-        <QueryClientProvider client={queryClient}>
-          <SessionProvider>
-              <Stack
-                screenOptions={{
-                  animation: 'slide_from_right',
-                  animationDuration: 500,
-                  headerShown: false,
-                  animationTypeForReplace: 'pop',
-                }}
-              >
-                <Stack.Screen name="(tabs)" />
-                <Stack.Screen name="auth" />
-                <Stack.Screen name="services" />
-                <Stack.Screen name="transactions" />
-                <Stack.Screen name="reset-password" />
-                <Stack.Screen name="help" />
-                <Stack.Screen name="coming-soon" />
-                <Stack.Screen name="accounts" />
-                <Stack.Screen name="faq" />
-                <Stack.Screen name="reset-pin" />
-                <Stack.Screen name="privacy" />
-                <Stack.Screen name="about" />
-                <Stack.Screen name="terms" />
-                <Stack.Screen name="+not-found" />
-              </Stack>
-              <StatusBar style={theme === 'dark' ? 'light' : 'dark'} />
-              <Toast config={toastConfig} />
-          </SessionProvider>
-        </QueryClientProvider>
-      </NavigationThemeProvider>
-    </GestureHandlerRootView>
+    <NotificationProvider>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <NavigationThemeProvider value={theme === 'dark' ? DarkTheme : DefaultTheme}>
+          <QueryClientProvider client={queryClient}>
+            <SessionProvider>
+                <Stack
+                  screenOptions={{
+                    animation: 'slide_from_right',
+                    animationDuration: 500,
+                    headerShown: false,
+                    animationTypeForReplace: 'pop',
+                  }}
+                >
+                  <Stack.Screen name="(tabs)" />
+                  <Stack.Screen name="auth" />
+                  <Stack.Screen name="services" />
+                  <Stack.Screen name="transactions" />
+                  <Stack.Screen name="reset-password" />
+                  <Stack.Screen name="help" />
+                  <Stack.Screen name="coming-soon" />
+                  <Stack.Screen name="accounts" />
+                  <Stack.Screen name="faq" />
+                  <Stack.Screen name="reset-pin" />
+                  <Stack.Screen name="privacy" />
+                  <Stack.Screen name="about" />
+                  <Stack.Screen name="terms" />
+                  <Stack.Screen name="+not-found" />
+                </Stack>
+                <StatusBar style={theme === 'dark' ? 'light' : 'dark'} />
+                <Toast config={toastConfig} />
+            </SessionProvider>
+          </QueryClientProvider>
+        </NavigationThemeProvider>
+      </GestureHandlerRootView>
+    </NotificationProvider>
   );
 }
 

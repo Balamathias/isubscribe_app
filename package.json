@@ -63,7 +63,9 @@
     "zod": "^3.25.53",
     "expo-clipboard": "~7.1.5",
     "expo-media-library": "~17.1.7",
-    "@gorhom/bottom-sheet": "^5"
+    "@gorhom/bottom-sheet": "^5",
+    "expo-notifications": "~0.31.4",
+    "expo-device": "~7.1.4"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

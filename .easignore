@@ -37,3 +37,5 @@ yarn-error.*
 *.tsbuildinfo
 
 app-example
+
+isubscribe-push-firebase-adminsdk-fbsvc-6d0f4f8815.json

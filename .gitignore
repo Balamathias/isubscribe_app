@@ -39,3 +39,6 @@ yarn-error.*
 app-example
 
 .env
+isubscribe-push-firebase-adminsdk-fbsvc-6d0f4f8815.json
+
+google-services.json

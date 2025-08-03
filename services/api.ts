@@ -521,3 +521,26 @@ export const resetPinWithOTP = async (params: { otp: string, new_pin: string, re
         }
     }
 }
+
+export interface AdminCreatePushTokenData {
+    user_id: string;
+    token: string;
+    device_type?: 'ios' | 'android' | 'web';
+    active?: boolean;
+}
+
+export const createPushToken = async (data: AdminCreatePushTokenData): Promise<Response<Tables<'push_tokens'> | null>> => {
+    try {
+        const { data: response, status } = await microservice.post('/mobile/push-tokens/', data)
+        return response
+    } catch (error: any) {
+        return {
+            data: null,
+            error: {
+                message: error?.response?.data?.message || error?.message
+            },
+            status: error?.response?.status,
+            message: error?.response?.data?.message || error?.message
+        }
+    }
+}

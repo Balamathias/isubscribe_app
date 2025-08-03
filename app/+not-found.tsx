@@ -1,4 +1,5 @@
 import { COLORS } from '@/constants/colors';
+import { useThemedColors } from '@/hooks/useThemedColors';
 import { Ionicons } from '@expo/vector-icons';
 import { Link } from 'expo-router';
 import React from 'react';
@@ -14,9 +15,7 @@ import Animated, {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const NotFoundScreen = () => {
-  const colorScheme = useColorScheme();
-  const theme = colorScheme === 'dark' ? 'dark' : 'light';
-  const colors = COLORS[theme];
+  const { theme, colors } = useThemedColors()
 
   const sadIconScale = useSharedValue(1);
   const sadIconRotation = useSharedValue(0);

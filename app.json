@@ -9,7 +9,11 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.isubscribe",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -50,7 +54,9 @@
       [
         "expo-font",
         {
-          "fonts": ["./assets/fonts/Poppins-Regular.ttf"]
+          "fonts": [
+            "./assets/fonts/Poppins-Regular.ttf"
+          ]
         }
       ]
     ],

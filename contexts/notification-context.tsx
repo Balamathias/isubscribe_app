@@ -9,6 +9,8 @@ import React, {
 import * as Notifications from "expo-notifications";
 import { registerForPushNotificationsAsync } from "@/utils/registerForPushNotificationAsync";
 import { EventSubscription as Subscription } from "expo-modules-core";
+import { router } from "expo-router";
+import { Linking } from "react-native";
 
 interface NotificationContextType {
   expoPushToken: string | null;
@@ -19,6 +21,31 @@ interface NotificationContextType {
 const NotificationContext = createContext<NotificationContextType | undefined>(
   undefined
 );
+
+const mapReaderFriendlyNameToScreen = (name: string): string => {
+  switch (name.toLocaleLowerCase()) {
+    case "home":
+      return "/";
+    case "data":
+      return '/services/data'
+    case "airtime":
+      return "/services/airtime";
+    case "tv":
+      return "/services/tv-cable";
+    case "electricity":
+      return "/services/electricity";
+    case "history":
+      return "/history";
+    case "account":
+      return "/accounts";
+    case "profile":
+      return "/profile";
+    case "settings":
+      return "/settings";
+    default:
+      return name;
+  }
+}
 
 export const useNotification = () => {
   const context = useContext(NotificationContext);
@@ -64,7 +91,33 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({
           JSON.stringify(response, null, 2),
           JSON.stringify(response.notification.request.content.data, null, 2)
         );
-        // Handle the notification response here
+        const payload = response.notification.request.content.data;
+        if (payload && payload.action) {
+          switch (payload.action) {
+            case 'navigate':
+              try {
+                const screen = mapReaderFriendlyNameToScreen(payload?.screen as any);
+                const decodedScreen = decodeURIComponent(screen);
+                router.navigate(decodedScreen as any);
+              } catch (error) {
+                console.warn('Failed to decode screen path:', error);
+                router.navigate('/');
+              }
+              break;
+
+            case 'open_url':
+              if (payload?.url) {
+                try {
+                  const url = payload.url.toString();
+                  const decodedUrl = decodeURIComponent(url);
+                  Linking.openURL(decodedUrl);
+                } catch (error) {
+                  console.warn('Failed to decode or open URL:', error);
+                }
+              }
+              break;
+          }
+        }
       });
 
     return () => {

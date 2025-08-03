@@ -5,23 +5,28 @@ import { useRouter } from 'expo-router'
 import { useColorScheme } from 'react-native'
 import { COLORS } from '@/constants/colors'
 import { LinearGradient } from 'expo-linear-gradient'
+import { useNotification } from '@/contexts/notification-context'
 
 const ComingSoon = () => {
-    const router = useRouter()
-      const colorScheme = useColorScheme()
-      const theme = colorScheme === 'dark' ? 'dark' : 'light'
-      const colors = COLORS[theme]
+  const router = useRouter()
+  const colorScheme = useColorScheme()
+  const theme = colorScheme === 'dark' ? 'dark' : 'light'
+  const colors = COLORS[theme]
+
+  const { notification, expoPushToken } = useNotification()
+
   return (
     <View className={'flex-1 bg-background/90 dark:bg-background ' + theme}>
       <Header title={'Coming Soon'} />
      <View className="bg-card p-6 rounded-xl items-center justify-center m-4">
       <View className="bg-card p-6 rounded-xl items-center justify-center">
-          <Ionicons name="battery-charging" size={48} color={colors.mutedForeground} />
-          <Text className="text-foreground text-lg font-semibold mt-4 mb-2 animate-pulse">Coming soon...</Text>
-          <Text className="text-muted-foreground text-center">
-          This feature is coming soon on our mobile platform. For the meantime, you can enjoy this feature on our web platform.
-          </Text>
-        </View>
+        <Ionicons name="battery-charging" size={48} color={colors.mutedForeground} />
+        <Text className="text-foreground text-lg font-semibold mt-4 mb-2 animate-pulse">Coming soon...</Text>
+        <Text className="text-muted-foreground text-center">
+        This feature is coming soon on our mobile platform. For the meantime, you can enjoy this feature on our web platform.
+        </Text>
+      </View>
+        {/* Button to navigate to home */}
         <TouchableOpacity
           onPress={() => router.push('/')}
           className="bg-primary px-6 py-3 rounded-2xl flex flex-row gap-x-1 items-center overflow-hidden"

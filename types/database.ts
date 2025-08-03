@@ -591,6 +591,41 @@ export type Database = {
         }
         Relationships: []
       }
+      push_tokens: {
+        Row: {
+          active: boolean | null
+          created_at: string
+          device_type: string | null
+          id: string
+          token: string | null
+          user: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          created_at?: string
+          device_type?: string | null
+          id?: string
+          token?: string | null
+          user?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          created_at?: string
+          device_type?: string | null
+          id?: string
+          token?: string | null
+          user?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "push_tokens_user_fkey"
+            columns: ["user"]
+            isOneToOne: false
+            referencedRelation: "profile"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ratings: {
         Row: {
           comment: string | null
@@ -862,6 +897,55 @@ export type Database = {
         Args: { user_id: string; amount: number }
         Returns: undefined
       }
+      get_high_frequency_users: {
+        Args: { time_window?: unknown; min_transactions?: number }
+        Returns: {
+          user_id: string
+          email: string
+          full_name: string
+          transaction_count: number
+          time_window_start: string
+        }[]
+      }
+      get_large_transactions: {
+        Args: { min_amount?: number; hours_back?: number }
+        Returns: {
+          transaction_id: string
+          user_id: string
+          email: string
+          full_name: string
+          amount: number
+          transaction_type: string
+          provider: string
+          status: string
+          created_at: string
+        }[]
+      }
+      get_provider_performance: {
+        Args: { start_date?: string; end_date?: string }
+        Returns: {
+          provider_name: string
+          total_transactions: number
+          successful_transactions: number
+          failed_transactions: number
+          success_rate: number
+          total_volume: number
+          total_commission: number
+        }[]
+      }
+      get_repeat_customers: {
+        Args: { start_date?: string; end_date?: string }
+        Returns: {
+          user_id: string
+          email: string
+          full_name: string
+          transaction_count: number
+          total_amount: number
+          total_commission: number
+          first_transaction: string
+          last_transaction: string
+        }[]
+      }
       get_total_cashback_amount: {
         Args: { start_date?: string; end_date?: string }
         Returns: number
@@ -878,6 +962,15 @@ export type Database = {
         Args: { start_date?: string; end_date?: string }
         Returns: number
       }
+      get_user_statistics: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          total_users: number
+          active_users: number
+          users_with_wallets: number
+          users_with_positive_balance: number
+        }[]
+      }
       get_wallet_fund_totals: {
         Args: { start_date?: string; end_date?: string }
         Returns: {
@@ -887,7 +980,7 @@ export type Database = {
         }[]
       }
       modify_wallet_balance: {
-        Args: { user_id: string; amount: number; new_cashback_balance: number }
+        Args: { user_id: string; amount: number; new_cashback_balance?: number }
         Returns: undefined
       }
       search_history: {

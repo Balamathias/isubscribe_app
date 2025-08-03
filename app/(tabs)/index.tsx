@@ -5,17 +5,24 @@ import SocialHandles from "@/components/home/social-handles";
 import WalletBox from "@/components/home/wallet-box";
 import RatingsDisplayModal from "@/components/ratings/ratings-display-modal";
 import { useSession } from "@/components/session-context";
+import { useUpdateModal } from "@/components/ui/update-modal";
 import { COLORS } from "@/constants/colors";
+import { useNotification } from "@/contexts/notification-context";
 import { useThemedColors } from "@/hooks/useThemedColors";
+import { useCreatePushToken } from "@/services/api-hooks";
 import { getGreeting } from "@/utils";
 import { Ionicons } from "@expo/vector-icons";
 import { useCallback, useEffect, useState } from "react";
-import { RefreshControl, ScrollView, Text, TouchableOpacity, useColorScheme, View } from "react-native";
+import { Platform, RefreshControl, ScrollView, Text, TouchableOpacity, useColorScheme, View } from "react-native";
 
 
 export default function Index() {
   const colorScheme = useColorScheme()
   const theme = colorScheme === 'dark' ? 'dark' : 'light'
+
+  const { mutate: createPushToken } = useCreatePushToken()
+  const { expoPushToken } = useNotification()
+  const { UpdateModal } = useUpdateModal()
 
   const { refetchBalance, loadingBalance, refetchTransactions, loadingTransactions, profile, user } = useSession()
   const [showRatingsModal, setShowRatingsModal] = useState(false);
@@ -29,6 +36,19 @@ export default function Index() {
   useEffect(() => {
     handleRefresh()
   }, [handleRefresh])
+
+  useEffect(() => {
+    if (expoPushToken && user) {
+      createPushToken({ token: expoPushToken, user_id: user.id, device_type: Platform.OS as any }, {
+        onSuccess: (response) => {
+          console.log('Push token created successfully', response)
+        },
+        onError: (error) => {
+          console.error('Error creating push token:', error)
+        }
+      })
+    }
+  }, [expoPushToken, createPushToken])
 
   const getUserInitials = () => user?.user_metadata?.full_name?.split(' ')[0] || user?.email?.split(`@`)[0]
 
@@ -89,6 +109,8 @@ export default function Index() {
           <SocialHandles />
         </View>
       </ScrollView>
+
+      <UpdateModal />
 
       <RatingsDisplayModal
         isVisible={showRatingsModal}

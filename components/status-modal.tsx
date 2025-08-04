@@ -52,6 +52,9 @@ const StatusModal: React.FC<StatusModalProps> = ({
   const opacity = useSharedValue(0);
   const [showRatingModal, setShowRatingModal] = useState(false);
 
+  const UTMEPins: string[] = transaction?.pins || [];
+  const WAECCards: { Serial: string, Pin: string }[] = transaction?.cards || [];
+
   React.useEffect(() => {
     if (isVisible) {
       scale.value = withSequence(
@@ -178,6 +181,70 @@ const StatusModal: React.FC<StatusModalProps> = ({
                 </View>
               </View>
             )}
+
+            {status === 'success' && (
+                <>
+                {UTMEPins.length > 0 && (
+                  <View className="rounded-xl w-full">
+                  <Text className="text-muted-foreground mb-2">UTME Pins</Text>
+                  {UTMEPins.map((pin, index) => (
+                    <View key={index} className="flex-row justify-between items-center mb-2">
+                    <Text className="text-foreground font-semibold">{`Pin ${index + 1}`}</Text>
+                    <TouchableOpacity
+                      onPress={() => {
+                      Clipboard.setString(pin);
+                      Toast.show({ type: 'success', text1: 'Pin copied to clipboard!' });
+                      }}
+                      activeOpacity={0.7}
+                    >
+                      <Text className="text-primary font-semibold">{pin}</Text>
+                    </TouchableOpacity>
+                    </View>
+                  ))}
+                  </View>
+                )}
+
+                {WAECCards.length > 0 && (
+                  <View className="rounded-xl w-full">
+                  <Text className="text-muted-foreground mb-2">WAEC Cards</Text>
+                  {WAECCards.map((card, index) => (
+                    <View key={index} className="mb-3">
+                    <Text className="text-foreground font-semibold mb-2">{`Card ${index + 1}`}</Text>
+                    <View className="flex-row justify-between items-center mb-1">
+                      <Text className="text-muted-foreground">Serial</Text>
+                      <TouchableOpacity
+                      onPress={() => {
+                        Clipboard.setString(card.Serial);
+                        Toast.show({ type: 'success', text1: 'Serial copied to clipboard!' });
+                      }}
+                      activeOpacity={0.7}
+                      className="flex-row items-center gap-1"
+                      >
+                      <Text className="text-primary font-semibold">{card.Serial}</Text>
+                      <Ionicons name="copy-outline" size={14} color="#7B2FF2" />
+                      </TouchableOpacity>
+                    </View>
+                    <View className="flex-row justify-between items-center">
+                      <Text className="text-muted-foreground">Pin</Text>
+                      <TouchableOpacity
+                      onPress={() => {
+                        Clipboard.setString(card.Pin);
+                        Toast.show({ type: 'success', text1: 'Pin copied to clipboard!' });
+                      }}
+                      activeOpacity={0.7}
+                      className="flex-row items-center gap-1"
+                      >
+                      <Text className="text-primary font-semibold">{card.Pin}</Text>
+                      <Ionicons name="copy-outline" size={14} color="#7B2FF2" />
+                      </TouchableOpacity>
+                    </View>
+                    </View>
+                  ))}
+                  </View>
+                )}
+                </>
+            )}
+
           </View>
 
           {/* Action Buttons - Show both for successful transactions */}

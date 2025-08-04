@@ -22,6 +22,7 @@ import { useSession } from '../session-context';
 import BottomSheet from '../ui/bottom-sheet';
 import LoadingSpinner from '../ui/loading-spinner';
 import EducationTypeSelector from './education-type-selector';
+import EducationConfirmationModal from './eduction-confirmation-modal';
 
 const educationSchema = z.object({
   phoneNumber: z
@@ -30,10 +31,14 @@ const educationSchema = z.object({
     .regex(/^[0-9]+$/, 'Phone number must contain only digits'),
   profileCode: z
     .string()
-    .min(5, 'Profile code is required'),
+    .optional(),
   amount: z
     .number()
     .min(1, 'Amount is required'),
+  quantity: z
+    .number()
+    .min(1, 'Quantity must be at least 1')
+    .max(10, 'Quantity cannot exceed 10'),
 });
 
 type EducationFormInputs = z.infer<typeof educationSchema>;
@@ -46,6 +51,7 @@ const BuyEducationScreen = () => {
 
   const { colors } = useThemedColors()
   const [comingSoon, setComingSoon] = useState(false);
+  const [showConfirmationModal, setShowConfirmationModal] = useState(false);
 
   const {
     control,
@@ -60,6 +66,7 @@ const BuyEducationScreen = () => {
       phoneNumber: user?.user_metadata?.phone || '',
       profileCode: '',
       amount: selectedProvider === "jamb" ? appConfig?.jamb_price : appConfig?.waec_price,
+      quantity: 1,
     },
   });
 
@@ -73,21 +80,14 @@ const BuyEducationScreen = () => {
       return;
     }
 
-    const payload = {
-       billersCode: data.profileCode,
-            phone: data.phoneNumber,
-            serviceID: selectedProvider === "jamb" ? "jamb" : "waec",
-            variation_code:
-                selectedProvider === "jamb"
-                    ? isUTME
-                        ? "utme"
-                        : "de"
-                    : "waecdirect",
-            amount: data.amount,
-    };
+    // Validate profile code for JAMB services
+    if (selectedProvider === 'jamb' && (!data.profileCode || data.profileCode.length < 5)) {
+      Toast.show({ type: 'error', text1: 'Profile code is required for JAMB registration and must be at least 5 characters.' });
+      return;
+    }
 
-    console.log(' Payload:', payload);
-    Toast.show({ type: 'success', text1: 'Submitted!', text2: 'Check console for payload.' });
+    // Show confirmation modal with the form data
+    setShowConfirmationModal(true);
   };
 
   return (
@@ -172,7 +172,7 @@ const BuyEducationScreen = () => {
             {errors.profileCode && (
               <View className="mt-2 flex-row items-center">
                 <Ionicons name="alert-circle" size={16} color={colors.destructive} />
-                <Text className="text-destructive text-sm ml-2">{errors.profileCode.message}</Text>
+                <Text className="text-destructive text-sm ml-2">Profile code is required for JAMB registration</Text>
               </View>
             )}
           </View>
@@ -206,6 +206,34 @@ const BuyEducationScreen = () => {
           )}
         </View>
 
+        {/* Quantity */}
+        <View className="bg-card rounded-2xl p-5 mb-4 shadow-sm border border-border/20">
+          <View className="flex-row items-center mb-3">
+            <Ionicons name="layers" size={18} color={colors.primary} />
+            <Text className="text-base font-semibold text-foreground ml-2">Quantity</Text>
+          </View>
+          <Controller
+            control={control}
+            name="quantity"
+            render={({ field: { onChange, value } }) => (
+              <TextInput
+                placeholder="Enter quantity (1-10)"
+                value={value?.toString() || '1'}
+                placeholderTextColor={colors.mutedForeground}
+                onChangeText={(text) => onChange(parseInt(text) || 1)}
+                keyboardType="numeric"
+                className="bg-input border border-border rounded-xl px-4 py-4 text-base text-foreground font-medium"
+              />
+            )}
+          />
+          {errors.quantity && (
+            <View className="mt-2 flex-row items-center">
+              <Ionicons name="alert-circle" size={16} color={colors.destructive} />
+              <Text className="text-destructive text-sm ml-2">{errors.quantity.message}</Text>
+            </View>
+          )}
+        </View>
+
         {/* Payment Amount */}
         <View className="bg-card rounded-2xl p-5 mb-6 shadow-sm border border-border/20">
           <View className="flex-row items-center mb-4">
@@ -221,14 +249,20 @@ const BuyEducationScreen = () => {
                   {selectedProvider === "jamb" ? "JAMB Registration Fee" : "WAEC Registration Fee"}
                 </Text>
                 <Text className="text-foreground font-semibold">
-                  {selectedProvider === "jamb" ? formatNigerianNaira(4500) : formatNigerianNaira(3500)}
+                  {formatNigerianNaira(selectedProvider === "jamb" ? (appConfig?.jamb_price || 4500) : (appConfig?.waec_price || 3500))}
+                </Text>
+              </View>
+              <View className="flex-row justify-between items-center">
+                <Text className="text-muted-foreground text-sm">Quantity</Text>
+                <Text className="text-foreground font-semibold">
+                  {getValues('quantity') || 1}
                 </Text>
               </View>
               <View className="h-px bg-border my-2" />
               <View className="flex-row justify-between items-center">
                 <Text className="text-foreground font-bold text-base">Total Amount</Text>
                 <Text className="text-primary font-bold text-lg">
-                  {selectedProvider === "jamb" ? formatNigerianNaira(4500) : formatNigerianNaira(3500)}
+                  {formatNigerianNaira((selectedProvider === "jamb" ? (appConfig?.jamb_price || 4500) : (appConfig?.waec_price || 3500)) * (getValues('quantity') || 1))}
                 </Text>
               </View>
             </View>
@@ -238,8 +272,8 @@ const BuyEducationScreen = () => {
         {/* Submit Button */}
         <View className="pt-4 pb-6 px-4">
           <TouchableOpacity
-            onPress={() => setComingSoon(true)}
-            disabled={isPending}
+            onPress={handleSubmit(onSubmit)}
+            disabled={isPending || loadingAppConfig}
             className={`rounded-2xl overflow-hidden shadow-lg`}
           >
             <LinearGradient
@@ -249,7 +283,7 @@ const BuyEducationScreen = () => {
               className="py-5 items-center justify-center"
             >
               <View className="flex-row items-center">
-                {isPending ? (
+                {isPending || loadingAppConfig ? (
                   <>
                     <ActivityIndicator color="white" size="small" />
                     <Text className="text-white font-bold text-lg ml-2">Processing...</Text>
@@ -258,12 +292,12 @@ const BuyEducationScreen = () => {
                   <>
                     <Ionicons name="school" size={20} color="white" />
                     <Text className="text-white font-bold text-lg ml-2">
-                      Pay {selectedProvider === "jamb" ? formatNigerianNaira(4500) : formatNigerianNaira(3500)}
+                      Pay {formatNigerianNaira((selectedProvider === "jamb" ? (appConfig?.jamb_price || 4500) : (appConfig?.waec_price || 3500)) * (getValues('quantity') || 1))}
                     </Text>
                   </>
                 )}
               </View>
-              {!isPending && (
+              {!isPending && !loadingAppConfig && (
                 <Text className="text-white/80 text-sm mt-1">Instant exam registration</Text>
               )}
             </LinearGradient>
@@ -289,6 +323,22 @@ const BuyEducationScreen = () => {
         >
           <ComingSoon />
         </BottomSheet>
+
+        <EducationConfirmationModal
+          isVisible={showConfirmationModal}
+          onClose={() => setShowConfirmationModal(false)}
+          educationData={{
+            serviceType: selectedProvider === "jamb" ? (isUTME ? "jamb" : "de") : "waec",
+            variationCode: selectedProvider === "jamb" 
+              ? (isUTME ? "utme" : "de") 
+              : "waecdirect",
+            phoneNumber: getValues('phoneNumber'),
+            profileCode: selectedProvider === "jamb" ? getValues('profileCode') : undefined,
+            quantity: getValues('quantity') || 1,
+            amount: (selectedProvider === "jamb" ? (appConfig?.jamb_price || 4500) : (appConfig?.waec_price || 3500)) * (getValues('quantity') || 1),
+            examType: selectedProvider === "jamb" ? (isUTME ? "utme" : "de") : undefined,
+          }}
+        />
       </ScrollView>
     </SafeAreaView>
   );

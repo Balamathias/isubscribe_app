@@ -28,6 +28,9 @@ const TransactionDetail = () => {
 
   const transaction = data?.data;
 
+  const pins: string[] = (transaction?.meta_data && typeof transaction.meta_data === 'object' && !Array.isArray(transaction.meta_data) && 'pins' in transaction.meta_data) ? transaction.meta_data.pins as string[] : [];
+  const cards: { Serial: string, Pin: string }[] = (transaction?.meta_data && typeof transaction.meta_data === 'object' && !Array.isArray(transaction.meta_data) && 'cards' in transaction.meta_data) ? transaction.meta_data.cards as { Serial: string, Pin: string }[] : [];
+
   const handleShareReceipt = async () => {
     if (!viewShotRef.current || !transaction) {
       Alert.alert('Error', 'Receipt not ready for sharing. Please try again.');
@@ -367,6 +370,112 @@ ${transaction.meta_data && typeof transaction.meta_data === 'object' && 'phone' 
                 <Text className="text-lg font-bold text-foreground ml-2">Description</Text>
               </View>
               <Text className="text-foreground leading-5">{transaction.description}</Text>
+            </View>
+          </View>
+        )}
+
+        {/* Education Results Card - Show pins and cards when available */}
+        {(pins.length > 0 || cards.length > 0) && (
+          <View className="px-4">
+            <View className="bg-card rounded-2xl p-5 mb-4 shadow-sm border border-border/20">
+              <View className="flex-row items-center mb-4">
+                <Ionicons name="school" size={18} color={colors.primary} />
+                <Text className="text-lg font-bold text-foreground ml-2">Education Results</Text>
+              </View>
+              
+              {/* UTME/JAMB Pins */}
+              {pins.length > 0 && (
+                <View className="mb-6">
+                  <Text className="text-muted-foreground text-sm font-medium mb-3">JAMB Pins</Text>
+                  {pins.map((pin, index) => (
+                    <View key={index} className="bg-muted/30 rounded-xl p-4 mb-3">
+                      <View className="flex-row justify-between items-center">
+                        <View>
+                          <Text className="text-foreground font-semibold text-base">{`Pin ${index + 1}`}</Text>
+                          <Text className="text-muted-foreground text-xs">Tap to copy</Text>
+                        </View>
+                        <TouchableOpacity
+                          onPress={async () => {
+                            await Clipboard.setStringAsync(pin);
+                            Toast.show({ 
+                              type: 'success', 
+                              text1: 'Pin copied!',
+                              text2: `Pin ${index + 1} copied to clipboard`
+                            });
+                          }}
+                          activeOpacity={0.7}
+                          className="flex-row items-center bg-primary/20 px-3 py-2 rounded-lg"
+                        >
+                          <Text className="text-primary font-bold text-lg mr-2">{pin}</Text>
+                          <Ionicons name="copy-outline" size={16} color={colors.primary} />
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              )}
+
+              {/* WAEC Cards */}
+              {cards.length > 0 && (
+                <View>
+                  <Text className="text-muted-foreground text-sm font-medium mb-3">WAEC Cards</Text>
+                  {cards.map((card, index) => (
+                    <View key={index} className="bg-muted/30 rounded-xl p-4 mb-3">
+                      <Text className="text-foreground font-semibold text-base mb-3">{`Card ${index + 1}`}</Text>
+                      
+                      {/* Serial Number */}
+                      <View className="flex-row justify-between items-center mb-3">
+                        <Text className="text-muted-foreground text-sm font-medium">Serial Number</Text>
+                        <TouchableOpacity
+                          onPress={async () => {
+                            await Clipboard.setStringAsync(card.Serial);
+                            Toast.show({ 
+                              type: 'success', 
+                              text1: 'Serial copied!',
+                              text2: 'Serial number copied to clipboard'
+                            });
+                          }}
+                          activeOpacity={0.7}
+                          className="flex-row items-center bg-primary/20 px-3 py-2 rounded-lg"
+                        >
+                          <Text className="text-primary font-bold text-base mr-2">{card.Serial}</Text>
+                          <Ionicons name="copy-outline" size={14} color={colors.primary} />
+                        </TouchableOpacity>
+                      </View>
+                      
+                      {/* Pin */}
+                      <View className="flex-row justify-between items-center">
+                        <Text className="text-muted-foreground text-sm font-medium">Pin</Text>
+                        <TouchableOpacity
+                          onPress={async () => {
+                            await Clipboard.setStringAsync(card.Pin);
+                            Toast.show({ 
+                              type: 'success', 
+                              text1: 'Pin copied!',
+                              text2: 'Pin copied to clipboard'
+                            });
+                          }}
+                          activeOpacity={0.7}
+                          className="flex-row items-center bg-primary/20 px-3 py-2 rounded-lg"
+                        >
+                          <Text className="text-primary font-bold text-base mr-2">{card.Pin}</Text>
+                          <Ionicons name="copy-outline" size={14} color={colors.primary} />
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              )}
+              
+              {/* Info note */}
+              <View className="bg-primary/10 rounded-xl p-3 mt-2">
+                <View className="flex-row items-center">
+                  <Ionicons name="information-circle" size={16} color={colors.primary} />
+                  <Text className="text-primary text-xs font-medium ml-2">
+                    Keep these credentials safe and secure for exam registration
+                  </Text>
+                </View>
+              </View>
             </View>
           </View>
         )}

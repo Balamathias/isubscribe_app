@@ -25,6 +25,7 @@ import {
     verifyResetPinOTP,
     generateReservedAccount,
     createPushToken,
+    updateProfile,
 } from "./api";
 
 export const QUERY_KEYS = {
@@ -53,6 +54,7 @@ export const QUERY_KEYS = {
     requestPinResetOTP: 'requestPinResetOTP',
     generateReservedAccount: 'generateReservedAccount',
     createPushToken: 'createPushToken',
+    updateProfile: 'updateProfile',
 } as const
 
 export const useGetAccount = (id?: string) => useQuery({
@@ -182,4 +184,9 @@ export const useGenerateReservedAccount = () => useMutation({
 export const useCreatePushToken = () => useMutation({
     mutationKey: [QUERY_KEYS.createPushToken],
     mutationFn: createPushToken,
+});
+
+export const useUpdateProfile = () => useMutation({
+    mutationKey: [QUERY_KEYS.updateProfile],
+    mutationFn: updateProfile,
 });

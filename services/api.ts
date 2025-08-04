@@ -3,31 +3,6 @@ import { microservice } from "./ai.ms";
 import { PaginatedResponse, Response } from "@/types/ai-ms.generics";
 import { Tables } from "@/types/database";
 
-
-export const getUserProfile = async () => {
-    const { data: { user }, error } = await supabase.auth.getUser()
-
-    if (error) {
-        throw error
-    }
-
-    if (!user) {
-        throw new Error(`User not found`)
-    }
-
-    const { data: profile, error: profileError } = await supabase
-        .from('profile')
-        .select('*')
-        .eq('id', user?.id)
-        .single()
-
-    if (profileError) {
-        throw profileError
-    }
-
-    return { data: profile, error: null }
-}
-
 export const getCurrentUser = async () => {
     const { data, error } = await supabase.auth.getUser()
     if (error) {
@@ -533,6 +508,39 @@ export const createPushToken = async (data: AdminCreatePushTokenData): Promise<R
     try {
         const { data: response, status } = await microservice.post('/mobile/push-tokens/', data)
         return response
+    } catch (error: any) {
+        return {
+            data: null,
+            error: {
+                message: error?.response?.data?.message || error?.message
+            },
+            status: error?.response?.status,
+            message: error?.response?.data?.message || error?.message
+        }
+    }
+}
+
+export const updateProfile = async (profileData: Partial<Tables<'profile'>>): Promise<Response<Tables<'profile'> | null>> => {
+    try {
+        const { data, status } = await microservice.put('/mobile/profile/', profileData)
+        return data
+    } catch (error: any) {
+        console.error('Error updating profile:', error);
+        return {
+            data: null,
+            error: {
+                message: error?.response?.data?.message || error?.message
+            },
+            status: error?.response?.status,
+            message: error?.response?.data?.message || error?.message
+        }
+    }
+}
+
+export const getUserProfile = async (): Promise<Response<Tables<'profile'> | null>> => {
+    try {
+        const { data, status } = await microservice.get('/mobile/profile/')
+        return data
     } catch (error: any) {
         return {
             data: null,

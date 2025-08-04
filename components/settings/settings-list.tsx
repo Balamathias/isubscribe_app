@@ -70,6 +70,14 @@ export function SettingsList() {
       onPress: () => router.push('/reset-pin')
     },
     {
+      id: 'profile-update',
+      title: 'Update Profile Information',
+      description: 'Update your name, email, phone number, etc.',
+      icon: 'person-outline',
+      type: 'link',
+      onPress: () => router.push('/profile-update')
+    },
+    {
       id: 'notifications',
       title: 'Notifications',
       description: 'Manage notification preferences',

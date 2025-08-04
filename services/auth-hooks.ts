@@ -1,5 +1,15 @@
 import { useMutation } from "@tanstack/react-query";
-import { signUp, signIn, signOut, performOAuth, validateResetPasswordOTP, verifyOtp, resendOtp, requestPasswordResetOTP, updateAuthUser } from "./auth";
+import { 
+    signUp, 
+    signIn, 
+    signOut, 
+    performOAuth, 
+    validateResetPasswordOTP, 
+    verifyOtp, 
+    resendOtp, 
+    requestPasswordResetOTP, 
+    updateAuthUser,
+} from "./auth";
 
 const QUERY_KEYS = {
     signUp: 'signUp',
@@ -60,3 +70,4 @@ export const useUpdateAuthUser = () => useMutation({
     mutationFn: ({ password, metadata }: { password: string; metadata?: Record<string, string> }) => 
         updateAuthUser(password, metadata),
 })
+

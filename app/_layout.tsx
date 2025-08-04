@@ -15,8 +15,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Toast from 'react-native-toast-message';
 
-import * as SystemUI from 'expo-system-ui';
 import { NotificationProvider } from '@/contexts/notification-context';
+import * as SystemUI from 'expo-system-ui';
 
 import * as Notifications from 'expo-notifications';
 
@@ -72,6 +72,7 @@ function AppContent() {
                   <Stack.Screen name="privacy" />
                   <Stack.Screen name="about" />
                   <Stack.Screen name="terms" />
+                  <Stack.Screen name="profile-update" />
                   <Stack.Screen name="+not-found" />
                 </Stack>
                 <StatusBar style={theme === 'dark' ? 'light' : 'dark'} />

@@ -22,10 +22,6 @@ const Header = () => {
 
   const notifications = notificationsData?.data || []
 
-  const { user, session } = useSession()
-
-  const getUserInitials = () => user?.user_metadata?.full_name?.split(' ')[0] || user?.email?.split(`@`)[0]
-
   const hasUnreadNotifications = notifications?.some(n => n.published)
 
   return (

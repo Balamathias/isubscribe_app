@@ -1,5 +1,6 @@
 import { Image } from 'expo-image';
 import React from 'react';
+import { TouchableOpacity } from 'react-native';
 import { Text, View } from 'react-native';
 import { ImageSourcePropType } from 'react-native';
 
@@ -9,6 +10,7 @@ interface AvatarProps {
   fallback?: string;
   className?: string;
   resizeMode?: 'cover' | 'contain' | 'stretch' | 'repeat' | 'center';
+  onPress?: () => void;
 }
 
 const Avatar: React.FC<AvatarProps> = ({
@@ -17,9 +19,11 @@ const Avatar: React.FC<AvatarProps> = ({
   fallback = '👤',
   className = '',
   resizeMode = 'cover',
+  onPress
 }) => {
   return (
-    <View
+    <TouchableOpacity
+      onPress={onPress}
       className={`overflow-hidden rounded-full bg-muted ${className}`}
       style={{ width: size, height: size }}
     >
@@ -36,7 +40,7 @@ const Avatar: React.FC<AvatarProps> = ({
           <Text className="text-foreground text-lg">{fallback}</Text>
         </View>
       )}
-    </View>
+    </TouchableOpacity>
   );
 };
 

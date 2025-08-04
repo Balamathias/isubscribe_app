@@ -177,7 +177,7 @@ const ProfileUpdateScreen = () => {
   };
 
   const renderProfilePicture = () => {
-    const avatarUrl = profile?.avatar;
+    const avatarUrl = user?.user_metadata?.picture || profile?.avatar;
     const initials = formData.full_name
       .split(' ')
       .map(n => n[0])

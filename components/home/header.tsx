@@ -20,6 +20,8 @@ const Header = () => {
   const [showNotifications, setShowNotifications] = useState(false)
   const { data: notificationsData } = useGetNotifications()
 
+  const { user } = useSession()
+
   const notifications = notificationsData?.data || []
 
   const hasUnreadNotifications = notifications?.some(n => n.published)
@@ -53,6 +55,7 @@ const Header = () => {
                                       )}
                                   </View>
                               </TouchableOpacity>
+                              <Avatar onPress={() => router.push('/profile-update')} source={{ uri: user?.user_metadata?.picture || '' }} size={30}/>
                           </View>
                       </SafeAreaView>
                   </View>

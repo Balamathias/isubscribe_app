@@ -10,7 +10,13 @@ const Layout = () => {
   const colorScheme = useColorScheme();
   const theme = colorScheme === 'dark' ? COLORS.dark : COLORS.light;
 
-  const { profile, loadingProfile, session, isLoading } = useSession()
+  const { profile, loadingProfile, session, isLoading, refetchProfile } = useSession()
+
+  React.useEffect(() => {
+    if (session) {
+      refetchProfile()
+    }
+  }, [session, refetchProfile])
 
   if (isLoading || loadingProfile) {
     return null

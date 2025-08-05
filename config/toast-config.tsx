@@ -15,7 +15,7 @@ const toastConfig = {
       <Ionicons name="alert-circle" size={20} color="#D92D20" />
       <View className="flex-col gap-1">
         {text1 && (
-          <Text className="text-[#D92D20] text-[12px] font-semibold">
+          <Text numberOfLines={1} className="text-[#D92D20] text-[12px] font-semibold">
             {text1}
           </Text>
         )}
@@ -28,11 +28,11 @@ const toastConfig = {
       <Ionicons name="checkmark-circle" size={20} color="#067647" />
       <View className="flex-col gap-1">
         {text1 && (
-          <Text className="text-[#067647] text-[12px] font-semibold">
+          <Text numberOfLines={1} className="text-[#067647] text-[12px] font-semibold">
             {text1}
           </Text>
         )}
-        {text2 && <Text className="text-foreground">{text2}</Text>}
+        {text2 && <Text numberOfLines={1} className="text-foreground">{text2}</Text>}
       </View>
     </View>
   ),
@@ -41,11 +41,11 @@ const toastConfig = {
       <Ionicons name="information-circle" size={20} color="#064476" />
       <View className="flex-col gap-1">
         {text1 && (
-          <Text className="text-[#064476] text-[12px] font-semibold">
+          <Text numberOfLines={1} className="text-[#064476] text-[12px] font-semibold">
             {text1}
           </Text>
         )}
-        {text2 && <Text className="text-foreground">{text2}</Text>}
+        {text2 && <Text numberOfLines={1} className="text-foreground">{text2}</Text>}
       </View>
     </View>
   ),
@@ -54,11 +54,11 @@ const toastConfig = {
       <Ionicons name="trash" size={20} color="#D92D20" />
       <View className="flex-col gap-1">
         {text1 && (
-          <Text className="text-[#D92D20] text-[12px] font-semibold">
+          <Text numberOfLines={1} className="text-[#D92D20] text-[12px] font-semibold">
             {text1}
           </Text>
         )}
-        {text2 && <Text className="text-foreground">{text2}</Text>}
+        {text2 && <Text numberOfLines={1} className="text-foreground">{text2}</Text>}
       </View>
     </View>
   ),
@@ -67,11 +67,11 @@ const toastConfig = {
       <Ionicons name="warning" size={20} color="#92400E" />
       <View className="flex-col gap-1">
         {text1 && (
-          <Text className="text-[#92400E] text-[12px] font-semibold">
+          <Text numberOfLines={1} className="text-[#92400E] text-[12px] font-semibold">
             {text1}
           </Text>
         )}
-        {text2 && <Text className="text-foreground">{text2}</Text>}
+        {text2 && <Text numberOfLines={1} className="text-foreground">{text2}</Text>}
       </View>
     </View>
   ),

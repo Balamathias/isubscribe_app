@@ -404,7 +404,7 @@ export const createRating = async (_req_data: { comment: string, rating: number 
     }
 }
 
-export const listRatings = async (limit: number = 10, offset: number = 0): Promise<Response<Tables<'ratings'>[] | null>> => {
+export const listRatings = async (limit: number = 10, offset: number = 0): Promise<Response<(Tables<'ratings'> & { profile: Tables<'profile'> })[] | null>> => {
     try {
         const { data, status } = await microservice.get('/mobile/ratings/', {
             params: {

@@ -5,32 +5,16 @@ import { Ionicons } from '@expo/vector-icons';
 import { Redirect, Tabs } from 'expo-router';
 import React from 'react';
 import { useColorScheme } from 'react-native';
+import SplashScreen from '@/components/splash-screen'
 
 const Layout = () => {
   const colorScheme = useColorScheme();
   const theme = colorScheme === 'dark' ? COLORS.dark : COLORS.light;
 
-  const { profile, loadingProfile, session, isLoading, refetchProfile } = useSession()
-
-  React.useEffect(() => {
-    if (session) {
-      refetchProfile()
-    }
-  }, [session, refetchProfile])
-
-  if (isLoading || loadingProfile) {
-    return null
-  }
-
+  const { profile, session } = useSession()
   if (session && profile && (profile?.onboarded !== true)) {
     return <Redirect href="/auth/onboarding" />
   }
-
-  // Allow unauthenticated users to access tabs for special experience
-  // if (!session) {
-  //   return <Redirect href="/auth/login" />
-  // }
-
 
   return (
       <Tabs

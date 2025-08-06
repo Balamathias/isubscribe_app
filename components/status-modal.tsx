@@ -265,12 +265,12 @@ const StatusModal: React.FC<StatusModalProps> = ({
               </TouchableOpacity>
 
               <TouchableOpacity
-                className="w-full rounded-xl py-4 border border-primary bg-transparent"
+                className="w-full rounded-xl py-4 border border-border/40 bg-transparent"
                 onPress={handleRateExperience}
                 activeOpacity={0.7}
               >
                 <View className="flex-row items-center justify-center">
-                  <Ionicons name="star-outline" size={20} color="#7B2FF2" />
+                  <Ionicons name="star" size={20} color="#f2ae2f" />
                   <Text className="text-primary text-center font-bold text-lg ml-2">
                     Rate Experience
                   </Text>

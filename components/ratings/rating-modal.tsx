@@ -1,22 +1,23 @@
 import { COLORS } from '@/constants/colors';
-import { useCreateRating } from '@/services/api-hooks';
+import { QUERY_KEYS, useCreateRating } from '@/services/api-hooks';
 import { Ionicons } from '@expo/vector-icons';
+import { useQueryClient } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
 import {
-    ActivityIndicator,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    useColorScheme,
-    View
+  ActivityIndicator,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  useColorScheme,
+  View
 } from 'react-native';
 import Animated, {
-    runOnJS,
-    useAnimatedStyle,
-    useSharedValue,
-    withSequence,
-    withSpring
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withSequence,
+  withSpring
 } from 'react-native-reanimated';
 import Toast from 'react-native-toast-message';
 import BottomSheet from '../ui/bottom-sheet';
@@ -39,24 +40,15 @@ const AnimatedStar = ({
   animationDelay?: number;
 }) => {
   const scale = useSharedValue(1);
-  const rotation = useSharedValue(0);
 
   const animatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      { scale: scale.value },
-      { rotate: `${rotation.value}deg` }
-    ]
+    transform: [{ scale: scale.value }]
   }));
 
   const handlePress = () => {
     scale.value = withSequence(
-      withSpring(1.3, { duration: 200 }),
-      withSpring(1, { duration: 200 })
-    );
-    rotation.value = withSequence(
-      withSpring(15, { duration: 100 }),
-      withSpring(-15, { duration: 100 }),
-      withSpring(0, { duration: 100 })
+      withSpring(1.2, { duration: 150 }),
+      withSpring(1, { duration: 150 })
     );
     
     setTimeout(() => {
@@ -65,12 +57,12 @@ const AnimatedStar = ({
   };
 
   return (
-    <TouchableOpacity onPress={handlePress} activeOpacity={0.7}>
+    <TouchableOpacity onPress={handlePress} activeOpacity={0.8} className="p-1">
       <Animated.View style={animatedStyle}>
         <Ionicons 
           name={filled ? "star" : "star-outline"} 
-          size={40} 
-          color={filled ? "#d1a806" : "#c9cacd"} 
+          size={36} 
+          color={filled ? "#FFD700" : "#D1D5DB"} 
         />
       </Animated.View>
     </TouchableOpacity>
@@ -92,6 +84,8 @@ const RatingModal: React.FC<RatingModalProps> = ({
 
   const { mutateAsync: createRating, isPending } = useCreateRating();
 
+  const queryClient = useQueryClient();
+
   const handleStarPress = (starIndex: number) => {
     setRating(starIndex);
   };
@@ -100,17 +94,8 @@ const RatingModal: React.FC<RatingModalProps> = ({
     if (rating === 0) {
       Toast.show({
         type: 'error',
-        text1: 'Rating Required',
-        text2: 'Please select a rating before submitting'
-      });
-      return;
-    }
-
-    if (!comment.trim()) {
-      Toast.show({
-        type: 'error',
-        text1: 'Comment Required',
-        text2: 'Please add a comment about your experience'
+        text1: 'Please rate your experience',
+        text2: 'Select at least one star'
       });
       return;
     }
@@ -124,9 +109,13 @@ const RatingModal: React.FC<RatingModalProps> = ({
       if (result.data) {
         Toast.show({
           type: 'success',
-          text1: 'Thank you!',
-          text2: 'Your rating has been submitted successfully'
+          text1: 'Thank you! 🙏',
+          text2: 'Your feedback helps us improve'
         });
+
+        queryClient.invalidateQueries({
+          queryKey: [QUERY_KEYS.listRatings]
+        })
         
         // Reset form
         setRating(0);
@@ -138,9 +127,20 @@ const RatingModal: React.FC<RatingModalProps> = ({
     } catch (error: any) {
       Toast.show({
         type: 'error',
-        text1: 'Submission Failed',
-        text2: error.message || 'Please try again later'
+        text1: 'Submission failed',
+        text2: 'Please try again'
       });
+    }
+  };
+
+  const getRatingEmoji = (ratingValue: number) => {
+    switch (ratingValue) {
+      case 1: return "😞";
+      case 2: return "😐";
+      case 3: return "🙂";
+      case 4: return "😊";
+      case 5: return "🤩";
+      default: return "😊";
     }
   };
 
@@ -151,7 +151,7 @@ const RatingModal: React.FC<RatingModalProps> = ({
       case 3: return "Good";
       case 4: return "Very Good";
       case 5: return "Excellent";
-      default: return "Rate your experience";
+      default: return "How was your experience?";
     }
   };
 
@@ -159,86 +159,101 @@ const RatingModal: React.FC<RatingModalProps> = ({
     <BottomSheet
       isVisible={isVisible}
       onClose={onClose}
-      title="Rate Your Experience"
+      title=""
     >
-      <View className="flex-1 py-4">
+      <View className="flex-1 py-2">
+        {/* Header Section */}
         <View className="items-center mb-8">
-          <View className="w-16 h-16 rounded-full bg-primary/10 dark:bg-primary/90 items-center justify-center mb-4">
-            <Ionicons name="checkmark-circle" size={32} color={colors.primary} />
-          </View>
+          <Text className="text-4xl mb-3">✨</Text>
           <Text className="text-foreground text-xl font-bold mb-2">
-            {transactionTitle} Successful!
+            Rate Your Experience
           </Text>
-          <Text className="text-muted-foreground text-center">
-            How was your experience? Your feedback helps us improve our service.
+          <Text className="text-muted-foreground text-center text-sm px-4">
+            Help us improve by sharing your feedback
           </Text>
         </View>
 
-        <View className="items-center mb-6">
-          <Text className="text-foreground text-lg font-semibold mb-4">
-            {getRatingText(hoveredRating || rating)}
-          </Text>
-          <View className="flex-row space-x-2">
+        {/* Rating Section */}
+        <View className="items-center mb-8">
+          <View className="flex-row items-center mb-4">
+            <Text className="text-3xl mr-3">
+              {getRatingEmoji(hoveredRating || rating)}
+            </Text>
+            <Text className="text-foreground text-lg font-semibold">
+              {getRatingText(hoveredRating || rating)}
+            </Text>
+          </View>
+          
+          <View className="flex-row space-x-3">
             {[1, 2, 3, 4, 5].map((star) => (
               <AnimatedStar
                 key={star}
                 index={star}
                 filled={star <= (hoveredRating || rating)}
                 onPress={() => handleStarPress(star)}
-                animationDelay={star * 50}
+                animationDelay={star * 30}
               />
             ))}
           </View>
         </View>
 
-        <View className="mb-6">
-          <Text className="text-foreground font-medium mb-2">
-            Tell us more about your experience
+        {/* Comment Section */}
+        <View className="mb-8">
+          <Text className="text-foreground font-medium mb-3 text-center">
+            💬 Share your thoughts <Text className="text-muted-foreground text-sm">(optional)</Text>
           </Text>
           <TextInput
-            className="border border-input rounded-xl p-4 text-foreground min-h-[100px]"
-            placeholder="Share your thoughts about the transaction process, speed, ease of use, etc."
+            className="border border-border rounded-2xl p-4 text-foreground bg-card"
+            placeholder="Tell us what made your experience great or how we can improve..."
             placeholderTextColor={colors.mutedForeground}
             multiline
             textAlignVertical="top"
             value={comment}
             onChangeText={setComment}
-            maxLength={500}
+            maxLength={300}
+            style={{ minHeight: 80 }}
           />
-          <Text className="text-muted-foreground text-xs mt-1 text-right">
-            {comment.length}/500
-          </Text>
+          {comment.length > 0 && (
+            <Text className="text-muted-foreground text-xs mt-2 text-right">
+              {comment.length}/300
+            </Text>
+          )}
         </View>
 
+        {/* Action Buttons */}
         <View className="flex-row gap-x-3">
           <TouchableOpacity
             onPress={onClose}
-            className="flex-1 py-4 rounded-xl border border-border"
+            className="flex-1 py-4 rounded-2xl border border-border/50"
             disabled={isPending}
           >
-            <Text className="text-foreground text-center font-semibold">
+            <Text className="text-muted-foreground text-center font-medium">
               Skip
             </Text>
           </TouchableOpacity>
           
           <TouchableOpacity
             onPress={handleSubmit}
-            className="flex-1 py-4 rounded-xl overflow-hidden"
+            className="flex-2 py-4 rounded-2xl overflow-hidden px-4"
             disabled={isPending || rating === 0}
+            style={{ opacity: rating === 0 ? 0.5 : 1 }}
           >
             <LinearGradient
-              colors={rating === 0 ? ['#E5E7EB', '#E5E7EB'] : ['#7B2FF2', '#F357A8']}
+              colors={rating === 0 ? ['#6B7280', '#6B7280'] : ['#7B2FF2', '#F357A8']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               className="absolute inset-0"
             />
             <View className="flex-row items-center justify-center">
               {isPending ? (
-                <ActivityIndicator color="white" size="small" />
+                <>
+                  <ActivityIndicator color="white" size="small" />
+                  <Text className="text-white font-semibold ml-2">Submitting...</Text>
+                </>
               ) : (
                 <>
-                  <Ionicons name="send" size={18} color="white" />
-                  <Text className="text-white font-semibold ml-2">Submit</Text>
+                  <Text className="text-white font-semibold">Submit Rating</Text>
+                  <Text className="text-white ml-2">🚀</Text>
                 </>
               )}
             </View>

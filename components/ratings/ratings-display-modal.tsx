@@ -39,7 +39,7 @@ const StarRating = ({ rating, size = 16 }: { rating: number; size?: number }) =>
   );
 };
 
-const RatingCard = ({ item, index }: { item: Tables<'ratings'>; index: number }) => {
+const RatingCard = ({ item, index }: { item: Tables<'ratings'> & { profile: Tables<'profile'> }; index: number }) => {
   const scale = useSharedValue(0);
   const opacity = useSharedValue(0);
 
@@ -78,10 +78,10 @@ const RatingCard = ({ item, index }: { item: Tables<'ratings'>; index: number })
       <View className="bg-card rounded-xl p-4 mb-3 shadow-sm">
         <View className="flex-row items-start justify-between mb-3">
           <View className="flex-row items-center flex-1">
-            <Avatar size={40} />
+            <Avatar size={40} source={{ uri: item?.profile?.avatar as string }} />
             <View className="ml-3 flex-1">
               <Text className="text-foreground font-semibold text-base">
-                Anonymous User
+                { item?.profile?.full_name }
               </Text>
               <View className="flex-row items-center mt-1">
                 <StarRating rating={item.rating || 0} size={14} />

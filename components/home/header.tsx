@@ -36,9 +36,9 @@ const Header = () => {
                       <SafeAreaView edges={['top']} className="flex-row items-center justify-between px-3 w-full py-4">
                         <View className="flex-row items-center justify-center">
                             <Image
-                            source={require('@/assets/images/logo-icon.png')}
-                            className="w-11 h-11 mr-0.5"
-                            style={{ tintColor: colors.primary }}
+                                source={require('@/assets/images/logo-icon.png')}
+                                className="w-11 h-11 mr-0.5"
+                                style={{ tintColor: colors.primary }}
                             />
                             <Text className="text-2xl font-semibold text-primary">isubscribe</Text>
                         </View>
@@ -55,7 +55,7 @@ const Header = () => {
                                       )}
                                   </View>
                               </TouchableOpacity>
-                              <Avatar onPress={() => router.push('/profile-update')} source={{ uri: user?.user_metadata?.picture || '' }} size={30}/>
+                              <Avatar onPress={user ? () => router.push('/profile-update') : undefined} source={user ? { uri: user?.user_metadata?.picture || '' } : undefined} size={30}/>
                           </View>
                       </SafeAreaView>
                   </View>

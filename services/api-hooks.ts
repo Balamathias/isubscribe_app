@@ -146,7 +146,7 @@ export const useVerifyMerchant = () => useMutation({
     mutationFn: verifyMerchant,
 });
 
-export const useListRatings = (limit: number, offset: number) => useQuery({
+export const useListRatings = (limit?: number, offset?: number) => useQuery({
     queryKey: [QUERY_KEYS.listRatings, limit, offset],
     queryFn: () => listRatings(limit, offset),
 });

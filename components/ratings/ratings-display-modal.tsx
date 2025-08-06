@@ -136,10 +136,9 @@ const RatingsDisplayModal: React.FC<RatingsDisplayModalProps> = ({
   onClose
 }) => {
   const [page, setPage] = useState(0);
-  const limit = 30;
   
   const colorScheme = useColorScheme();
-  const { data, isPending, refetch } = useListRatings(limit, page * limit);
+  const { data, isPending, refetch } = useListRatings();
 
   const ratings = data?.data || [];
 

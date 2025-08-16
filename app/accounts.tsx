@@ -51,8 +51,8 @@ const Accounts = () => {
 
   const renderNoAccountsMessage = () => (
     <View className="flex-col items-center justify-center flex-1 px-4">
-      <View className="w-24 h-24 rounded-full bg-muted/20 items-center justify-center mb-6">
-        <Ionicons name="card-outline" size={48} color={COLORS.light.muted} />
+      <View className="w-24 h-24 rounded-full bg-muted-foreground/10 items-center justify-center mb-6">
+        <Ionicons name="card-outline" size={48} color={COLORS.light.mutedForeground} />
       </View>
       <Text className="text-foreground font-bold text-xl mb-2 text-center">
         No Accounts Available

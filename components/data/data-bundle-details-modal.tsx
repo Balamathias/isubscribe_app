@@ -168,7 +168,9 @@ const DataBundleDetailsModal: React.FC<DataBundleDetailsModalProps> = ({
               </View>
               <View className="flex-row justify-between mb-2">
                 <Text className="text-muted-foreground text-sm sm:text-base">Price</Text>
-                <Text className="text-foreground font-semibold text-sm sm:text-base">{formatNigerianNaira(selectedBundleDetails?.price)}</Text>
+                <Text className="text-foreground font-semibold text-sm sm:text-base">{
+                  use_bonus === 'true' ? selectedBundleDetails?.data_bonus_price : formatNigerianNaira(selectedBundleDetails?.price)?.split('.')[0]
+                }</Text>
               </View>
               <View className="flex-row justify-between mb-2">
                 <Text className="text-muted-foreground text-sm sm:text-base">Amount</Text>

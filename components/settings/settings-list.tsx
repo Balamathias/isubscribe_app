@@ -30,24 +30,6 @@ export function SettingsList() {
   const [showThemeSheet, setShowThemeSheet] = useState(false);
   const [themeMode, setThemeMode] = useState<'system' | 'light' | 'dark'>('system');
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const saved = await AsyncStorage.getItem(THEME_STORAGE_KEY);
-        const mode: 'system' | 'light' | 'dark' = (saved === 'light' || saved === 'dark' || saved === 'system')
-          ? (saved as any)
-          : 'system';
-        setThemeMode(mode);
-        if (mode === 'system') {
-          const current = Appearance.getColorScheme() || 'light';
-          nwColorScheme.set(current as 'light' | 'dark');
-        } else {
-          nwColorScheme.set(mode);
-        }
-      } catch {}
-    })();
-  }, []);
-
   // When following system, update on OS theme changes
   useEffect(() => {
     if (themeMode !== 'system') return;

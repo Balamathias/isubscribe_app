@@ -216,15 +216,18 @@ export const getBeneficiaries = async (limit: number = 5): Promise<Response<Tabl
 
 
 export interface SuperPlansMB extends Tables<'n3t'> {
-    data_bonus: string
+    data_bonus: string,
+    data_bonus_price: string
 }
 
 export interface BestPlansMB extends Tables<'gsub'> {
-    data_bonus: string
+    data_bonus: string,
+    data_bonus_price: string
 }
 
 export interface RegularPlansMB extends Tables<'vtpass'> {
-    data_bonus: string
+    data_bonus: string,
+    data_bonus_price: string
 }
 
 export interface ListDataPlans {

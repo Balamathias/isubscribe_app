@@ -115,7 +115,7 @@ const GenerateAccountForm: React.FC<GenerateAccountFormProps> = ({
 
         {/* Method Selection */}
         <Text className="text-foreground font-semibold mb-3">Choose Verification Method:</Text>
-        <View className="flex-row gap-3 mb-6"
+        <View className="flex-row gap-3 mb-6">
 
           <TouchableOpacity
             onPress={() => setSelectedMethod('nin')}
@@ -144,7 +144,7 @@ const GenerateAccountForm: React.FC<GenerateAccountFormProps> = ({
             </Text>
           </TouchableOpacity>
 
-           <TouchableOpacity
+          <TouchableOpacity
             onPress={() => setSelectedMethod('bvn')}
             className={`flex-1 p-4 rounded-xl border-2 ${
               selectedMethod === 'bvn' 

@@ -210,7 +210,7 @@ export const useUpdateModal = () => {
         onClose={closeModal}
         updateUrl={appConfig?.update_url || ''}
         updateMessage={appConfig?.update_message || ''}
-        appVersion={appConfig?.app_version || '1.0.0'}
+        appVersion={appConfig?.app_version || APP_VERSION}
       />
     ),
   };

@@ -1,6 +1,6 @@
 import { COLORS } from '@/constants/colors'
 import { Ionicons } from '@expo/vector-icons'
-import { router, Tabs } from 'expo-router'
+import { router, Stack } from 'expo-router'
 import React from 'react'
 import { Text, TouchableOpacity, useColorScheme, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -15,8 +15,8 @@ const Header = ({ title }: Props) => {
 
   const colors = COLORS[theme]
 
-  return (
-    <Tabs.Screen 
+    return (
+        <Stack.Screen 
         options={{
             headerShown: true,
             header: ({navigation}) => (

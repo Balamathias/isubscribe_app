@@ -199,6 +199,28 @@ export const SessionProvider = ({ children }: { children: React.ReactNode }) => 
     loadingAppConfig
   ]);
 
+  const [splash, setSplash] = useState<null | typeof import('expo-splash-screen')>(null)
+
+  useEffect(() => {
+    let mounted = true
+    import('expo-splash-screen')
+      .then(mod => {
+        if (!mounted) return
+        setSplash(mod)
+        mod.preventAutoHideAsync().catch(() => {})
+      })
+      .catch(() => {})
+    return () => {
+      mounted = false
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!isLoading && splash) {
+      splash.hideAsync().catch(() => {})
+    }
+  }, [isLoading, splash])
+
   if (isLoading) return <SplashScreen />
 
   return (

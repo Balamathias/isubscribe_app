@@ -78,7 +78,7 @@ const RatingCard = ({ item, index }: { item: Tables<'ratings'> & { profile: Tabl
       <View className="bg-card rounded-xl p-4 mb-3 shadow-sm">
         <View className="flex-row items-start justify-between mb-3">
           <View className="flex-row items-center flex-1">
-            <Avatar size={40} source={{ uri: item?.profile?.avatar as string }} />
+            <Avatar size={40} fallback={item?.profile?.full_name?.at(0)?.toUpperCase()} source={ item?.profile?.avatar ? { uri: item?.profile?.avatar as string }: undefined } />
             <View className="ml-3 flex-1">
               <Text className="text-foreground font-semibold text-base">
                 { item?.profile?.full_name }
@@ -91,9 +91,6 @@ const RatingCard = ({ item, index }: { item: Tables<'ratings'> & { profile: Tabl
               </View>
             </View>
           </View>
-          <Text className="text-muted-foreground text-xs">
-            {format(new Date(item.created_at), 'MMM dd, yyyy')}
-          </Text>
         </View>
         
         {item.comment && (
@@ -104,14 +101,7 @@ const RatingCard = ({ item, index }: { item: Tables<'ratings'> & { profile: Tabl
           </View>
         )}
 
-        <View className="flex-row items-center justify-between mt-3 pt-3 border-t border-input">
-          <View className="flex-row items-center">
-            <Ionicons name="time-outline" size={14} color="#6B7280" />
-            <Text className="text-muted-foreground text-xs ml-1">
-              {format(new Date(item.created_at), 'h:mm a')}
-            </Text>
-          </View>
-        </View>
+        <View className="flex-row items-center justify-between mt-3 border-t border-input" />
       </View>
     </Animated.View>
   );
@@ -135,9 +125,6 @@ const RatingsDisplayModal: React.FC<RatingsDisplayModalProps> = ({
   isVisible,
   onClose
 }) => {
-  const [page, setPage] = useState(0);
-  
-  const colorScheme = useColorScheme();
   const { data, isPending, refetch } = useListRatings();
 
   const ratings = data?.data || [];

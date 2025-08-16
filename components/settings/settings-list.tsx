@@ -3,16 +3,19 @@ import { useLocalAuth } from '@/hooks/useLocalAuth';
 import { supabase } from '@/lib/supabase';
 import { useSignOut } from '@/services/auth-hooks';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
-import { useState } from 'react';
-import { ActivityIndicator, FlatList, Pressable, Switch, Text, useColorScheme, View } from 'react-native';
+import { colorScheme as nwColorScheme, useColorScheme } from 'nativewind';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, Appearance, FlatList, Pressable, Switch, Text, View } from 'react-native';
 import Toast from 'react-native-toast-message';
 import { useSession } from '../session-context';
+import BottomSheet from '../ui/bottom-sheet';
 import DeleteAccountModal from './delete-account-modal';
 
 export function SettingsList() {
-  const colorScheme = useColorScheme();
+  const { colorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
   const colors = COLORS[isDark ? 'dark' : 'light'];
   const { isBiometricSupported, isBiometricEnabled, toggleBiometric } = useLocalAuth();
@@ -20,6 +23,72 @@ export function SettingsList() {
   const { user, refetchTransactions } = useSession();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const queryClient = useQueryClient();
+
+  const THEME_STORAGE_KEY = '@isubscribe_theme_mode';
+  const [showThemeSheet, setShowThemeSheet] = useState(false);
+  const [themeMode, setThemeMode] = useState<'system' | 'light' | 'dark'>('system');
+
+  const handleThemeToggle = async () => {
+    try {
+      const nextScheme: 'light' | 'dark' = isDark ? 'light' : 'dark';
+      nwColorScheme.set(nextScheme);
+      await AsyncStorage.setItem(THEME_STORAGE_KEY, nextScheme);
+      Toast.show({
+        type: 'success',
+        text1: `${nextScheme === 'dark' ? 'Dark' : 'Light'} mode enabled`
+      });
+    } catch (e: any) {
+      Toast.show({ type: 'error', text1: 'Theme change failed', text2: e?.message });
+    }
+  };
+
+  // Hydrate saved theme preference and apply it
+  useEffect(() => {
+    (async () => {
+      try {
+        const saved = await AsyncStorage.getItem(THEME_STORAGE_KEY);
+        const mode: 'system' | 'light' | 'dark' = (saved === 'light' || saved === 'dark' || saved === 'system')
+          ? (saved as any)
+          : 'system';
+        setThemeMode(mode);
+        if (mode === 'system') {
+          const current = Appearance.getColorScheme() || 'light';
+          nwColorScheme.set(current as 'light' | 'dark');
+        } else {
+          nwColorScheme.set(mode);
+        }
+      } catch {}
+    })();
+  }, []);
+
+  // When following system, update on OS theme changes
+  useEffect(() => {
+    if (themeMode !== 'system') return;
+    const sub = Appearance.addChangeListener(({ colorScheme }) => {
+      nwColorScheme.set((colorScheme || 'light') as 'light' | 'dark');
+    });
+    return () => sub.remove();
+  }, [themeMode]);
+
+  const applyThemeMode = async (mode: 'system' | 'light' | 'dark') => {
+    try {
+      setThemeMode(mode);
+      await AsyncStorage.setItem(THEME_STORAGE_KEY, mode);
+      if (mode === 'system') {
+        const current = Appearance.getColorScheme() || 'light';
+        nwColorScheme.set(current as 'light' | 'dark');
+      } else {
+        nwColorScheme.set(mode);
+      }
+      Toast.show({
+        type: 'success',
+        text1: `${mode === 'system' ? 'System Default' : mode === 'dark' ? 'Dark' : 'Light'} theme applied`
+      });
+      setShowThemeSheet(false);
+    } catch (e: any) {
+      Toast.show({ type: 'error', text1: 'Theme change failed', text2: e?.message });
+    }
+  };
 
   const handleLogout = () => {
     logout(undefined, {
@@ -88,12 +157,11 @@ export function SettingsList() {
     },
     {
       id: 'theme',
-      title: 'Dark Mode',
-      description: 'Toggle dark/light theme',
-      icon: 'moon-outline',
-      type: 'toggle',
-      value: isDark,
-      onToggle: () => {}
+      title: 'Theme',
+      description: themeMode === 'system' ? 'Follow system' : (themeMode === 'dark' ? 'Dark' : 'Light'),
+      icon: themeMode === 'system' ? 'phone-portrait-outline' : (themeMode === 'dark' ? 'moon-outline' : 'sunny-outline'),
+      type: 'link',
+      onPress: () => setShowThemeSheet(true)
     },
     {
       id: 'language',
@@ -239,7 +307,7 @@ export function SettingsList() {
 
   return (
     <View style={{ flex: 1 }}>
-      <View className="flex-1 bg-background p-4 pb-0">
+      <View className="flex-1 bg-background p-4 pb-0 h-full">
         <FlatList
           data={settingsData}
           renderItem={renderSettingItem}
@@ -258,6 +326,65 @@ export function SettingsList() {
           onClose={() => setShowDeleteModal(false)} 
         />
       )}
+
+      {
+        showThemeSheet &&
+        <BottomSheet
+          isVisible={showThemeSheet}
+          onClose={() => setShowThemeSheet(false)}
+          title="Choose Theme"
+        >
+          <View className="gap-y-3 flex">
+            <Pressable
+              onPress={() => applyThemeMode('system')}
+              className={`flex-row items-center p-4 rounded-2xl border ${themeMode === 'system' ? 'border-primary' : 'border-border'}`}
+            >
+              <View className="w-10 h-10 rounded-full items-center justify-center mr-3 bg-primary/10">
+                <Ionicons name="phone-portrait-outline" size={18} color={colors.foreground} />
+              </View>
+              <View className="flex-1">
+                <Text className="text-foreground font-semibold">Use System Theme</Text>
+                <Text className="text-muted-foreground text-xs">Automatically match your device</Text>
+              </View>
+              {themeMode === 'system' && (
+                <Ionicons name="checkmark-circle" size={20} color={colors.primary} />
+              )}
+            </Pressable>
+
+            <Pressable
+              onPress={() => applyThemeMode('light')}
+              className={`flex-row items-center p-4 rounded-2xl border ${themeMode === 'light' ? 'border-primary' : 'border-border'}`}
+            >
+              <View className="w-10 h-10 rounded-full items-center justify-center mr-3 bg-amber-500/10">
+                <Ionicons name="sunny-outline" size={18} color={colors.foreground} />
+              </View>
+              <View className="flex-1">
+                <Text className="text-foreground font-semibold">Light</Text>
+                <Text className="text-muted-foreground text-xs">Bright and vibrant</Text>
+              </View>
+              {themeMode === 'light' && (
+                <Ionicons name="checkmark-circle" size={20} color={colors.primary} />
+              )}
+            </Pressable>
+
+            <Pressable
+              onPress={() => applyThemeMode('dark')}
+              className={`flex-row items-center p-4 rounded-2xl border ${themeMode === 'dark' ? 'border-primary' : 'border-border'}`}
+            >
+              <View className="w-10 h-10 rounded-full items-center justify-center mr-3 bg-purple-500/10">
+                <Ionicons name="moon-outline" size={18} color={colors.foreground} />
+              </View>
+              <View className="flex-1">
+                <Text className="text-foreground font-semibold">Dark</Text>
+                <Text className="text-muted-foreground text-xs">Cool and comfortable</Text>
+              </View>
+              {themeMode === 'dark' && (
+                <Ionicons name="checkmark-circle" size={20} color={colors.primary} />
+              )}
+            </Pressable>
+          </View>
+        </BottomSheet>
+      }
     </View>
   );
 }

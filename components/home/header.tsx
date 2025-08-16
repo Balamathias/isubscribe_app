@@ -11,12 +11,12 @@ import Avatar from '../ui/avatar'
 import BottomSheet from '../ui/bottom-sheet'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Image } from 'react-native'
+import { useThemedColors } from '@/hooks/useThemedColors'
 
 
 const Header = () => {
   const colorScheme = useColorScheme()
-  const theme = colorScheme === 'dark' ? 'dark' : 'light'
-  const colors = COLORS[theme]
+  const { colors, theme } = useThemedColors()
   const [showNotifications, setShowNotifications] = useState(false)
   const { data: notificationsData } = useGetNotifications()
 
@@ -38,9 +38,9 @@ const Header = () => {
                             <Image
                                 source={require('@/assets/images/logo-icon.png')}
                                 className="w-11 h-11 mr-0.5"
-                                style={{ tintColor: colors.primary }}
+                                style={{ tintColor: theme === 'dark' ? colors.foreground : colors.primary }}
                             />
-                            <Text className="text-2xl font-semibold text-primary">isubscribe</Text>
+                            <Text className="text-2xl font-semibold text-primary dark:text-foreground">isubscribe</Text>
                         </View>
 
                           <View className="flex-row items-center gap-x-4">
@@ -55,7 +55,7 @@ const Header = () => {
                                       )}
                                   </View>
                               </TouchableOpacity>
-                              <Avatar onPress={user ? () => router.push('/profile-update') : undefined} source={user ? { uri: user?.user_metadata?.picture || '' } : undefined} size={30}/>
+                              <Avatar onPress={user ? () => router.push('/profile-update') : undefined} fallback={user ? user?.user_metadata?.full_name?.at(0)?.toUpperCase() : undefined} source={user ? { uri: user?.user_metadata?.picture || '' } : undefined} size={30}/>
                           </View>
                       </SafeAreaView>
                   </View>
@@ -97,11 +97,11 @@ const Header = () => {
 
           <TouchableOpacity 
               onPress={() => router.navigate('https://chat.whatsapp.com/FtUv7tE95Bt4vPbZ3DbNLS' as any)}
-              className="mx-4 mb-4 bg-[#7B2FF2] rounded-2xl p-4 flex-row items-center justify-center gap-x-2 mt-4 overflow-hidden"
+              className="mx-4 mb-4 bg-primary rounded-full p-4 flex-row items-center justify-center gap-x-2 mt-4 overflow-hidden"
               activeOpacity={0.6}
           >
              <LinearGradient
-                colors={[colors.primary, '#e65bf8']}
+                colors={[colors.primary, '#f96ccf']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
                 className="absolute inset-0 rounded-2xl"

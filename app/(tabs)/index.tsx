@@ -72,7 +72,7 @@ export default function Index() {
           <View className="flex flex-col">
             <View className="flex flex-row items-center">
               <Text className="text-lg text-muted-foreground">{getGreeting()}, </Text>
-              <Text className="text-lg font-medium text-primary">{getUserInitials() ? getUserInitials() : 'Guest'}.</Text>
+              <Text className="text-lg font-medium dark:text-amber-400">{getUserInitials() ? getUserInitials() : 'Guest'}.</Text>
             </View>
             <Text className="text-sm text-muted-foreground mt-1">What would you like to subscribe today?</Text>
           </View>

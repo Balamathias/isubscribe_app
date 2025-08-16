@@ -18,7 +18,7 @@ const GenerateAccountForm: React.FC<GenerateAccountFormProps> = ({
   onClose,
   onSuccess
 }) => {
-  const [selectedMethod, setSelectedMethod] = useState<'bvn' | 'nin'>('bvn');
+  const [selectedMethod, setSelectedMethod] = useState<'bvn' | 'nin'>('nin');
   const [inputValue, setInputValue] = useState('');
   const [errors, setErrors] = useState<string>('');
 
@@ -98,7 +98,7 @@ const GenerateAccountForm: React.FC<GenerateAccountFormProps> = ({
   const resetForm = () => {
     setInputValue('');
     setErrors('');
-    setSelectedMethod('bvn');
+    setSelectedMethod('nin');
   };
 
   const handleClose = () => {
@@ -115,33 +115,7 @@ const GenerateAccountForm: React.FC<GenerateAccountFormProps> = ({
 
         {/* Method Selection */}
         <Text className="text-foreground font-semibold mb-3">Choose Verification Method:</Text>
-        <View className="flex-row gap-3 mb-6">
-          <TouchableOpacity
-            onPress={() => setSelectedMethod('bvn')}
-            className={`flex-1 p-4 rounded-xl border-2 ${
-              selectedMethod === 'bvn' 
-                ? 'border-primary bg-primary/10' 
-                : 'border-border bg-card'
-            }`}
-          >
-            <View className="flex-row items-center justify-center">
-              <Ionicons 
-                name="card-outline" 
-                size={20} 
-                color={selectedMethod === 'bvn' ? colors.primary : colors.mutedForeground} 
-              />
-              <Text className={`ml-2 font-semibold ${
-                selectedMethod === 'bvn' ? 'text-primary' : 'text-muted-foreground'
-              }`}>
-                BVN
-              </Text>
-            </View>
-            <Text className={`text-xs text-center mt-1 ${
-              selectedMethod === 'bvn' ? 'text-primary' : 'text-muted-foreground'
-            }`}>
-              Bank Verification Number
-            </Text>
-          </TouchableOpacity>
+        <View className="flex-row gap-3 mb-6"
 
           <TouchableOpacity
             onPress={() => setSelectedMethod('nin')}
@@ -167,6 +141,33 @@ const GenerateAccountForm: React.FC<GenerateAccountFormProps> = ({
               selectedMethod === 'nin' ? 'text-primary' : 'text-muted-foreground'
             }`}>
               National Identity Number
+            </Text>
+          </TouchableOpacity>
+
+           <TouchableOpacity
+            onPress={() => setSelectedMethod('bvn')}
+            className={`flex-1 p-4 rounded-xl border-2 ${
+              selectedMethod === 'bvn' 
+                ? 'border-primary bg-primary/10' 
+                : 'border-border bg-card'
+            }`}
+          >
+            <View className="flex-row items-center justify-center">
+              <Ionicons 
+                name="card-outline" 
+                size={20} 
+                color={selectedMethod === 'bvn' ? colors.primary : colors.mutedForeground} 
+              />
+              <Text className={`ml-2 font-semibold ${
+                selectedMethod === 'bvn' ? 'text-primary' : 'text-muted-foreground'
+              }`}>
+                BVN
+              </Text>
+            </View>
+            <Text className={`text-xs text-center mt-1 ${
+              selectedMethod === 'bvn' ? 'text-primary' : 'text-muted-foreground'
+            }`}>
+              Bank Verification Number
             </Text>
           </TouchableOpacity>
         </View>

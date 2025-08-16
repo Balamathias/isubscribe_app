@@ -1,5 +1,6 @@
 import { useSession } from '@/components/session-context';
 import BottomSheet from '@/components/ui/bottom-sheet';
+import { APP_VERSION } from '@/constants';
 import { useThemedColors } from '@/hooks/useThemedColors';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -164,6 +165,8 @@ export const useUpdateModal = () => {
   useEffect(() => {
     const checkForUpdates = async () => {
       if (!appConfig?.update_available) return;
+
+      if (appConfig?.app_version === APP_VERSION) return;
 
       try {
         const dismissedTime = await AsyncStorage.getItem(`${UPDATE_DISMISSED_KEY}${appConfig.app_version}`);

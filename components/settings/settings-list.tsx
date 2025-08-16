@@ -15,34 +15,21 @@ import BottomSheet from '../ui/bottom-sheet';
 import DeleteAccountModal from './delete-account-modal';
 
 export function SettingsList() {
+  const queryClient = useQueryClient();
   const { colorScheme } = useColorScheme();
+
   const isDark = colorScheme === 'dark';
   const colors = COLORS[isDark ? 'dark' : 'light'];
+
   const { isBiometricSupported, isBiometricEnabled, toggleBiometric } = useLocalAuth();
   const { mutate: logout, isPending: loggingOut } = useSignOut();
   const { user, refetchTransactions } = useSession();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const queryClient = useQueryClient();
 
   const THEME_STORAGE_KEY = '@isubscribe_theme_mode';
   const [showThemeSheet, setShowThemeSheet] = useState(false);
   const [themeMode, setThemeMode] = useState<'system' | 'light' | 'dark'>('system');
 
-  const handleThemeToggle = async () => {
-    try {
-      const nextScheme: 'light' | 'dark' = isDark ? 'light' : 'dark';
-      nwColorScheme.set(nextScheme);
-      await AsyncStorage.setItem(THEME_STORAGE_KEY, nextScheme);
-      Toast.show({
-        type: 'success',
-        text1: `${nextScheme === 'dark' ? 'Dark' : 'Light'} mode enabled`
-      });
-    } catch (e: any) {
-      Toast.show({ type: 'error', text1: 'Theme change failed', text2: e?.message });
-    }
-  };
-
-  // Hydrate saved theme preference and apply it
   useEffect(() => {
     (async () => {
       try {

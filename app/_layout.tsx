@@ -46,10 +46,10 @@ function AppContent() {
   SystemUI.setBackgroundColorAsync(colors.background);
 
   return (
-    <NotificationProvider>
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <NavigationThemeProvider value={theme === 'dark' ? DarkTheme : DefaultTheme}>
-          <QueryClientProvider client={queryClient}>
+    <NavigationThemeProvider value={theme === 'dark' ? DarkTheme : DefaultTheme}>
+      <QueryClientProvider client={queryClient}>
+        <NotificationProvider>
+          <GestureHandlerRootView style={{ flex: 1 }}>
             <SessionProvider>
                 <Stack
                   screenOptions={{
@@ -78,10 +78,10 @@ function AppContent() {
                 <StatusBar style={theme === 'dark' ? 'light' : 'dark'} />
                 <Toast config={toastConfig} />
             </SessionProvider>
-          </QueryClientProvider>
-        </NavigationThemeProvider>
-      </GestureHandlerRootView>
-    </NotificationProvider>
+          </GestureHandlerRootView>
+        </NotificationProvider>
+      </QueryClientProvider>
+    </NavigationThemeProvider>
   );
 }
 

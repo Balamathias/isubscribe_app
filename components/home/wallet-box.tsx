@@ -31,7 +31,7 @@ const WalletBox = ({}: Props) => {
 
   const queryClient = useQueryClient()
 
-  const { user, walletBalance: wallet, loadingBalance: isPending } = useSession()
+  const { user, walletBalance: wallet, loadingBalance: isPending, refetchBalance, refetchProfile } = useSession()
   const { data: account } = useGetAccount()
 
   // Load saved preferences on component mount
@@ -55,6 +55,9 @@ const WalletBox = ({}: Props) => {
     }
 
     loadPreferences()
+
+    refetchBalance()
+    refetchProfile()
   }, [])
 
   useEffect(() => {

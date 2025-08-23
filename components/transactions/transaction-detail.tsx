@@ -4,6 +4,7 @@ import { formatNigerianNaira } from '@/utils/format-naira';
 import { Ionicons } from '@expo/vector-icons';
 import { format } from 'date-fns';
 import * as Clipboard from 'expo-clipboard';
+import * as FileSystem from 'expo-file-system';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as MediaLibrary from 'expo-media-library';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -31,69 +32,69 @@ const TransactionDetail = () => {
   const pins: string[] = (transaction?.meta_data && typeof transaction.meta_data === 'object' && !Array.isArray(transaction.meta_data) && 'pins' in transaction.meta_data) ? transaction.meta_data.pins as string[] : [];
   const cards: { Serial: string, Pin: string }[] = (transaction?.meta_data && typeof transaction.meta_data === 'object' && !Array.isArray(transaction.meta_data) && 'cards' in transaction.meta_data) ? transaction.meta_data.cards as { Serial: string, Pin: string }[] : [];
 
+  const captureReceipt = async (): Promise<string | null> => {
+    if (!viewShotRef.current) return null;
+    const uri = await viewShotRef.current.capture?.();
+    return uri || null;
+  };
+
+  const shareImage = async (localPath: string) => {
+    try {
+      let shareUri = localPath;
+      if (Platform.OS === 'android') {
+        const contentUri = await FileSystem.getContentUriAsync(localPath);
+        if (contentUri) shareUri = contentUri;
+      }
+      await Share.share({
+        url: shareUri,
+        message: `Transaction Receipt`,
+        title: 'Transaction Receipt'
+      });
+    } catch (e) {
+      throw e;
+    }
+  };
+
+  const saveToGallery = async (localPath: string) => {
+    try {
+      const { status } = await MediaLibrary.requestPermissionsAsync();
+      if (status !== 'granted') {
+        Toast.show({ type: 'error', text1: 'Permission denied', text2: 'Cannot save without media permission' });
+        return;
+      }
+      await MediaLibrary.saveToLibraryAsync(localPath);
+      Toast.show({ type: 'success', text1: 'Saved to gallery' });
+    } catch (e: any) {
+      Toast.show({ type: 'error', text1: 'Save failed', text2: e?.message || 'Try again' });
+    }
+  };
+
   const handleShareReceipt = async () => {
-    if (!viewShotRef.current || !transaction) {
-      Alert.alert('Error', 'Receipt not ready for sharing. Please try again.');
+    if (!transaction) {
+      Alert.alert('Error', 'Receipt not ready.');
       return;
     }
-
     setIsCapturing(true);
-
     try {
-      const uri = await viewShotRef?.current?.capture?.();
-      
-      if (!uri) {
-        throw new Error('Failed to capture receipt');
-      }
+      const uri = await captureReceipt();
+      if (!uri) throw new Error('Capture failed');
+      await shareImage(uri);
+    } catch (e) {
+      Alert.alert('Share Failed', 'Unable to share receipt.');
+    } finally {
+      setIsCapturing(false);
+    }
+  };
 
-      if (Platform.OS === 'ios') {
-        await Share.share({
-          url: uri,
-          title: 'Transaction Receipt',
-          message: `Transaction Receipt for ${transaction.title}`,
-        });
-      } else {
-        const { status } = await MediaLibrary.requestPermissionsAsync();
-        
-        if (status === 'granted') {
-          const asset = await MediaLibrary.createAssetAsync(uri);
-          
-          await Share.share({
-            url: asset.uri,
-            title: 'Transaction Receipt',
-            message: `Transaction Receipt for ${transaction.title}`,
-          });
-          
-          Toast.show({
-            type: 'success',
-            text1: 'Receipt saved',
-            text2: 'Receipt has been saved to your gallery'
-          });
-        } else {
-          await Share.share({
-            url: uri,
-            title: 'Transaction Receipt',
-            message: `Transaction Receipt for ${transaction.title}`,
-          });
-        }
-      }
-
-    } catch (error) {
-      console.error('Error sharing receipt:', error);
-      Alert.alert(
-        'Sharing Failed',
-        'Unable to share receipt. You can copy the transaction details instead.',
-        [
-          {
-            text: 'Copy Details',
-            onPress: handleCopyTransactionDetails
-          },
-          {
-            text: 'OK',
-            style: 'cancel'
-          }
-        ]
-      );
+  const handleSaveReceipt = async () => {
+    if (!transaction) return;
+    setIsCapturing(true);
+    try {
+      const uri = await captureReceipt();
+      if (!uri) throw new Error('Capture failed');
+      await saveToGallery(uri);
+    } catch (e: any) {
+      Toast.show({ type: 'error', text1: 'Save failed', text2: e?.message || 'Try again' });
     } finally {
       setIsCapturing(false);
     }
@@ -632,7 +633,7 @@ ${transaction.meta_data && typeof transaction.meta_data === 'object' && 'phone' 
                 {isCapturing ? (
                   <>
                     <ActivityIndicator color="white" size="small" />
-                    <Text className="text-white font-bold text-lg ml-2">Preparing Receipt...</Text>
+                    <Text className="text-white font-bold text-lg ml-2">Preparing...</Text>
                   </>
                 ) : (
                   <>
@@ -642,11 +643,30 @@ ${transaction.meta_data && typeof transaction.meta_data === 'object' && 'phone' 
                 )}
               </View>
               {!isCapturing && (
-                <Text className="text-white/80 text-sm mt-1">Save or send to anyone</Text>
+                <Text className="text-white/80 text-sm mt-1">Send without saving</Text>
               )}
             </LinearGradient>
           </TouchableOpacity>
-          
+
+          <TouchableOpacity
+            className="w-full rounded-2xl py-4 bg-card border-2 border-primary/10"
+            activeOpacity={0.8}
+            onPress={handleSaveReceipt}
+            disabled={isCapturing}
+          >
+            <View className="flex-row items-center justify-center">
+              <Ionicons name="download" size={20} color={colors.primary} />
+              <Text className="text-primary font-bold text-lg ml-2">
+                {isCapturing ? 'Saving...' : 'Save to Gallery'}
+              </Text>
+            </View>
+            {!isCapturing && (
+              <Text className="text-primary/70 text-sm text-center mt-1">
+                Requires media permission
+              </Text>
+            )}
+          </TouchableOpacity>
+
           <TouchableOpacity
             className="w-full rounded-2xl py-4 bg-card border-2 border-primary/10"
             activeOpacity={0.8}

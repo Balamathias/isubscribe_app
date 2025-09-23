@@ -8,8 +8,8 @@ import { useQueryClient } from '@tanstack/react-query'
 import * as Haptics from 'expo-haptics'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Link, router } from 'expo-router'
-import React, { useEffect, useState } from 'react'
-import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native'
+import React, { useEffect, useRef, useState } from 'react'
+import { ActivityIndicator, AppState, Text, TouchableOpacity, View } from 'react-native'
 import Toast from 'react-native-toast-message'
 import { useSession } from '../session-context'
 import FundWalletBottomSheet from './fund-wallet-sheet'
@@ -60,52 +60,78 @@ const WalletBox = ({}: Props) => {
     refetchProfile()
   }, [])
 
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
+  const lastBalanceRef = useRef<number>(0)
+
   useEffect(() => {
-    if (!user) return
+    if (!user?.id) return
 
     try {
-      const walletChannel = supabase.channel(`@isubscribe:wallet-update-channel-${user.id}`)
+      channelRef.current?.unsubscribe()
+
+      lastBalanceRef.current = Number(wallet?.balance || 0)
+
+      const channel = supabase
+        .channel(`@isubscribe:wallet-${user.id}`)
         .on(
           'postgres_changes',
-          { event: 'UPDATE', schema: 'public', table: 'wallet', filter: `user=eq.${user?.id}` },
+          { event: '*', schema: 'public', table: 'wallet', filter: `user=eq.${user.id}` },
           (payload) => {
             try {
-              if (payload.new) {
-                const response = payload?.new as Tables<'wallet'>
-                setLocalWalletBalance(response.balance ?? 0)
-                
-                if (response.balance! > wallet?.balance!) {
-                  Toast.show({
-                    type: 'info',
-                    text1: 'Wallet funded successfully.'
-                  })
-                  Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
-                }
+              const data = payload?.new as Tables<'wallet'> | null
+              if (!data) return
 
-                queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.getLatestTransactions] })
-                queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.getTransactions] })
-                queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.getWalletBalance] })
+              const newBalance = Number(data.balance || 0)
+              setLocalWalletBalance(newBalance)
+
+              if (newBalance > lastBalanceRef.current) {
+                Toast.show({ type: 'info', text1: 'Wallet funded successfully.' })
+                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {})
               }
+              lastBalanceRef.current = newBalance
+
+              queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.getWalletBalance] })
+              queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.getLatestTransactions] })
+              queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.getTransactions] })
             } catch (error) {
               console.error('Error processing wallet update:', error)
             }
           }
         )
 
-      walletChannel.subscribe()
+      channel.subscribe((status) => {
+        if (status === 'CHANNEL_ERROR') {
+          console.warn('Wallet realtime channel error; retrying subscribe')
+          setTimeout(() => channel.subscribe(), 1000)
+        }
+      })
 
-      return () => { 
+      channelRef.current = channel
+
+      return () => {
         try {
-          supabase.removeChannel(walletChannel)
+          channelRef.current?.unsubscribe()
+          channelRef.current = null
         } catch (error) {
-          console.error('Error removing wallet channel:', error)
+          console.error('Error cleaning up wallet channel:', error)
         }
       }
     } catch (error) {
       console.error('Error setting up wallet channel:', error)
-      return () => {}
     }
-  }, [user?.id, wallet?.balance])
+  }, [user?.id])
+
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active' && user?.id) {
+        queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.getWalletBalance] })
+      }
+    })
+    return () => {
+      // @ts-ignore RN types compat
+      sub?.remove?.()
+    }
+  }, [user?.id])
 
   const toggleBalance = async () => {
     const newValue = !showBalance

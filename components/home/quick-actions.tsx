@@ -1,7 +1,8 @@
 import { COLORS } from '@/constants/colors';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
-import React from 'react';
+import React, { memo, useCallback, useEffect } from 'react';
 import { Text, TouchableOpacity, useColorScheme, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 
@@ -17,6 +18,15 @@ const actions = [
 ];
 
 const QuickActions = () => {
+  useEffect(() => {
+    actions.forEach(a => {
+      try {
+        // @ts-ignore types allow only string; our hrefs are strings
+        router.prefetch?.(a.href);
+      } catch {}
+    });
+  }, []);
+
   return (
     <View className="mt-6 bg-background p-4 rounded-xl shadow-sm flex flex-col gap-y-2 items-start">
       <View className="flex-row items-center mb-4">
@@ -24,8 +34,8 @@ const QuickActions = () => {
         <View className="w-2 h-2 rounded-full bg-primary ml-2" />
       </View>
       <View className="flex-row flex-wrap justify-between">
-        {actions.map((action, index) => (
-          <ActionItem key={index} action={action} />
+        {actions.map((action) => (
+          <MemoActionItem key={action.href} action={action} />
         ))}
       </View>
     </View>
@@ -49,22 +59,27 @@ const ActionItem: React.FC<ActionItemProps> = ({ action }) => {
     };
   });
 
-  const handlePressIn = () => {
-    scale.value = withSpring(0.9);
-  };
+  const handlePressIn = useCallback(() => {
+    scale.value = withSpring(0.95, { damping: 20, stiffness: 300 });
+  }, []);
 
-  const handlePressOut = () => {
-    scale.value = withSpring(1);
-  };
+  const handlePressOut = useCallback(() => {
+    scale.value = withSpring(1, { damping: 15, stiffness: 250 });
+  }, []);
+
+  const go = useCallback(() => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    router.push(action.href as any);
+  }, [action.href]);
 
   return (
     <Animated.View style={animatedStyle} className="flex flex-col w-1/4 items-center mb-4">
-      <TouchableOpacity
+  <TouchableOpacity
         className="bg-[#F3EFFB] dark:bg-secondary p-1 rounded-xl mb-2 items-center justify-center aspect-square w-10 h-10"
         activeOpacity={0.7}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
-        onPress={() => router.push(action?.href)}
+        onPress={go}
       >
         <Ionicons name={action.icon} size={20} color={colors.primary} />
       </TouchableOpacity>
@@ -72,5 +87,7 @@ const ActionItem: React.FC<ActionItemProps> = ({ action }) => {
     </Animated.View>
   )
 }
+
+const MemoActionItem = memo(ActionItem);
 
 export default QuickActions

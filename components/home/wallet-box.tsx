@@ -85,7 +85,7 @@ const WalletBox = ({}: Props) => {
               setLocalWalletBalance(newBalance)
 
               if (newBalance > lastBalanceRef.current) {
-                Toast.show({ type: 'info', text1: 'Wallet funded successfully.' })
+                // Toast.show({ type: 'info', text1: 'Wallet funded successfully.' })
                 Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {})
               }
               lastBalanceRef.current = newBalance

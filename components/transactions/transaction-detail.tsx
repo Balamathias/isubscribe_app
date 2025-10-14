@@ -6,7 +6,6 @@ import { format } from 'date-fns';
 import * as Clipboard from 'expo-clipboard';
 import * as FileSystem from 'expo-file-system';
 import { LinearGradient } from 'expo-linear-gradient';
-import * as MediaLibrary from 'expo-media-library';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Dimensions, Platform, ScrollView, Share, Text, TouchableOpacity, useColorScheme, View } from 'react-native';
@@ -57,13 +56,14 @@ const TransactionDetail = () => {
 
   const saveToGallery = async (localPath: string) => {
     try {
-      const { status } = await MediaLibrary.requestPermissionsAsync();
-      if (status !== 'granted') {
-        Toast.show({ type: 'error', text1: 'Permission denied', text2: 'Cannot save without media permission' });
-        return;
-      }
-      await MediaLibrary.saveToLibraryAsync(localPath);
-      Toast.show({ type: 'success', text1: 'Saved to gallery' });
+      // Use the share API instead of requesting media permissions
+      // This opens the system share dialog where users can save to Files/Photos
+      await shareImage(localPath);
+      Toast.show({
+        type: 'info',
+        text1: 'Choose destination',
+        text2: 'Select where to save your receipt'
+      });
     } catch (e: any) {
       Toast.show({ type: 'error', text1: 'Save failed', text2: e?.message || 'Try again' });
     }
@@ -128,9 +128,9 @@ ${transaction.meta_data && typeof transaction.meta_data === 'object' && 'phone' 
       <SafeAreaView edges={['bottom']} className="flex-1 bg-background">
         <Header title={"Transaction Details"} />
         <View className="flex-1 items-center justify-center px-6">
-          <View className="bg-card rounded-2xl p-8 items-center shadow-sm border border-border/20">
+          <View className="bg-card rounded-3xl p-10 items-center border border-border/50">
             <ActivityIndicator size="large" color={colors.primary} />
-            <Text className="text-foreground font-medium mt-4">Loading transaction details...</Text>
+            <Text className="text-foreground font-medium mt-5">Loading transaction details...</Text>
           </View>
         </View>
       </SafeAreaView>
@@ -142,27 +142,27 @@ ${transaction.meta_data && typeof transaction.meta_data === 'object' && 'phone' 
       <SafeAreaView edges={['bottom']} className="flex-1 bg-background">
         <Header title={"Transaction Details"} />
         <View className="flex-1 items-center justify-center px-6">
-          <View className="bg-card rounded-2xl p-8 items-center shadow-sm border border-border/20">
-            <View className="w-16 h-16 rounded-full bg-muted/30 items-center justify-center mb-4">
-              <Ionicons name="receipt-outline" size={28} color={colors.mutedForeground} />
+          <View className="bg-card rounded-3xl p-10 items-center border border-border/50">
+            <View className="w-20 h-20 rounded-full items-center justify-center mb-5" style={{ backgroundColor: `${colors.mutedForeground}15` }}>
+              <Ionicons name="receipt-outline" size={32} color={colors.mutedForeground} />
             </View>
-            <Text className="text-foreground text-xl font-bold mb-2">Transaction Not Found</Text>
-            <Text className="text-muted-foreground text-center text-sm leading-5 mb-6">
+            <Text className="text-foreground text-xl font-bold mb-3">Transaction Not Found</Text>
+            <Text className="text-muted-foreground text-center text-sm leading-6 mb-7">
               We couldn't find the transaction you're looking for. It may have been deleted or you may not have permission to view it.
             </Text>
-            <TouchableOpacity 
+            <TouchableOpacity
               onPress={() => router.back()}
               activeOpacity={0.8}
-              className="rounded-xl overflow-hidden"
+              className="rounded-2xl overflow-hidden"
             >
               <LinearGradient
                 colors={[colors.primary, '#e65bf8']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
-                className="px-6 py-3 flex-row items-center"
+                className="px-8 py-4 flex-row items-center"
               >
-                <Ionicons name='arrow-back' color={'white'} size={18} />
-                <Text className="text-white font-semibold ml-2">Go Back</Text>
+                <Ionicons name='arrow-back' color={'white'} size={20} />
+                <Text className="text-white font-semibold ml-2.5 text-base">Go Back</Text>
               </LinearGradient>
             </TouchableOpacity>
           </View>
@@ -207,33 +207,33 @@ ${transaction.meta_data && typeof transaction.meta_data === 'object' && 'phone' 
         contentContainerStyle={{ paddingBottom: 32 }}
       >
         {/* Status Card */}
-        <View className="px-4 pt-4">
-          <View className="bg-card rounded-2xl p-6 mb-4 shadow-none">
+        <View className="px-5 pt-6">
+          <View className="bg-card rounded-3xl p-8 mb-5 border border-border/50">
             <View className="items-center">
-              <View 
-                className="w-20 h-20 rounded-full items-center justify-center mb-4"
-                style={{ backgroundColor: `${getStatusColor(transaction?.status || '')}20` }}
+              <View
+                className="w-24 h-24 rounded-full items-center justify-center mb-5"
+                style={{ backgroundColor: `${getStatusColor(transaction?.status || '')}15` }}
               >
-                <Ionicons 
-                  name={getStatusIcon(transaction?.status || '')} 
-                  size={40} 
-                  color={getStatusColor(transaction?.status || '')} 
+                <Ionicons
+                  name={getStatusIcon(transaction?.status || '')}
+                  size={44}
+                  color={getStatusColor(transaction?.status || '')}
                 />
               </View>
-              
-              <Text className="text-3xl font-bold text-foreground mb-2">
-                {(transaction?.type === 'cashback' && transaction.meta_data && typeof transaction.meta_data === 'object' && 'data_bonus' in transaction.meta_data) 
-                  ? String(transaction?.meta_data?.data_bonus) 
+
+              <Text className="text-4xl font-bold text-foreground mb-3" style={{ letterSpacing: -0.5 }}>
+                {(transaction?.type === 'cashback' && transaction.meta_data && typeof transaction.meta_data === 'object' && 'data_bonus' in transaction.meta_data)
+                  ? String(transaction?.meta_data?.data_bonus)
                   : formatNigerianNaira(transaction?.amount || 0)
                 }
               </Text>
-              
-              <View 
-                className="px-4 py-2 rounded-full"
-                style={{ backgroundColor: `${getStatusColor(transaction?.status || '')}20` }}
+
+              <View
+                className="px-5 py-2.5 rounded-full"
+                style={{ backgroundColor: `${getStatusColor(transaction?.status || '')}15` }}
               >
-                <Text 
-                  className="font-semibold capitalize text-sm"
+                <Text
+                  className="font-semibold capitalize text-sm tracking-wide"
                   style={{ color: getStatusColor(transaction?.status || '') }}
                 >
                   {transaction.status}
@@ -244,16 +244,18 @@ ${transaction.meta_data && typeof transaction.meta_data === 'object' && 'phone' 
         </View>
 
         {/* Transaction Details Card */}
-        <View className="px-4">
-          <View className="bg-card rounded-2xl p-5 mb-4 shadow-sm border border-border/20">
-            <View className="flex-row items-center mb-4">
-              <Ionicons name="document-text" size={18} color={colors.primary} />
-              <Text className="text-lg font-bold text-foreground ml-2">Transaction Details</Text>
+        <View className="px-5">
+          <View className="bg-card rounded-3xl p-6 mb-5 border border-border/50">
+            <View className="flex-row items-center mb-5">
+              <View className="w-10 h-10 rounded-full items-center justify-center">
+                <Ionicons name="document-text" size={20} color={colors.primary} />
+              </View>
+              <Text className="text-lg font-bold text-foreground ml-3">Transaction Details</Text>
             </View>
-            
+
             <View className="space-y-4">
               {transaction.transaction_id && (
-                <View className="flex-row justify-between items-center py-2">
+                <View className="flex-row justify-between items-center py-3">
                   <Text className="text-muted-foreground text-sm font-medium">Reference</Text>
                   <Text className="text-foreground font-semibold text-right flex-1 ml-4" numberOfLines={1}>
                     {transaction.transaction_id}
@@ -261,25 +263,25 @@ ${transaction.meta_data && typeof transaction.meta_data === 'object' && 'phone' 
                 </View>
               )}
 
-              <View className="h-px bg-border" />
+              <View className="h-px bg-border/30" />
 
-              <View className="flex-row justify-between items-center py-2">
+              <View className="flex-row justify-between items-center py-3">
                 <Text className="text-muted-foreground text-sm font-medium">Transaction ID</Text>
                 <Text className="text-foreground font-semibold">{transaction.id}</Text>
               </View>
 
-              <View className="h-px bg-border" />
+              <View className="h-px bg-border/30" />
 
-              <View className="flex-row justify-between items-center py-2">
+              <View className="flex-row justify-between items-center py-3">
                 <Text className="text-muted-foreground text-sm font-medium">Date & Time</Text>
                 <Text className="text-foreground font-semibold">
                   {format(new Date(transaction.created_at), 'MMM dd, yyyy HH:mm')}
                 </Text>
               </View>
 
-              <View className="h-px bg-border" />
+              <View className="h-px bg-border/30" />
 
-              <View className="flex-row justify-between items-center py-2">
+              <View className="flex-row justify-between items-center py-3">
                 <Text className="text-muted-foreground text-sm font-medium">Amount</Text>
                 <Text className="text-foreground font-bold text-lg">{formatNigerianNaira(transaction.amount || 0)}</Text>
               </View>
@@ -289,70 +291,73 @@ ${transaction.meta_data && typeof transaction.meta_data === 'object' && 'phone' 
 
         {/* Service Details Card - Only show if meta_data exists */}
         {transaction.meta_data && typeof transaction.meta_data === 'object' && (
-          <View className="px-4">
-            <View className="bg-card rounded-2xl p-5 mb-4 shadow-sm border border-border/20">
-              <View className="flex-row items-center mb-4">
-                <Ionicons name="information-circle" size={18} color={colors.primary} />
-                <Text className="text-lg font-bold text-foreground ml-2">Service Details</Text>
+          <View className="px-5">
+            <View className="bg-card rounded-3xl p-6 mb-5 border border-border/50">
+              <View className="flex-row items-center mb-5">
+                <View className="w-10 h-10 rounded-full items-center justify-center">
+                  <Ionicons name="information-circle" size={20} color={colors.primary} />
+                </View>
+                <Text className="text-lg font-bold text-foreground ml-3">Service Details</Text>
               </View>
               
               <View className="space-y-4">
                 {'phone' in transaction.meta_data && (
                   <>
-                    <View className="flex-row justify-between items-center py-2">
+                    <View className="flex-row justify-between items-center py-3">
                       <Text className="text-muted-foreground text-sm font-medium">Phone Number</Text>
                       <Text className="text-foreground font-semibold">{String(transaction.meta_data.phone)}</Text>
                     </View>
-                    <View className="h-px bg-border" />
+                    <View className="h-px bg-border/30" />
                   </>
                 )}
 
                 {'network' in transaction.meta_data && (
                   <>
-                    <View className="flex-row justify-between items-center py-2">
+                    <View className="flex-row justify-between items-center py-3">
                       <Text className="text-muted-foreground text-sm font-medium">Network</Text>
                       <Text className="text-foreground font-semibold capitalize">{String(transaction.meta_data.network)}</Text>
                     </View>
-                    <View className="h-px bg-border" />
+                    <View className="h-px bg-border/30" />
                   </>
                 )}
 
                 {'quantity' in transaction.meta_data && (
                   <>
-                    <View className="flex-row justify-between items-center py-2">
+                    <View className="flex-row justify-between items-center py-3">
                       <Text className="text-muted-foreground text-sm font-medium">Quantity</Text>
                       <Text className="text-foreground font-semibold">{String(transaction.meta_data.quantity)}</Text>
                     </View>
-                    <View className="h-px bg-border" />
+                    <View className="h-px bg-border/30" />
                   </>
                 )}
 
                 {'data_bonus' in transaction.meta_data && (
                   <>
-                    <View className="flex-row justify-between items-center py-2">
+                    <View className="flex-row justify-between items-center py-3">
                       <Text className="text-muted-foreground text-sm font-medium">Data Bonus</Text>
                       <Text className="text-foreground font-semibold">{String(transaction.meta_data.data_bonus)}</Text>
                     </View>
-                    <View className="h-px bg-border" />
+                    <View className="h-px bg-border/30" />
                   </>
                 )}
 
                 {'token' in transaction.meta_data && (
-                  <View className="bg-muted/30 rounded-xl p-4">
-                    <View className="flex-row items-center justify-between mb-2">
+                  <View className="bg-muted/20 rounded-2xl p-4 mt-2 border border-border/30">
+                    <View className="flex-row items-center justify-between mb-3">
                       <Text className="text-muted-foreground text-sm font-medium">Token</Text>
                       <TouchableOpacity
                         onPress={() => {
                           Clipboard.setStringAsync(String((transaction?.meta_data as any)?.token));
                           Toast.show({ type: 'success', text1: 'Token copied!' });
                         }}
-                        className="flex-row items-center bg-primary/20 px-3 py-1 rounded-lg"
+                        className="flex-row items-center px-3 py-2 rounded-xl"
+                       
                       >
                         <Ionicons name="copy" size={14} color={colors.primary} />
-                        <Text className="text-primary text-xs font-semibold ml-1">Copy</Text>
+                        <Text className="text-primary text-xs font-semibold ml-1.5">Copy</Text>
                       </TouchableOpacity>
                     </View>
-                    <Text className="text-foreground font-mono text-sm" numberOfLines={3}>
+                    <Text className="text-foreground font-mono text-sm leading-5" numberOfLines={3}>
                       {String(transaction?.meta_data?.formatted_token || transaction?.meta_data?.token)}
                     </Text>
                   </View>
@@ -364,48 +369,53 @@ ${transaction.meta_data && typeof transaction.meta_data === 'object' && 'phone' 
 
         {/* Description Card - Only show if description exists */}
         {transaction.description && (
-          <View className="px-4">
-            <View className="bg-card rounded-2xl p-5 mb-4 shadow-sm border border-border/20">
-              <View className="flex-row items-center mb-3">
-                <Ionicons name="chatbubble-ellipses" size={18} color={colors.primary} />
-                <Text className="text-lg font-bold text-foreground ml-2">Description</Text>
+          <View className="px-5">
+            <View className="bg-card rounded-3xl p-6 mb-5 border border-border/50">
+              <View className="flex-row items-center mb-4">
+                <View className="w-10 h-10 rounded-full items-center justify-center">
+                  <Ionicons name="chatbubble-ellipses" size={20} color={colors.primary} />
+                </View>
+                <Text className="text-lg font-bold text-foreground ml-3">Description</Text>
               </View>
-              <Text className="text-foreground leading-5">{transaction.description}</Text>
+              <Text className="text-foreground leading-6 text-sm">{transaction.description}</Text>
             </View>
           </View>
         )}
 
         {/* Education Results Card - Show pins and cards when available */}
         {(pins.length > 0 || cards.length > 0) && (
-          <View className="px-4">
-            <View className="bg-card rounded-2xl p-5 mb-4 shadow-sm border border-border/20">
-              <View className="flex-row items-center mb-4">
-                <Ionicons name="school" size={18} color={colors.primary} />
-                <Text className="text-lg font-bold text-foreground ml-2">Education Results</Text>
+          <View className="px-5">
+            <View className="bg-card rounded-3xl p-6 mb-5 border border-border/50">
+              <View className="flex-row items-center mb-5">
+                <View className="w-10 h-10 rounded-full items-center justify-center">
+                  <Ionicons name="school" size={20} color={colors.primary} />
+                </View>
+                <Text className="text-lg font-bold text-foreground ml-3">Education Results</Text>
               </View>
               
               {/* UTME/JAMB Pins */}
               {pins.length > 0 && (
                 <View className="mb-6">
-                  <Text className="text-muted-foreground text-sm font-medium mb-3">JAMB Pins</Text>
+                  <Text className="text-muted-foreground text-sm font-semibold mb-4 uppercase tracking-wide">JAMB Pins</Text>
                   {pins.map((pin, index) => (
-                    <View key={index} className="bg-muted/30 rounded-xl p-4 mb-3">
+                    <View key={index} className="bg-muted/20 rounded-2xl p-4 mb-3 border border-border/30">
                       <View className="flex-row justify-between items-center">
                         <View>
                           <Text className="text-foreground font-semibold text-base">{`Pin ${index + 1}`}</Text>
-                          <Text className="text-muted-foreground text-xs">Tap to copy</Text>
+                          <Text className="text-muted-foreground text-xs mt-0.5">Tap to copy</Text>
                         </View>
                         <TouchableOpacity
                           onPress={async () => {
                             await Clipboard.setStringAsync(pin);
-                            Toast.show({ 
-                              type: 'success', 
+                            Toast.show({
+                              type: 'success',
                               text1: 'Pin copied!',
                               text2: `Pin ${index + 1} copied to clipboard`
                             });
                           }}
                           activeOpacity={0.7}
-                          className="flex-row items-center bg-primary/20 px-3 py-2 rounded-lg"
+                          className="flex-row items-center px-3 py-2 rounded-xl"
+                         
                         >
                           <Text className="text-primary font-bold text-lg mr-2">{pin}</Text>
                           <Ionicons name="copy-outline" size={16} color={colors.primary} />
@@ -419,45 +429,47 @@ ${transaction.meta_data && typeof transaction.meta_data === 'object' && 'phone' 
               {/* WAEC Cards */}
               {cards.length > 0 && (
                 <View>
-                  <Text className="text-muted-foreground text-sm font-medium mb-3">WAEC Cards</Text>
+                  <Text className="text-muted-foreground text-sm font-semibold mb-4 uppercase tracking-wide">WAEC Cards</Text>
                   {cards.map((card, index) => (
-                    <View key={index} className="bg-muted/30 rounded-xl p-4 mb-3">
-                      <Text className="text-foreground font-semibold text-base mb-3">{`Card ${index + 1}`}</Text>
-                      
+                    <View key={index} className="bg-muted/20 rounded-2xl p-4 mb-3 border border-border/30">
+                      <Text className="text-foreground font-semibold text-base mb-4">{`Card ${index + 1}`}</Text>
+
                       {/* Serial Number */}
-                      <View className="flex-row justify-between items-center mb-3">
+                      <View className="flex-row justify-between items-center mb-3 pb-3 border-b border-border/20">
                         <Text className="text-muted-foreground text-sm font-medium">Serial Number</Text>
                         <TouchableOpacity
                           onPress={async () => {
                             await Clipboard.setStringAsync(card.Serial);
-                            Toast.show({ 
-                              type: 'success', 
+                            Toast.show({
+                              type: 'success',
                               text1: 'Serial copied!',
                               text2: 'Serial number copied to clipboard'
                             });
                           }}
                           activeOpacity={0.7}
-                          className="flex-row items-center bg-primary/20 px-3 py-2 rounded-lg"
+                          className="flex-row items-center px-3 py-2 rounded-xl"
+                         
                         >
                           <Text className="text-primary font-bold text-base mr-2">{card.Serial}</Text>
                           <Ionicons name="copy-outline" size={14} color={colors.primary} />
                         </TouchableOpacity>
                       </View>
-                      
+
                       {/* Pin */}
                       <View className="flex-row justify-between items-center">
                         <Text className="text-muted-foreground text-sm font-medium">Pin</Text>
                         <TouchableOpacity
                           onPress={async () => {
                             await Clipboard.setStringAsync(card.Pin);
-                            Toast.show({ 
-                              type: 'success', 
+                            Toast.show({
+                              type: 'success',
                               text1: 'Pin copied!',
                               text2: 'Pin copied to clipboard'
                             });
                           }}
                           activeOpacity={0.7}
-                          className="flex-row items-center bg-primary/20 px-3 py-2 rounded-lg"
+                          className="flex-row items-center px-3 py-2 rounded-xl"
+                         
                         >
                           <Text className="text-primary font-bold text-base mr-2">{card.Pin}</Text>
                           <Ionicons name="copy-outline" size={14} color={colors.primary} />
@@ -467,12 +479,12 @@ ${transaction.meta_data && typeof transaction.meta_data === 'object' && 'phone' 
                   ))}
                 </View>
               )}
-              
+
               {/* Info note */}
-              <View className="bg-primary/10 rounded-xl p-3 mt-2">
+              <View className="rounded-2xl p-4 mt-2 border border-primary/20" style={{ backgroundColor: `${colors.primary}08` }}>
                 <View className="flex-row items-center">
-                  <Ionicons name="information-circle" size={16} color={colors.primary} />
-                  <Text className="text-primary text-xs font-medium ml-2">
+                  <Ionicons name="information-circle" size={18} color={colors.primary} />
+                  <Text className="text-primary text-xs font-medium ml-2 flex-1">
                     Keep these credentials safe and secure for exam registration
                   </Text>
                 </View>
@@ -615,68 +627,67 @@ ${transaction.meta_data && typeof transaction.meta_data === 'object' && 'phone' 
         </ViewShot>
 
         {/* Action Buttons */}
-        <View className="px-4 gap-y-3">
+        <View className="px-5 gap-y-3">
           <TouchableOpacity
-            className="w-full rounded-2xl overflow-hidden shadow-lg"
+            className="w-full rounded-3xl overflow-hidden"
             activeOpacity={0.8}
             onPress={handleShareReceipt}
             disabled={isCapturing}
-            style={{ elevation: 8 }}
           >
             <LinearGradient
-              colors={['#7B2FF2', '#9d57f3', '#FF6B9D']}
+              colors={['#7B2FF2', '#a865f5', '#FF6B9D']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
-              className="py-4 items-center justify-center"
+              className="py-5 items-center justify-center"
             >
               <View className="flex-row items-center">
                 {isCapturing ? (
                   <>
                     <ActivityIndicator color="white" size="small" />
-                    <Text className="text-white font-bold text-lg ml-2">Preparing...</Text>
+                    <Text className="text-white font-bold text-base ml-2">Preparing...</Text>
                   </>
                 ) : (
                   <>
-                    <Ionicons name="share" size={20} color="white" />
-                    <Text className="text-white font-bold text-lg ml-2">Share Receipt</Text>
+                    <Ionicons name="share" size={22} color="white" />
+                    <Text className="text-white font-bold text-base ml-2.5">Share Receipt</Text>
                   </>
                 )}
               </View>
               {!isCapturing && (
-                <Text className="text-white/80 text-sm mt-1">Send without saving</Text>
+                <Text className="text-white/70 text-xs mt-1.5">Send without saving</Text>
               )}
             </LinearGradient>
           </TouchableOpacity>
 
           <TouchableOpacity
-            className="w-full rounded-2xl py-4 bg-card border-2 border-primary/10"
+            className="w-full rounded-3xl py-5 bg-card border border-border/50"
             activeOpacity={0.8}
             onPress={handleSaveReceipt}
             disabled={isCapturing}
           >
             <View className="flex-row items-center justify-center">
-              <Ionicons name="download" size={20} color={colors.primary} />
-              <Text className="text-primary font-bold text-lg ml-2">
+              <Ionicons name="download" size={22} color={colors.primary} />
+              <Text className="text-primary font-bold text-base ml-2.5">
                 {isCapturing ? 'Saving...' : 'Save to Gallery'}
               </Text>
             </View>
             {!isCapturing && (
-              <Text className="text-primary/70 text-sm text-center mt-1">
-                Requires media permission
+              <Text className="text-muted-foreground text-xs text-center mt-1.5">
+                Save using system share options
               </Text>
             )}
           </TouchableOpacity>
 
           <TouchableOpacity
-            className="w-full rounded-2xl py-4 bg-card border-2 border-primary/10"
+            className="w-full rounded-3xl py-5 bg-card border border-border/50"
             activeOpacity={0.8}
             onPress={handleCopyTransactionDetails}
           >
             <View className="flex-row items-center justify-center">
-              <Ionicons name="copy" size={20} color={colors.primary} />
-              <Text className="text-primary font-bold text-lg ml-2">Copy Details</Text>
+              <Ionicons name="copy" size={22} color={colors.primary} />
+              <Text className="text-primary font-bold text-base ml-2.5">Copy Details</Text>
             </View>
-            <Text className="text-primary/70 text-sm text-center mt-1">Copy to clipboard</Text>
+            <Text className="text-muted-foreground text-xs text-center mt-1.5">Copy to clipboard</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

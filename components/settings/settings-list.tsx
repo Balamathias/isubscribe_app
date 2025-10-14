@@ -62,11 +62,11 @@ export function SettingsList() {
   const handleLogout = () => {
     logout(undefined, {
       onSuccess: () => {
-        
+
         queryClient.clear();
         supabase.removeAllChannels();
         refetchTransactions();
-        
+
         Toast.show({
           type: 'success',
           text1: 'Signed out successfully.'
@@ -90,7 +90,7 @@ export function SettingsList() {
     {
       id: 'biometric',
       title: 'Biometric Authentication',
-      description: isBiometricSupported 
+      description: isBiometricSupported
         ? 'Use fingerprint or face ID to secure your app'
         : 'Biometric authentication not supported on this device',
       icon: 'finger-print-outline',
@@ -183,42 +183,60 @@ export function SettingsList() {
 
   const renderSettingItem = ({ item }: { item: any }) => {
     if (item.type === 'separator') {
-      return <View className="h-4" />;
+      return <View className="h-6" />;
     }
 
     if (item.type === 'auth-action') {
       return (
         <Pressable
           onPress={item.onPress}
-          className={`flex-row items-center p-4 rounded-xl ${
-            item.isDangerous ? 'bg-red-50 dark:bg-red-900/20' : 'bg-primary/10'
+          className={`flex-row items-center p-5 rounded-3xl mb-3 border ${
+            item.isDangerous
+              ? 'border-red-500/30'
+              : 'border-primary/30'
           }`}
+          style={{
+            backgroundColor: item.isDangerous
+              ? 'rgba(239, 68, 68, 0.08)'
+              : `${colors.primary}08`
+          }}
         >
-          <View className={`w-8 h-8 rounded-full items-center justify-center mr-3 ${
-            item.isDangerous ? 'bg-red-100 dark:bg-red-900' : 'bg-primary/20'
-          }`}>
-            <Ionicons 
-              name={item.icon} 
-              size={16} 
-              color={item.isDangerous ? '#ef4444' : colors.primary} 
+          <View
+            className={`w-12 h-12 rounded-full items-center justify-center mr-4`}
+            style={{
+              backgroundColor: item.isDangerous
+                ? 'rgba(239, 68, 68, 0.15)'
+                : `${colors.primary}15`
+            }}
+          >
+            <Ionicons
+              name={item.icon}
+              size={20}
+              color={item.isDangerous ? '#ef4444' : colors.primary}
             />
           </View>
-          
+
           <View className="flex-1">
-            <Text className={`font-medium ${
+            <Text className={`font-semibold text-base mb-1 ${
               item.isDangerous ? 'text-red-500' : 'text-primary'
             }`}>
               {item.title}
             </Text>
-            <Text className={`text-sm ${
+            <Text className={`text-xs ${
               item.isDangerous ? 'text-red-400' : 'text-muted-foreground'
             }`}>
               {item.description}
             </Text>
           </View>
 
-          {item.isLoading && (
+          {item.isLoading ? (
             <ActivityIndicator size="small" color={item.isDangerous ? '#ef4444' : colors.primary} />
+          ) : (
+            <Ionicons
+              name="chevron-forward"
+              size={20}
+              color={item.isDangerous ? '#ef4444' : colors.primary}
+            />
           )}
         </Pressable>
       );
@@ -226,29 +244,39 @@ export function SettingsList() {
 
     return (
       <Pressable
-        className={`flex-row items-center p-4 rounded-xl ${
+        className={`flex-row items-center p-5 rounded-3xl mb-3 border border-border/50 ${
           item.disabled ? 'opacity-50' : ''
-        } ${item.isDangerous ? 'bg-red-50 dark:bg-red-900/20' : ''}`}
+        }`}
+        style={{
+          backgroundColor: item.isDangerous
+            ? 'rgba(239, 68, 68, 0.08)'
+            : colors.card
+        }}
         disabled={item.disabled}
         onPress={item.type === 'toggle' && item.onToggle ? item.onToggle : item.onPress}
       >
-        <View className={`w-8 h-8 rounded-full items-center justify-center mr-3 ${
-          item.isDangerous ? 'bg-red-100 dark:bg-red-900' : 'bg-secondary'
-        }`}>
-          <Ionicons 
-            name={item.icon} 
-            size={15} 
-            color={item.isDangerous ? '#EF4444' : colors.mutedForeground} 
+        <View
+          className={`w-12 h-12 rounded-full items-center justify-center mr-4`}
+          style={{
+            backgroundColor: item.isDangerous
+              ? 'rgba(239, 68, 68, 0.15)'
+              : ``
+          }}
+        >
+          <Ionicons
+            name={item.icon}
+            size={20}
+            color={item.isDangerous ? '#ef4444' : colors.mutedForeground}
           />
         </View>
-        
+
         <View className="flex-1">
-          <Text className={`font-medium ${
+          <Text className={`font-semibold text-base mb-1 ${
             item.isDangerous ? 'text-red-600 dark:text-red-400' : 'text-foreground'
           }`}>
             {item.title}
           </Text>
-          <Text className={`text-sm ${
+          <Text className={`text-xs ${
             item.isDangerous ? 'text-red-500 dark:text-red-500' : 'text-muted-foreground'
           }`}>
             {item.description}
@@ -264,10 +292,10 @@ export function SettingsList() {
             disabled={item.disabled}
           />
         ) : (
-          <Ionicons 
-            name="chevron-forward" 
-            size={20} 
-            color={item.isDangerous ? '#EF4444' : colors.mutedForeground} 
+          <Ionicons
+            name="chevron-forward"
+            size={20}
+            color={item.isDangerous ? '#ef4444' : colors.mutedForeground}
           />
         )}
       </Pressable>
@@ -276,7 +304,7 @@ export function SettingsList() {
 
   return (
     <View style={{ flex: 1 }}>
-      <View className="flex-1 bg-background p-4 pb-0 h-full">
+      <View className="flex-1 bg-background p-5 pb-0 h-full">
         <FlatList
           data={settingsData}
           renderItem={renderSettingItem}
@@ -290,9 +318,9 @@ export function SettingsList() {
         />
       </View>
       {showDeleteModal && (
-        <DeleteAccountModal 
-          isVisible={showDeleteModal} 
-          onClose={() => setShowDeleteModal(false)} 
+        <DeleteAccountModal
+          isVisible={showDeleteModal}
+          onClose={() => setShowDeleteModal(false)}
         />
       )}
 
@@ -306,49 +334,62 @@ export function SettingsList() {
           <View className="gap-y-3 flex">
             <Pressable
               onPress={() => applyThemeMode('system')}
-              className={`flex-row items-center p-4 rounded-2xl border ${themeMode === 'system' ? 'border-primary' : 'border-border'}`}
+              className={`flex-row items-center p-5 rounded-3xl border ${
+                themeMode === 'system' ? 'border-primary' : 'border-border/50'
+              }`}
             >
-              <View className="w-10 h-10 rounded-full items-center justify-center mr-3 bg-primary/10">
-                <Ionicons name="phone-portrait-outline" size={18} color={colors.foreground} />
+              <View
+                className="w-12 h-12 rounded-full items-center justify-center mr-4"
+              >
+                <Ionicons name="phone-portrait-outline" size={20} color={colors.primary} />
               </View>
               <View className="flex-1">
-                <Text className="text-foreground font-semibold">Use System Theme</Text>
+                <Text className="text-foreground font-semibold text-base mb-1">Use System Theme</Text>
                 <Text className="text-muted-foreground text-xs">Automatically match your device</Text>
               </View>
               {themeMode === 'system' && (
-                <Ionicons name="checkmark-circle" size={20} color={colors.primary} />
+                <Ionicons name="checkmark-circle" size={24} color={colors.primary} />
               )}
             </Pressable>
 
             <Pressable
               onPress={() => applyThemeMode('light')}
-              className={`flex-row items-center p-4 rounded-2xl border ${themeMode === 'light' ? 'border-primary' : 'border-border'}`}
+              className={`flex-row items-center p-5 rounded-3xl border ${
+                themeMode === 'light' ? 'border-primary' : 'border-border/50'
+              }`}
             >
-              <View className="w-10 h-10 rounded-full items-center justify-center mr-3 bg-amber-500/10">
-                <Ionicons name="sunny-outline" size={18} color={colors.foreground} />
+              <View
+                className="w-12 h-12 rounded-full items-center justify-center mr-4"
+              >
+                <Ionicons name="sunny-outline" size={20} color="#f59e0b" />
               </View>
               <View className="flex-1">
-                <Text className="text-foreground font-semibold">Light</Text>
+                <Text className="text-foreground font-semibold text-base mb-1">Light</Text>
                 <Text className="text-muted-foreground text-xs">Bright and vibrant</Text>
               </View>
               {themeMode === 'light' && (
-                <Ionicons name="checkmark-circle" size={20} color={colors.primary} />
+                <Ionicons name="checkmark-circle" size={24} color={colors.primary} />
               )}
             </Pressable>
 
             <Pressable
               onPress={() => applyThemeMode('dark')}
-              className={`flex-row items-center p-4 rounded-2xl border ${themeMode === 'dark' ? 'border-primary' : 'border-border'}`}
+              className={`flex-row items-center p-5 rounded-3xl border ${
+                themeMode === 'dark' ? 'border-primary' : 'border-border/50'
+              }`}
             >
-              <View className="w-10 h-10 rounded-full items-center justify-center mr-3 bg-purple-500/10">
-                <Ionicons name="moon-outline" size={18} color={colors.foreground} />
+              <View
+                className="w-12 h-12 rounded-full items-center justify-center mr-4"
+                style={{ backgroundColor: '#8b5cf615' }}
+              >
+                <Ionicons name="moon-outline" size={20} color="#8b5cf6" />
               </View>
               <View className="flex-1">
-                <Text className="text-foreground font-semibold">Dark</Text>
+                <Text className="text-foreground font-semibold text-base mb-1">Dark</Text>
                 <Text className="text-muted-foreground text-xs">Cool and comfortable</Text>
               </View>
               {themeMode === 'dark' && (
-                <Ionicons name="checkmark-circle" size={20} color={colors.primary} />
+                <Ionicons name="checkmark-circle" size={24} color={colors.primary} />
               )}
             </Pressable>
           </View>
@@ -357,4 +398,3 @@ export function SettingsList() {
     </View>
   );
 }
-

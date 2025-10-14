@@ -82,39 +82,55 @@ const SkeletonTransactionItem = () => {
 export const TransactionItem: React.FC<TransactionItemProps> = ({
   icon, iconColor, title, date, status, amount, type, data_bonus, id
 }) => {
+  const getStatusColor = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case 'success':
+        return '#11c028';
+      case 'failed':
+        return '#ef4444';
+      case 'pending':
+        return '#f59e0b';
+      default:
+        return '#6b7280';
+    }
+  };
+
   return (
-    <TouchableOpacity 
-        activeOpacity={0.7} 
-        className="bg-card p-4 rounded-xl mb-3 flex-row items-center justify-between shadow-sm"
-        onPress={() => router.push({
-          pathname: '/transactions/[id]',
-          params: { id }
+    <TouchableOpacity
+      activeOpacity={0.7}
+      className="bg-card p-5 rounded-3xl mb-4 flex-row items-center justify-between border border-border/50"
+      onPress={() => router.push({
+        pathname: '/transactions/[id]',
+        params: { id }
       })}
     >
-      <View className="flex-row items-center">
-        <View className="w-10 h-10 rounded-full items-center justify-center mr-3" style={{ backgroundColor: iconColor + '20' }}>
-          <Ionicons name={icon as any} size={20} color={iconColor} />
+      <View className="flex-row items-center flex-1">
+        <View
+          className="w-12 h-12 rounded-full items-center justify-center mr-4"
+          style={{ backgroundColor: iconColor + '15' }}
+        >
+          <Ionicons name={icon as any} size={22} color={iconColor} />
         </View>
-        <View>
-          <Text className="text-foreground font-semibold text-base">{title}</Text>
+        <View className="flex-1">
+          <Text className="text-foreground font-semibold text-base mb-1" numberOfLines={1}>{title}</Text>
           <Text className="text-muted-foreground text-xs">{date}</Text>
         </View>
       </View>
-      <View className="items-end">
-        <View className={`px-3 py-1 rounded-full ${
-          status === 'success' ? 'bg-green-100 dark:bg-green-900' :
-          status === 'failed' ? 'bg-red-100 dark:bg-red-900' :
-          status === 'pending' ? 'bg-yellow-100 dark:bg-yellow-900' :
-          'bg-gray-100 dark:bg-gray-900'
-        }`}>
-          <Text className={`text-xs font-medium capitalize ${
-            status === 'success' ? 'text-green-600 dark:text-green-300' :
-            status === 'failed' ? 'text-red-600 dark:text-red-300' :
-            status === 'pending' ? 'text-yellow-600 dark:text-yellow-300' :
-            'text-gray-600 dark:text-gray-300'
-          }`}>{status}</Text>
+      <View className="items-end ml-3">
+        <View
+          className="px-3 py-1.5 rounded-full mb-2"
+          style={{ backgroundColor: `${getStatusColor(status)}15` }}
+        >
+          <Text
+            className="text-xs font-semibold capitalize"
+            style={{ color: getStatusColor(status) }}
+          >
+            {status}
+          </Text>
         </View>
-        <Text className="text-foreground font-semibold text-sm mt-1">{type === 'cashback' ? (data_bonus || amount) : amount }</Text>
+        <Text className="text-foreground font-bold text-sm">
+          {type === 'cashback' ? (data_bonus || amount) : amount}
+        </Text>
       </View>
     </TouchableOpacity>
   );

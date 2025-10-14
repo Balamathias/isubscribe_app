@@ -2,7 +2,7 @@
   "expo": {
     "name": "isubscribe",
     "slug": "isubscribe_app",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "com.isubscribe",
@@ -30,9 +30,7 @@
       "edgeToEdgeEnabled": true,
       "permissions": [
         "android.permission.READ_CONTACTS",
-        "android.permission.WRITE_CONTACTS",
-        "android.permission.READ_MEDIA_IMAGES",
-        "android.permission.READ_MEDIA_VIDEO"
+        "android.permission.WRITE_CONTACTS"
       ],
       "package": "com.isubscribe"
     },

@@ -23,7 +23,24 @@ import { useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { colorScheme as nwColorScheme } from 'nativewind';
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      // Consider data stale after 10 seconds
+      staleTime: 10 * 1000,
+      // Keep cache for 5 minutes
+      gcTime: 5 * 60 * 1000,
+      // Refetch when app comes to foreground
+      refetchOnWindowFocus: true,
+      // Refetch when network reconnects
+      refetchOnReconnect: true,
+      // Retry failed requests 2 times
+      retry: 2,
+      // Always refetch on mount for critical data
+      refetchOnMount: true,
+    },
+  },
+});
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({

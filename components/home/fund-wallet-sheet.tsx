@@ -2,7 +2,7 @@ import { COLORS } from '@/constants/colors';
 import { useGetAccount } from '@/services/api-hooks';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ActivityIndicator, Clipboard, Platform, Text, ToastAndroid, TouchableOpacity, View } from 'react-native';
 import Toast from 'react-native-toast-message';
 import BottomSheet from '../ui/bottom-sheet';
@@ -69,11 +69,18 @@ interface FundWalletBottomSheetProps {
 const FundWalletBottomSheet: React.FC<FundWalletBottomSheetProps> = ({ isVisible, onClose }) => {
   const [copiedText, setCopiedText] = useState<string | null>(null);
   const [showGenerateForm, setShowGenerateForm] = useState(false);
-  const { data: accountData, isPending } = useGetAccount()
+  const { data: accountData, isPending, refetch: refetchAccount } = useGetAccount()
 
   const account = accountData?.data || null
   const hasPalmPayAccount = account?.palmpay_account_number
   const hasReservedAccount = account?.account_number
+
+  // Refetch account data when sheet becomes visible
+  useEffect(() => {
+    if (isVisible) {
+      refetchAccount();
+    }
+  }, [isVisible, refetchAccount]);
 
   const handleCopy = async (text: string) => {
     try {

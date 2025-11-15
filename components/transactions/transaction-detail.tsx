@@ -627,67 +627,45 @@ ${transaction.meta_data && typeof transaction.meta_data === 'object' && 'phone' 
         </ViewShot>
 
         {/* Action Buttons */}
-        <View className="px-5 gap-y-3">
+        <View className="px-5 gap-y-3 flex flex-row justify-between py-4">
           <TouchableOpacity
-            className="w-full rounded-3xl overflow-hidden"
+            className="rounded-xl overflow-hidden items-center justify-center py-2 px-4 bg-primary"
             activeOpacity={0.8}
             onPress={handleShareReceipt}
             disabled={isCapturing}
           >
-            <LinearGradient
-              colors={['#7B2FF2', '#a865f5', '#FF6B9D']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              className="py-5 items-center justify-center"
-            >
               <View className="flex-row items-center">
                 {isCapturing ? (
                   <>
                     <ActivityIndicator color="white" size="small" />
-                    <Text className="text-white font-bold text-base ml-2">Preparing...</Text>
                   </>
                 ) : (
                   <>
                     <Ionicons name="share" size={22} color="white" />
-                    <Text className="text-white font-bold text-base ml-2.5">Share Receipt</Text>
                   </>
                 )}
               </View>
-              {!isCapturing && (
-                <Text className="text-white/70 text-xs mt-1.5">Send without saving</Text>
-              )}
-            </LinearGradient>
           </TouchableOpacity>
 
           <TouchableOpacity
-            className="w-full rounded-3xl py-5 bg-card border border-border/50"
+            className="rounded-xl py-2 px-4 bg-card border border-border/50"
             activeOpacity={0.8}
             onPress={handleSaveReceipt}
             disabled={isCapturing}
           >
             <View className="flex-row items-center justify-center">
               <Ionicons name="download" size={22} color={colors.primary} />
-              <Text className="text-primary font-bold text-base ml-2.5">
-                {isCapturing ? 'Saving...' : 'Save to Gallery'}
-              </Text>
             </View>
-            {!isCapturing && (
-              <Text className="text-muted-foreground text-xs text-center mt-1.5">
-                Save using system share options
-              </Text>
-            )}
           </TouchableOpacity>
 
           <TouchableOpacity
-            className="w-full rounded-3xl py-5 bg-card border border-border/50"
+            className="rounded-xl py-2 px-4 bg-card border border-border/50"
             activeOpacity={0.8}
             onPress={handleCopyTransactionDetails}
           >
             <View className="flex-row items-center justify-center">
               <Ionicons name="copy" size={22} color={colors.primary} />
-              <Text className="text-primary font-bold text-base ml-2.5">Copy Details</Text>
             </View>
-            <Text className="text-muted-foreground text-xs text-center mt-1.5">Copy to clipboard</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

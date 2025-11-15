@@ -27,7 +27,7 @@ const WalletBox = ({}: Props) => {
   const [showBalance, setShowBalance] = useState(true)
   const [showBonus, setShowBonus] = useState(true)
   const [showFundWalletBottomSheet, setShowFundWalletBottomSheet] = useState(false);
-  const [localWalletBalance, setLocalWalletBalance] = useState(0)
+  const [localWalletBalance, setLocalWalletBalance] = useState<number | null>(null)
 
   const queryClient = useQueryClient()
 
@@ -64,11 +64,20 @@ const WalletBox = ({}: Props) => {
   const lastBalanceRef = useRef<number>(0)
 
   useEffect(() => {
+    if (wallet?.balance !== undefined && wallet?.balance !== null) {
+      setLocalWalletBalance(wallet.balance)
+      // Also update the lastBalanceRef to ensure haptic feedback works correctly
+      lastBalanceRef.current = Number(wallet.balance)
+    }
+  }, [wallet?.balance])
+
+  useEffect(() => {
     if (!user?.id) return
 
     try {
       channelRef.current?.unsubscribe()
 
+      // Update lastBalanceRef whenever wallet balance changes
       lastBalanceRef.current = Number(wallet?.balance || 0)
 
       const channel = supabase
@@ -125,6 +134,7 @@ const WalletBox = ({}: Props) => {
     const sub = AppState.addEventListener('change', (state) => {
       if (state === 'active' && user?.id) {
         queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.getWalletBalance] })
+        refetchBalance()
       }
     })
     return () => {
@@ -132,6 +142,19 @@ const WalletBox = ({}: Props) => {
       sub?.remove?.()
     }
   }, [user?.id])
+
+  // Add periodic refresh every 30 seconds when app is active
+  useEffect(() => {
+    if (!user?.id) return
+
+    const intervalId = setInterval(() => {
+      if (AppState.currentState === 'active') {
+        refetchBalance()
+      }
+    }, 30000) // Refresh every 30 seconds
+
+    return () => clearInterval(intervalId)
+  }, [user?.id, refetchBalance])
 
   const toggleBalance = async () => {
     const newValue = !showBalance
@@ -171,6 +194,8 @@ const WalletBox = ({}: Props) => {
 
   const handleCloseBottomSheet = () => {
     setShowFundWalletBottomSheet(false);
+    // Refresh balance when closing the fund wallet sheet
+    refetchBalance();
   };
 
   return (
@@ -186,7 +211,7 @@ const WalletBox = ({}: Props) => {
           {isPending ? (
             <ActivityIndicator size={13} color="#fff" style={{ marginRight: 2}} />
           ) : (
-            <Text className="text-white font-bold text-2xl mr-1">{formatNumber(user ? (localWalletBalance || wallet?.balance || 0) : 0)}</Text>
+            <Text className="text-white font-bold text-2xl mr-1">{formatNumber(user ? (localWalletBalance !== null ? localWalletBalance : (wallet?.balance || 0)) : 0)}</Text>
           )}
           <TouchableOpacity onPress={toggleBalance}>
             <Ionicons 

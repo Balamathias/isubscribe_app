@@ -60,7 +60,12 @@ export const QUERY_KEYS = {
 export const useGetAccount = (id?: string) => useQuery({
     queryKey: [QUERY_KEYS.getAccount, id],
     queryFn: () => getAccount(id),
-    refetchOnMount: true
+    // Account info should be considered fresh for 30 seconds
+    staleTime: 30 * 1000,
+    // Always refetch on mount
+    refetchOnMount: 'always',
+    // Refetch when window regains focus
+    refetchOnWindowFocus: true,
 })
 
 export const useGeneratePalmpayAccount = () => useMutation({
@@ -76,16 +81,38 @@ export const useGetUserProfile = () => useQuery({
 export const useGetWalletBalance = () => useQuery({
     queryKey: [QUERY_KEYS.getWalletBalance],
     queryFn: getWalletBalance,
+    // Wallet balance should be considered fresh for only 5 seconds
+    staleTime: 5 * 1000,
+    // Always refetch on mount
+    refetchOnMount: 'always',
+    // Always refetch when window regains focus
+    refetchOnWindowFocus: 'always',
+    // Keep trying to fetch if it fails
+    refetchOnReconnect: 'always',
 })
 
 export const useGetLatestTransactions = () => useQuery({
     queryKey: [QUERY_KEYS.getLatestTransactions],
     queryFn: getLatestTransactions,
+    // Transactions should be considered fresh for only 5 seconds
+    staleTime: 5 * 1000,
+    // Always refetch on mount
+    refetchOnMount: 'always',
+    // Always refetch when window regains focus
+    refetchOnWindowFocus: 'always',
+    // Keep trying to fetch if it fails
+    refetchOnReconnect: 'always',
 })
 
 export const useGetTransactions = (limit: number = 30, offset: number = 0) => useQuery({
     queryKey: [QUERY_KEYS.getTransactions, limit, offset],
     queryFn: () => getTransactions(limit, offset),
+    // Transactions should be considered fresh for only 10 seconds
+    staleTime: 10 * 1000,
+    // Always refetch on mount
+    refetchOnMount: 'always',
+    // Always refetch when window regains focus
+    refetchOnWindowFocus: 'always',
 })
 
 export const useGetTransaction = (id: string) => useQuery({

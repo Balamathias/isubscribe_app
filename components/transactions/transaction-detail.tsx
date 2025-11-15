@@ -32,25 +32,53 @@ const TransactionDetail = () => {
   const cards: { Serial: string, Pin: string }[] = (transaction?.meta_data && typeof transaction.meta_data === 'object' && !Array.isArray(transaction.meta_data) && 'cards' in transaction.meta_data) ? transaction.meta_data.cards as { Serial: string, Pin: string }[] : [];
 
   const captureReceipt = async (): Promise<string | null> => {
-    if (!viewShotRef.current) return null;
-    const uri = await viewShotRef.current.capture?.();
-    return uri || null;
+    try {
+      if (!viewShotRef.current?.capture) {
+        console.error('ViewShot ref not ready');
+        return null;
+      }
+      const uri = await viewShotRef.current.capture();
+      console.log('Receipt captured:', uri);
+      return uri;
+    } catch (error) {
+      console.error('Error capturing receipt:', error);
+      return null;
+    }
   };
 
   const shareImage = async (localPath: string) => {
     try {
       let shareUri = localPath;
+
+      // For Android, we need to get the content URI
       if (Platform.OS === 'android') {
-        const contentUri = await FileSystem.getContentUriAsync(localPath);
-        if (contentUri) shareUri = contentUri;
+        try {
+          const contentUri = await FileSystem.getContentUriAsync(localPath);
+          if (contentUri) {
+            shareUri = contentUri;
+          }
+        } catch (error) {
+          console.log('Could not get content URI, using file path directly');
+        }
       }
-      await Share.share({
-        url: shareUri,
-        message: `Transaction Receipt`,
-        title: 'Transaction Receipt'
-      });
-    } catch (e) {
-      throw e;
+
+      // Share configuration differs between platforms
+      const shareOptions = Platform.OS === 'ios'
+        ? {
+            url: shareUri,
+            title: 'Transaction Receipt',
+          }
+        : {
+            url: shareUri,
+            message: 'Transaction Receipt from iSubscribe',
+            title: 'Transaction Receipt',
+          };
+
+      const result = await Share.share(shareOptions);
+      return result;
+    } catch (error) {
+      console.error('Error sharing image:', error);
+      throw error;
     }
   };
 
@@ -71,30 +99,66 @@ const TransactionDetail = () => {
 
   const handleShareReceipt = async () => {
     if (!transaction) {
-      Alert.alert('Error', 'Receipt not ready.');
+      Alert.alert('Error', 'Transaction data not available.');
       return;
     }
+
+    if (!viewShotRef.current) {
+      Alert.alert('Error', 'Receipt view not ready. Please try again.');
+      return;
+    }
+
     setIsCapturing(true);
     try {
       const uri = await captureReceipt();
-      if (!uri) throw new Error('Capture failed');
+      if (!uri) {
+        throw new Error('Failed to capture receipt');
+      }
+
       await shareImage(uri);
-    } catch (e) {
-      Alert.alert('Share Failed', 'Unable to share receipt.');
+
+      Toast.show({
+        type: 'success',
+        text1: 'Success',
+        text2: 'Receipt shared successfully'
+      });
+    } catch (error: any) {
+      console.error('Share receipt error:', error);
+      Alert.alert(
+        'Share Failed',
+        error.message || 'Unable to share receipt. Please try again.'
+      );
     } finally {
       setIsCapturing(false);
     }
   };
 
   const handleSaveReceipt = async () => {
-    if (!transaction) return;
+    if (!transaction) {
+      Alert.alert('Error', 'Transaction data not available.');
+      return;
+    }
+
+    if (!viewShotRef.current) {
+      Alert.alert('Error', 'Receipt view not ready. Please try again.');
+      return;
+    }
+
     setIsCapturing(true);
     try {
       const uri = await captureReceipt();
-      if (!uri) throw new Error('Capture failed');
+      if (!uri) {
+        throw new Error('Failed to capture receipt');
+      }
+
       await saveToGallery(uri);
-    } catch (e: any) {
-      Toast.show({ type: 'error', text1: 'Save failed', text2: e?.message || 'Try again' });
+    } catch (error: any) {
+      console.error('Save receipt error:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Save failed',
+        text2: error?.message || 'Unable to save receipt. Please try again.'
+      });
     } finally {
       setIsCapturing(false);
     }
@@ -494,132 +558,143 @@ ${transaction.meta_data && typeof transaction.meta_data === 'object' && 'phone' 
         )}
 
         {/* Receipt Section - Hidden from user but captured for sharing */}
-        <ViewShot 
-          ref={viewShotRef} 
-          options={{ 
-            format: 'png', 
+        <ViewShot
+          ref={viewShotRef}
+          options={{
+            format: 'png',
             quality: 1.0,
             result: 'tmpfile',
-            width: width - 32,
-            height: undefined,
           }}
-          style={{ position: 'absolute', left: -9999 }}
+          style={{
+            position: 'absolute',
+            left: 0,
+            top: -10000, // Position above viewport instead of to the left
+            width: width - 32,
+          }}
         >
-          <View style={{ 
+          <View style={{
             padding: 20,
             minHeight: 600,
-            backgroundColor: colorScheme === 'dark' ? '#1a1a1a' : '#ffffff',
+            backgroundColor: '#ffffff', // Always use white background for receipts
             width: width - 32
           }}>
-            <View className="items-center mb-6">
-              <Text className="text-2xl font-bold text-primary mb-2">isubscribe</Text>
-              <Text className="text-muted-foreground text-sm">Transaction Receipt</Text>
-              <Text className="text-muted-foreground text-xs">
+            <View style={{ alignItems: 'center', marginBottom: 24 }}>
+              <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#7B2FF2', marginBottom: 8 }}>isubscribe</Text>
+              <Text style={{ color: '#666666', fontSize: 14 }}>Transaction Receipt</Text>
+              <Text style={{ color: '#999999', fontSize: 12 }}>
                 {format(new Date(), 'MMM dd, yyyy HH:mm')}
               </Text>
             </View>
 
-            <View className="items-center mb-8">
-              <View className="w-20 h-20 rounded-full bg-secondary items-center justify-center mb-4">
-                <Ionicons 
-                  name={getStatusIcon(transaction?.status || '')} 
-                  size={40} 
-                  color={getStatusColor(transaction?.status || '')} 
+            <View style={{ alignItems: 'center', marginBottom: 32 }}>
+              <View style={{
+                width: 80,
+                height: 80,
+                borderRadius: 40,
+                backgroundColor: '#F5F5F5',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: 16
+              }}>
+                <Ionicons
+                  name={getStatusIcon(transaction?.status || '')}
+                  size={40}
+                  color={getStatusColor(transaction?.status || '')}
                 />
               </View>
-              <Text className="text-2xl font-bold text-foreground mb-2">
+              <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#000000', marginBottom: 8 }}>
                 {(transaction?.type === 'cashback' && transaction.meta_data && typeof transaction.meta_data === 'object' && 'data_bonus' in transaction.meta_data) ? String(transaction?.meta_data?.data_bonus) : formatNigerianNaira(transaction?.amount || 0)}
               </Text>
-              <Text className="text-muted-foreground capitalize">
+              <Text style={{ color: '#666666', textTransform: 'capitalize' }}>
                 {transaction.status}
               </Text>
             </View>
 
-            <View className="space-y-6">
-              <View className="bg-card rounded-xl p-6">
-                <Text className="text-lg font-semibold text-foreground mb-6">
+            <View style={{ gap: 24 }}>
+              <View style={{ backgroundColor: '#F9F9F9', borderRadius: 12, padding: 24 }}>
+                <Text style={{ fontSize: 18, fontWeight: '600', color: '#000000', marginBottom: 24 }}>
                   Transaction Details
                 </Text>
                 
-                <View className="flex flex-col gap-4">
+                <View style={{ gap: 16 }}>
                   {transaction.transaction_id && (
-                    <View className="flex-row justify-between items-center">
-                      <Text className="text-muted-foreground text-sm">Reference</Text>
-                      <Text className="text-foreground font-medium text-right flex-1 ml-4" numberOfLines={1}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Text style={{ color: '#666666', fontSize: 14 }}>Reference</Text>
+                      <Text style={{ color: '#000000', fontWeight: '500', flex: 1, textAlign: 'right', marginLeft: 16 }} numberOfLines={1}>
                         {transaction.transaction_id}
                       </Text>
                     </View>
                   )}
 
-                  <View className="flex-row justify-between items-center">
-                    <Text className="text-muted-foreground text-sm">Transaction ID</Text>
-                    <Text className="text-foreground font-medium">{transaction.id}</Text>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Text style={{ color: '#666666', fontSize: 14 }}>Transaction ID</Text>
+                    <Text style={{ color: '#000000', fontWeight: '500' }}>{transaction.id}</Text>
                   </View>
 
-                  <View className="flex-row justify-between items-center">
-                    <Text className="text-muted-foreground text-sm">Date</Text>
-                    <Text className="text-foreground font-medium">
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Text style={{ color: '#666666', fontSize: 14 }}>Date</Text>
+                    <Text style={{ color: '#000000', fontWeight: '500' }}>
                       {format(new Date(transaction.created_at), 'MMM dd, yyyy HH:mm')}
                     </Text>
                   </View>
 
-                  <View className="flex-row justify-between items-center">
-                    <Text className="text-muted-foreground text-sm">Amount</Text>
-                    <Text className="text-foreground font-medium">{formatNigerianNaira(transaction.amount || 0)}</Text>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Text style={{ color: '#666666', fontSize: 14 }}>Amount</Text>
+                    <Text style={{ color: '#000000', fontWeight: '500' }}>{formatNigerianNaira(transaction.amount || 0)}</Text>
                   </View>
 
                   {transaction.meta_data && typeof transaction.meta_data === 'object' && 'token' in transaction.meta_data && (
-                    <View className="flex-row justify-between items-center">
-                      <Text className="text-muted-foreground text-sm">Token</Text>
-                      <Text className="text-foreground font-medium text-right flex-1 ml-4" numberOfLines={2}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Text style={{ color: '#666666', fontSize: 14 }}>Token</Text>
+                      <Text style={{ color: '#000000', fontWeight: '500', flex: 1, textAlign: 'right', marginLeft: 16 }} numberOfLines={2}>
                         {String(transaction?.meta_data?.formatted_token || transaction?.meta_data?.token)}
                       </Text>
                     </View>
                   )}
 
                   {transaction.meta_data && typeof transaction.meta_data === 'object' && 'quantity' in transaction.meta_data && (
-                    <View className="flex-row justify-between items-center">
-                      <Text className="text-muted-foreground text-sm">Quantity</Text>
-                      <Text className="text-foreground font-medium">{String(transaction.meta_data.quantity)}</Text>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Text style={{ color: '#666666', fontSize: 14 }}>Quantity</Text>
+                      <Text style={{ color: '#000000', fontWeight: '500' }}>{String(transaction.meta_data.quantity)}</Text>
                     </View>
                   )}
 
                   {transaction.meta_data && typeof transaction.meta_data === 'object' && 'data_bonus' in transaction.meta_data && (
-                    <View className="flex-row justify-between items-center">
-                      <Text className="text-muted-foreground text-sm">Data Bonus</Text>
-                      <Text className="text-foreground font-medium">{String(transaction.meta_data.data_bonus)}</Text>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Text style={{ color: '#666666', fontSize: 14 }}>Data Bonus</Text>
+                      <Text style={{ color: '#000000', fontWeight: '500' }}>{String(transaction.meta_data.data_bonus)}</Text>
                     </View>
                   )}
 
                   {transaction.meta_data && typeof transaction.meta_data === 'object' && 'phone' in transaction.meta_data && (
-                    <View className="flex-row justify-between items-center">
-                      <Text className="text-muted-foreground text-sm">Phone Number</Text>
-                      <Text className="text-foreground font-medium">{String(transaction.meta_data.phone)}</Text>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Text style={{ color: '#666666', fontSize: 14 }}>Phone Number</Text>
+                      <Text style={{ color: '#000000', fontWeight: '500' }}>{String(transaction.meta_data.phone)}</Text>
                     </View>
                   )}
 
                   {transaction.meta_data && typeof transaction.meta_data === 'object' && 'network' in transaction.meta_data && (
-                    <View className="flex-row justify-between items-center">
-                      <Text className="text-muted-foreground text-sm">Network</Text>
-                      <Text className="text-foreground font-medium">{String(transaction.meta_data.network)}</Text>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Text style={{ color: '#666666', fontSize: 14 }}>Network</Text>
+                      <Text style={{ color: '#000000', fontWeight: '500' }}>{String(transaction.meta_data.network)}</Text>
                     </View>
                   )}
 
                   {transaction.description && (
-                    <View className="flex-row justify-between items-start">
-                      <Text className="text-muted-foreground text-sm">Description</Text>
-                      <Text className="text-foreground font-medium flex-1 text-right ml-4">{transaction.description}</Text>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <Text style={{ color: '#666666', fontSize: 14 }}>Description</Text>
+                      <Text style={{ color: '#000000', fontWeight: '500', flex: 1, textAlign: 'right', marginLeft: 16 }}>{transaction.description}</Text>
                     </View>
                   )}
                 </View>
               </View>
             </View>
 
-            <View className="mt-8 pt-4 border-t border-border">
-              <Text className="text-center text-muted-foreground text-xs">
+            <View style={{ marginTop: 32, paddingTop: 16, borderTopWidth: 1, borderTopColor: '#E0E0E0' }}>
+              <Text style={{ textAlign: 'center', color: '#666666', fontSize: 12 }}>
                 Thank you for using isubscribe
               </Text>
-              <Text className="text-center text-muted-foreground text-xs">
+              <Text style={{ textAlign: 'center', color: '#666666', fontSize: 12 }}>
                 For support, contact us at support@isubscribe.ng
               </Text>
             </View>

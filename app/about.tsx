@@ -1,5 +1,7 @@
+import { useSession } from '@/components/session-context';
 import StarryBackground from '@/components/starry-background';
 import Header from '@/components/transactions/header';
+import { APP_VERSION } from '@/constants';
 import { COLORS } from '@/constants/colors';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
@@ -9,6 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 const AboutScreen = () => {
   const colorScheme = useColorScheme();
+  const { appConfig } = useSession()
   const theme = colorScheme === 'dark' ? 'dark' : 'light';
   const colors = COLORS[theme];
 
@@ -140,7 +143,7 @@ const AboutScreen = () => {
           <Animated.View entering={FadeInDown.duration(600).delay(1000)} className="mb-8">
             <View className="bg-secondary rounded-xl p-4">
               <Text className="text-center text-muted-foreground text-xs">
-                Version 1.0.0 • Built with ❤️ in Nigeria
+                Version {appConfig?.app_version || APP_VERSION} • Built with ❤️ in Nigeria
               </Text>
             </View>
           </Animated.View>

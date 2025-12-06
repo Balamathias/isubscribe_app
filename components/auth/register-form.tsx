@@ -30,7 +30,7 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
 }) => {
   const { colors } = useThemedColors();
   return (
-    <View className="mb-1">
+    <View className="mb-1 pb-24">
       <View className={`flex-row items-center bg-card border rounded-2xl px-4 py-4 shadow-sm ${
         error ? 'border-destructive' : 'border-border'
       }`}>

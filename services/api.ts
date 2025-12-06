@@ -25,7 +25,7 @@ export const generatePalmpayAccount = async () => {
     const { data: user, error: userError } = await getUserProfile()
 
     if (!user) {
-        return { data: null, error: {message: 'User not found'} };
+        return { data: null, error: { message: 'User not found' } };
     }
 
     const { data: account } = await getAccount()
@@ -60,8 +60,8 @@ export const generatePalmpayAccount = async () => {
 
                 return { data: accountData, error: null }
             } else {
-                return { 
-                    data: null, 
+                return {
+                    data: null,
                     error: { message: `Palmpay account creation failed with status: ${status}` }
                 }
             }
@@ -359,7 +359,7 @@ export const verifyMerchant = async (transactionData: VerifyMerchantRequest): Pr
     }
 }
 
-export const verifyPin = async (transactionData: Record<string, any>): Promise<Response<{is_valid: boolean, pin_set?: boolean} | null>> => {
+export const verifyPin = async (transactionData: Record<string, any>): Promise<Response<{ is_valid: boolean, pin_set?: boolean } | null>> => {
     try {
         const { data, status } = await microservice.post('/mobile/verify-pin/', transactionData)
         return data
@@ -375,7 +375,7 @@ export const verifyPin = async (transactionData: Record<string, any>): Promise<R
     }
 }
 
-export const verifyPhone = async (phone: string): Promise<Response<{network: string} | null>> => {
+export const verifyPhone = async (phone: string): Promise<Response<{ network: string } | null>> => {
     try {
         const { data, status } = await microservice.post('/mobile/verify-phone/', { phone })
         return data
@@ -543,6 +543,48 @@ export const updateProfile = async (profileData: Partial<Tables<'profile'>>): Pr
 export const getUserProfile = async (): Promise<Response<Tables<'profile'> | null>> => {
     try {
         const { data, status } = await microservice.get('/mobile/profile/')
+        return data
+    } catch (error: any) {
+        return {
+            data: null,
+            error: {
+                message: error?.response?.data?.message || error?.message
+            },
+            status: error?.response?.status,
+            message: error?.response?.data?.message || error?.message
+        }
+    }
+}
+
+export interface PromoBanner {
+    id: number;
+    title: string;
+    description: string;
+    image_url: string;
+    cta_link: string;
+    is_active: boolean;
+    priority: number;
+}
+
+export const listPromoBanners = async (): Promise<Response<PromoBanner[] | null>> => {
+    try {
+        const { data, status } = await microservice.get('/mobile/promo/banners/')
+        return data
+    } catch (error: any) {
+        return {
+            data: [],
+            error: {
+                message: error?.response?.data?.message || error?.message
+            },
+            status: error?.response?.status,
+            message: error?.response?.data?.message || error?.message
+        }
+    }
+}
+
+export const generateWebAuthLink = async (targetUrl?: string): Promise<Response<{ url: string } | null>> => {
+    try {
+        const { data, status } = await microservice.post('/mobile/auth/web-link/', { target_url: targetUrl })
         return data
     } catch (error: any) {
         return {

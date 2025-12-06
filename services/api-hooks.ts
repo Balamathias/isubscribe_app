@@ -26,6 +26,8 @@ import {
     generateReservedAccount,
     createPushToken,
     updateProfile,
+    listPromoBanners,
+    generateWebAuthLink,
 } from "./api";
 
 export const QUERY_KEYS = {
@@ -55,6 +57,8 @@ export const QUERY_KEYS = {
     generateReservedAccount: 'generateReservedAccount',
     createPushToken: 'createPushToken',
     updateProfile: 'updateProfile',
+    listPromoBanners: 'listPromoBanners',
+    generateWebAuthLink: 'generateWebAuthLink',
 } as const
 
 export const useGetAccount = (id?: string) => useQuery({
@@ -216,4 +220,14 @@ export const useCreatePushToken = () => useMutation({
 export const useUpdateProfile = () => useMutation({
     mutationKey: [QUERY_KEYS.updateProfile],
     mutationFn: updateProfile,
+});
+
+export const useListPromoBanners = () => useQuery({
+    queryKey: [QUERY_KEYS.listPromoBanners],
+    queryFn: listPromoBanners,
+});
+
+export const useGenerateWebAuthLink = () => useMutation({
+    mutationKey: [QUERY_KEYS.generateWebAuthLink],
+    mutationFn: generateWebAuthLink,
 });

@@ -2,8 +2,7 @@ import { supabase } from '@/lib/supabase';
 import axios from 'axios';
 
 const API_URL = 'https://isubscribe-ai-microservice.vercel.app/api/v1';
-// 'https://7dac-149-34-244-140.ngrok-free.app/api/v1';
-    // process.env.NEXT_PUBLIC_AI_MS_API_URL || 
+// const API_URL = 'https://869cf3453974.ngrok-free.app/api/v1';
     
 
 

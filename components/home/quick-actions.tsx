@@ -23,14 +23,14 @@ const QuickActions = () => {
       try {
         // @ts-ignore types allow only string; our hrefs are strings
         router.prefetch?.(a.href);
-      } catch {}
+      } catch { }
     });
   }, []);
 
   return (
-    <View className="mt-6 bg-background p-4 rounded-xl shadow-sm flex flex-col gap-y-2 items-start">
+    <View className="mt-6 bg-background border border-primary/10 p-4 rounded-2xl shadow-sm flex flex-col gap-y-2 items-start">
       <View className="flex-row items-center mb-4">
-        <Text className="text-foreground font-bold text-lg" style={{fontFamily: 'Poppins'}}>Quick Actions</Text>
+        <Text className="text-foreground font-bold text-lg" style={{ fontFamily: 'Poppins' }}>Quick Actions</Text>
         <View className="w-2 h-2 rounded-full bg-primary ml-2" />
       </View>
       <View className="flex-row flex-wrap justify-between">
@@ -68,13 +68,13 @@ const ActionItem: React.FC<ActionItemProps> = ({ action }) => {
   }, []);
 
   const go = useCallback(() => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => { });
     router.push(action.href as any);
   }, [action.href]);
 
   return (
     <Animated.View style={animatedStyle} className="flex flex-col w-1/4 items-center mb-4">
-  <TouchableOpacity
+      <TouchableOpacity
         className="bg-[#F3EFFB] dark:bg-secondary p-1 rounded-xl mb-2 items-center justify-center aspect-square w-10 h-10"
         activeOpacity={0.7}
         onPressIn={handlePressIn}

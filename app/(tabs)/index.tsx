@@ -14,6 +14,7 @@ import { getGreeting } from "@/utils";
 import { Ionicons } from "@expo/vector-icons";
 import { useCallback, useEffect, useState } from "react";
 import { Platform, RefreshControl, ScrollView, Text, TouchableOpacity, useColorScheme, View } from "react-native";
+import PromoCarousel from "@/components/home/promo-carousel";
 
 
 export default function Index() {
@@ -27,12 +28,12 @@ export default function Index() {
   const { refetchBalance, loadingBalance, refetchTransactions, loadingTransactions, profile, user } = useSession()
   const [showRatingsModal, setShowRatingsModal] = useState(false);
   const colors = useThemedColors().colors
-  
+
   const handleRefresh = useCallback(() => {
     refetchTransactions()
     refetchBalance()
   }, [refetchTransactions, refetchBalance])
-  
+
   useEffect(() => {
     handleRefresh()
   }, [handleRefresh])
@@ -81,7 +82,10 @@ export default function Index() {
 
           <QuickActions />
 
+
           <RecentTransactions />
+
+          <PromoCarousel />
 
           <TouchableOpacity activeOpacity={0.7} onPress={() => setShowRatingsModal(true)} className="bg-card border border-border/50 rounded-2xl p-4 shadow-none">
             <View className="flex-row items-center justify-between mb-3">
@@ -91,7 +95,7 @@ export default function Index() {
                   Customer Reviews
                 </Text>
               </View>
-              <TouchableOpacity 
+              <TouchableOpacity
                 onPress={() => setShowRatingsModal(true)}
                 className="flex-row items-center"
               >

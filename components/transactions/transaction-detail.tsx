@@ -167,17 +167,23 @@ const TransactionDetail = () => {
   const handleCopyTransactionDetails = async () => {
     if (!transaction) return;
 
-    const transactionDetails = `
-Transaction Receipt
-------------------
-ID: ${transaction.id}
-${transaction.transaction_id ? `Reference: ${transaction.transaction_id}` : ''}
-Amount: ${formatNigerianNaira(transaction.amount || 0)}
-Status: ${transaction.status}
-Date: ${format(new Date(transaction.created_at), 'MMM dd, yyyy HH:mm')}
-${transaction.description ? `Description: ${transaction.description}` : ''}
-${transaction.meta_data && typeof transaction.meta_data === 'object' && 'phone' in transaction.meta_data ? `Phone: ${transaction.meta_data.phone}` : ''}
-    `.trim();
+    const transactionDetails = [
+      `🧾 TRANSACTION RECEIPT`,
+      `--------------------------------`,
+      `Amount: ${formatNigerianNaira(transaction.amount || 0)}`,
+      `Status: ${(transaction.status || 'pending').toUpperCase()}`,
+      `Date: ${format(new Date(transaction.created_at), 'MMM dd, yyyy, hh:mm a')}`,
+      ``,
+      `Reference: ${transaction.transaction_id || 'N/A'}`,
+      `ID: ${transaction.id}`,
+      ``,
+      transaction.description ? `Description: ${transaction.description}` : null,
+      (transaction.meta_data && typeof transaction.meta_data === 'object' && 'phone' in transaction.meta_data) ? `Phone: ${transaction.meta_data.phone}` : null,
+      (transaction.meta_data && typeof transaction.meta_data === 'object' && 'network' in transaction.meta_data) ? `Network: ${transaction.meta_data.network}` : null,
+      (transaction.meta_data && typeof transaction.meta_data === 'object' && 'token' in transaction.meta_data) ? `Token: ${transaction.meta_data.token}` : null,
+      ``,
+      `Powered by iSubscribe`
+    ].filter(Boolean).join('\n');
 
     await Clipboard.setStringAsync(transactionDetails);
     Toast.show({
@@ -702,45 +708,14 @@ ${transaction.meta_data && typeof transaction.meta_data === 'object' && 'phone' 
         </ViewShot>
 
         {/* Action Buttons */}
-        <View className="px-5 gap-y-3 flex flex-row justify-between py-4">
+        <View className="px-5 pb-8 pt-2">
           <TouchableOpacity
-            className="rounded-xl overflow-hidden items-center justify-center py-2 px-4 bg-primary"
-            activeOpacity={0.8}
-            onPress={handleShareReceipt}
-            disabled={isCapturing}
-          >
-            <View className="flex-row items-center">
-              {isCapturing ? (
-                <>
-                  <ActivityIndicator color="white" size="small" />
-                </>
-              ) : (
-                <>
-                  <Ionicons name="share" size={22} color="white" />
-                </>
-              )}
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            className="rounded-xl py-2 px-4 bg-card border border-border/50"
-            activeOpacity={0.8}
-            onPress={handleSaveReceipt}
-            disabled={isCapturing}
-          >
-            <View className="flex-row items-center justify-center">
-              <Ionicons name="download" size={22} color={colors.primary} />
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            className="rounded-xl py-2 px-4 bg-card border border-border/50"
-            activeOpacity={0.8}
             onPress={handleCopyTransactionDetails}
+            activeOpacity={0.8}
+            className="w-full bg-primary rounded-2xl py-4 flex-row items-center justify-center shadow-sm"
           >
-            <View className="flex-row items-center justify-center">
-              <Ionicons name="copy" size={22} color={colors.primary} />
-            </View>
+            <Ionicons name="copy-outline" size={22} color="white" />
+            <Text className="text-white font-bold text-base ml-2">Copy Transaction Details</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

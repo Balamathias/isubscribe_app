@@ -94,24 +94,25 @@ const TransactionAnalytics = () => {
                                     );
                                 }}
                             />
-                            <Text className="text-foreground text-center my-10">Pie Chart Placeholder</Text>
                         </View>
 
-                        <View className="flex-1 ml-4 space-y-2">
+                        <View className="flex-1 ml-4 gap-y-2">
                             {analytics.by_category.slice(0, 4).map((cat, idx) => (
                                 <View key={idx} className="flex-row items-center justify-between">
                                     <View className="flex-row items-center flex-1 mr-2">
                                         <View style={{ backgroundColor: cat.color }} className="w-2.5 h-2.5 rounded-full mr-2" />
                                         <Text className="text-xs text-foreground font-medium" numberOfLines={1}>{cat.name}</Text>
                                     </View>
-                                    <Text className="text-xs text-muted-foreground font-semibold">
-                                        {Math.round((cat.value / analytics.total_spent) * 100)}%
-                                    </Text>
+                                    <View className="items-end">
+                                        <Text className="text-xs text-foreground font-semibold">
+                                            {analytics.currency}{cat.value.toLocaleString()}
+                                        </Text>
+                                        <Text className="text-xs text-muted-foreground">
+                                            {Math.round((cat.value / analytics.total_spent) * 100)}%
+                                        </Text>
+                                    </View>
                                 </View>
                             ))}
-                            {analytics.by_category.length > 4 && (
-                                <Text className="text-xs text-muted-foreground mt-1">+ {analytics.by_category.length - 4} more</Text>
-                            )}
                         </View>
                     </View>
                 ) : (
@@ -129,9 +130,28 @@ const TransactionAnalytics = () => {
                             noOfSections={4}
                             maxValue={maxValue * 1.2}
                         />
-                        <Text className="text-foreground text-center my-10">Bar Chart Placeholder</Text>
                     </View>
                 )}
+            </View>
+
+            <View className="mt-6 gap-y-3">
+                <Text className="text-sm font-semibold text-foreground mb-2">Detailed Breakdown</Text>
+                {analytics.by_category.map((cat, idx) => (
+                    <View key={idx} className="flex-row items-center justify-between p-3 bg-muted/30 rounded-lg">
+                        <View className="flex-row items-center">
+                            <View style={{ backgroundColor: cat.color }} className="w-3 h-3 rounded-full mr-3" />
+                            <Text className="text-sm text-foreground font-medium">{cat.name}</Text>
+                        </View>
+                        <View className="items-end">
+                            <Text className="text-sm font-bold text-foreground">
+                                {analytics.currency}{cat.value.toLocaleString()}
+                            </Text>
+                            <Text className="text-xs text-muted-foreground">
+                                {Math.round((cat.value / analytics.total_spent) * 100)}%
+                            </Text>
+                        </View>
+                    </View>
+                ))}
             </View>
         </View>
     );

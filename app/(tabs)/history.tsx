@@ -34,7 +34,7 @@ const History = () => {
         {activeTab === 'list' ? (
           <ListTransactions />
         ) : (
-          <ScrollView className="flex-1 px-4" showsVerticalScrollIndicator={false}>
+          <ScrollView className="flex-1 px-4">
             <TransactionAnalytics />
           </ScrollView>
         )}

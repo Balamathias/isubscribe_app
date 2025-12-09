@@ -8,6 +8,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '@/constants/colors';
 import { WebView } from 'react-native-webview';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import * as WebBrowser from 'expo-web-browser';
+import BottomSheet from '@/components/ui/bottom-sheet';
 
 const { width } = Dimensions.get('window');
 
@@ -21,35 +23,48 @@ const PromoCarousel = () => {
     const [activeUrl, setActiveUrl] = useState<string>('');
     const [activeTitle, setActiveTitle] = useState<string>('');
 
+    const [optionsSheetVisible, setOptionsSheetVisible] = useState(false);
+    const [selectedBanner, setSelectedBanner] = useState<PromoBanner | null>(null);
+
     const banners = bannersResponse?.data || [];
 
-    const handlePress = async (banner: PromoBanner) => {
+    const handlePress = (banner: PromoBanner) => {
         if (!banner.cta_link) return;
+        setSelectedBanner(banner);
+        setOptionsSheetVisible(true);
+    };
 
-        setLoadingMap(prev => ({ ...prev, [banner.id]: true }));
+    const handleOpenOption = async (option: 'app' | 'browser') => {
+        if (!selectedBanner) return;
+
+        setOptionsSheetVisible(false);
+        setLoadingMap(prev => ({ ...prev, [selectedBanner.id]: true }));
 
         try {
-            // Generate magic link if possible to auto-login user in the webview
-            const response = await generateWebAuthLink(banner.cta_link);
+            const response = await generateWebAuthLink(selectedBanner.cta_link);
+            const targetUrl = response?.data?.url || selectedBanner.cta_link;
 
-            if (response?.error) {
-                console.warn("Auto-login failed, falling back to direct link:", response.error);
+            if (option === 'app') {
+                setActiveUrl(targetUrl);
+                setActiveTitle(selectedBanner.title);
+                setModalVisible(true);
+            } else {
+                await WebBrowser.openBrowserAsync(targetUrl);
             }
-
-            const targetUrl = response?.data?.url || banner.cta_link;
-
-            setActiveUrl(targetUrl);
-            setActiveTitle(banner.title);
-            setModalVisible(true);
 
         } catch (e) {
             console.error(e);
             // Fallback to direct link
-            setActiveUrl(banner.cta_link);
-            setActiveTitle(banner.title);
-            setModalVisible(true);
+            const targetUrl = selectedBanner.cta_link;
+            if (option === 'app') {
+                setActiveUrl(targetUrl);
+                setActiveTitle(selectedBanner.title);
+                setModalVisible(true);
+            } else {
+                await WebBrowser.openBrowserAsync(targetUrl);
+            }
         } finally {
-            setLoadingMap(prev => ({ ...prev, [banner.id]: false }));
+            setLoadingMap(prev => ({ ...prev, [selectedBanner.id]: false }));
         }
     };
 
@@ -166,6 +181,44 @@ const PromoCarousel = () => {
                     />
                 </SafeAreaView>
             </Modal>
+
+            <BottomSheet
+                isVisible={optionsSheetVisible}
+                onClose={() => setOptionsSheetVisible(false)}
+                title={selectedBanner?.title || "Choose Option"}
+            >
+                <View className="gap-y-3 py-2">
+                    <Text className="text-muted-foreground text-sm mb-2">How would you like to open this link?</Text>
+
+                    <TouchableOpacity
+                        onPress={() => handleOpenOption('app')}
+                        className="flex-row items-center p-3 bg-muted/30 rounded-xl border border-border/40 active:bg-muted/50"
+                    >
+                        <View className="w-10 h-10 rounded-full bg-primary/10 items-center justify-center mr-3">
+                            <Ionicons name="phone-portrait-outline" size={16} color={COLORS.light.primary} />
+                        </View>
+                        <View className="flex-1">
+                            <Text className="font-semibold text-foreground text-sm">Open in App</Text>
+                            <Text className="text-muted-foreground text-xs">Best for quick viewing</Text>
+                        </View>
+                        <Ionicons name="chevron-forward" size={16} color={COLORS.light.mutedForeground} />
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        onPress={() => handleOpenOption('browser')}
+                        className="flex-row items-center p-3 bg-muted/30 rounded-xl border border-border/40 active:bg-muted/50"
+                    >
+                        <View className="w-10 h-10 rounded-full bg-blue-500/10 items-center justify-center mr-3">
+                            <Ionicons name="browsers-outline" size={16} color="#3b82f6" />
+                        </View>
+                        <View className="flex-1">
+                            <Text className="font-semibold text-foreground text-sm">Open in Browser</Text>
+                            <Text className="text-muted-foreground text-xs">Use Chrome/Safari (Google Login)</Text>
+                        </View>
+                        <Ionicons name="chevron-forward" size={16} color={COLORS.light.mutedForeground} />
+                    </TouchableOpacity>
+                </View>
+            </BottomSheet>
         </View>
     );
 };

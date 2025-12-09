@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Image, StyleSheet } from 'react-native';
-import { useGetRecentDataPurchases, useProcessTransaction, useVerifyPin } from '@/services/api-hooks';
+import { useGetRecentDataPurchases, useProcessTransaction, useVerifyPin, useGetWalletBalance } from '@/services/api-hooks';
 import { useSession } from '@/components/session-context';
 import { useLocalAuth } from '@/hooks/useLocalAuth';
 import { COLORS } from '@/constants/colors';
@@ -25,6 +25,8 @@ const NETWORK_LOGOS: Record<string, any> = {
 const QuickDataBuy = () => {
     const { data: recentPurchasesResponse, isLoading } = useGetRecentDataPurchases();
     const { mutateAsync: processTransaction, isPending: isProcessing, data: transactionData, error: transactionError } = useProcessTransaction();
+    const { data: walletData } = useGetWalletBalance();
+    const balance = walletData?.data?.balance || 0;
     const { mutateAsync: verifyPinMutation } = useVerifyPin();
     const { refetchBalance, refetchTransactions, user } = useSession();
     const { authenticate, isBiometricEnabled } = useLocalAuth();
@@ -35,6 +37,8 @@ const QuickDataBuy = () => {
     const [isPinPadVisible, setPinPadVisible] = useState(false);
     const [isStatusModalVisible, setStatusModalVisible] = useState(false);
     const [loadingText, setLoadingText] = useState('');
+
+    const insufficientFunds = selectedPurchase ? balance < selectedPurchase.amount : false;
 
     const purchases = recentPurchasesResponse?.data || [];
 
@@ -228,9 +232,12 @@ const QuickDataBuy = () => {
                             </TouchableOpacity>
                             <TouchableOpacity
                                 onPress={handleConfirmPurchase}
-                                className="flex-1 py-3 rounded-xl bg-primary items-center justify-center"
+                                disabled={insufficientFunds}
+                                className={`flex-1 py-3 rounded-xl items-center justify-center ${insufficientFunds ? 'bg-muted' : 'bg-primary'}`}
                             >
-                                <Text className="text-white font-semibold">Confirm & Pay</Text>
+                                <Text className={`${insufficientFunds ? 'text-muted-foreground' : 'text-white'} font-semibold`}>
+                                    {insufficientFunds ? 'Insufficient Funds' : 'Confirm & Pay'}
+                                </Text>
                             </TouchableOpacity>
                         </View>
                     </View>

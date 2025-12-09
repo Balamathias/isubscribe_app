@@ -626,3 +626,37 @@ export const generateWebAuthLink = async (targetUrl?: string): Promise<Response<
         }
     }
 }
+
+export interface TransactionAnalytics {
+    total_spent: number;
+    by_category: {
+        name: string;
+        value: number;
+        count: number;
+        color: string;
+        legendFontColor: string;
+        legendFontSize: number;
+    }[];
+    monthly_trend: {
+        label: string;
+        value: number;
+        date: string;
+    }[];
+    currency: string;
+}
+
+export const getTransactionAnalytics = async (): Promise<Response<TransactionAnalytics | null>> => {
+    try {
+        const { data, status } = await microservice.get('/mobile/analytics/transactions/')
+        return data
+    } catch (error: any) {
+        return {
+            data: null,
+            error: {
+                message: error?.response?.data?.message || error?.message
+            },
+            status: error?.response?.status,
+            message: error?.response?.data?.message || error?.message
+        }
+    }
+}

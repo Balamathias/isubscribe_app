@@ -29,6 +29,7 @@ import {
     listPromoBanners,
     generateWebAuthLink,
     getRecentDataPurchases,
+    getTransactionAnalytics,
 } from "./api";
 
 export const QUERY_KEYS = {
@@ -61,6 +62,7 @@ export const QUERY_KEYS = {
     updateProfile: 'updateProfile',
     listPromoBanners: 'listPromoBanners',
     generateWebAuthLink: 'generateWebAuthLink',
+    getAnalytics: 'getAnalytics',
 } as const
 
 export const useGetAccount = (id?: string) => useQuery({
@@ -240,4 +242,9 @@ export const useListPromoBanners = () => useQuery({
 export const useGenerateWebAuthLink = () => useMutation({
     mutationKey: [QUERY_KEYS.generateWebAuthLink],
     mutationFn: generateWebAuthLink,
+});
+
+export const useGetAnalytics = () => useQuery({
+    queryKey: [QUERY_KEYS.getAnalytics],
+    queryFn: getTransactionAnalytics,
 });

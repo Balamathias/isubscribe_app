@@ -2,7 +2,7 @@
   "expo": {
     "name": "isubscribe",
     "slug": "isubscribe_app",
-    "version": "1.0.4",
+    "version": "1.0.5",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "com.isubscribe",

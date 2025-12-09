@@ -65,14 +65,14 @@ const TransactionDetail = () => {
       // Share configuration differs between platforms
       const shareOptions = Platform.OS === 'ios'
         ? {
-            url: shareUri,
-            title: 'Transaction Receipt',
-          }
+          url: shareUri,
+          title: 'Transaction Receipt',
+        }
         : {
-            url: shareUri,
-            message: 'Transaction Receipt from iSubscribe',
-            title: 'Transaction Receipt',
-          };
+          url: shareUri,
+          message: 'Transaction Receipt from iSubscribe',
+          title: 'Transaction Receipt',
+        };
 
       const result = await Share.share(shareOptions);
       return result;
@@ -264,9 +264,9 @@ ${transaction.meta_data && typeof transaction.meta_data === 'object' && 'phone' 
   return (
     <SafeAreaView edges={['bottom']} className="flex-1 bg-background">
       <Header title={transaction.title} />
-      
-      <ScrollView 
-        className="flex-1" 
+
+      <ScrollView
+        className="flex-1"
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 32 }}
       >
@@ -363,7 +363,7 @@ ${transaction.meta_data && typeof transaction.meta_data === 'object' && 'phone' 
                 </View>
                 <Text className="text-lg font-bold text-foreground ml-3">Service Details</Text>
               </View>
-              
+
               <View className="space-y-4">
                 {'phone' in transaction.meta_data && (
                   <>
@@ -415,7 +415,7 @@ ${transaction.meta_data && typeof transaction.meta_data === 'object' && 'phone' 
                           Toast.show({ type: 'success', text1: 'Token copied!' });
                         }}
                         className="flex-row items-center px-3 py-2 rounded-xl"
-                       
+
                       >
                         <Ionicons name="copy" size={14} color={colors.primary} />
                         <Text className="text-primary text-xs font-semibold ml-1.5">Copy</Text>
@@ -456,7 +456,7 @@ ${transaction.meta_data && typeof transaction.meta_data === 'object' && 'phone' 
                 </View>
                 <Text className="text-lg font-bold text-foreground ml-3">Education Results</Text>
               </View>
-              
+
               {/* UTME/JAMB Pins */}
               {pins.length > 0 && (
                 <View className="mb-6">
@@ -479,7 +479,7 @@ ${transaction.meta_data && typeof transaction.meta_data === 'object' && 'phone' 
                           }}
                           activeOpacity={0.7}
                           className="flex-row items-center px-3 py-2 rounded-xl"
-                         
+
                         >
                           <Text className="text-primary font-bold text-lg mr-2">{pin}</Text>
                           <Ionicons name="copy-outline" size={16} color={colors.primary} />
@@ -512,7 +512,7 @@ ${transaction.meta_data && typeof transaction.meta_data === 'object' && 'phone' 
                           }}
                           activeOpacity={0.7}
                           className="flex-row items-center px-3 py-2 rounded-xl"
-                         
+
                         >
                           <Text className="text-primary font-bold text-base mr-2">{card.Serial}</Text>
                           <Ionicons name="copy-outline" size={14} color={colors.primary} />
@@ -533,7 +533,7 @@ ${transaction.meta_data && typeof transaction.meta_data === 'object' && 'phone' 
                           }}
                           activeOpacity={0.7}
                           className="flex-row items-center px-3 py-2 rounded-xl"
-                         
+
                         >
                           <Text className="text-primary font-bold text-base mr-2">{card.Pin}</Text>
                           <Ionicons name="copy-outline" size={14} color={colors.primary} />
@@ -615,7 +615,7 @@ ${transaction.meta_data && typeof transaction.meta_data === 'object' && 'phone' 
                 <Text style={{ fontSize: 18, fontWeight: '600', color: '#000000', marginBottom: 24 }}>
                   Transaction Details
                 </Text>
-                
+
                 <View style={{ gap: 16 }}>
                   {transaction.transaction_id && (
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -709,17 +709,17 @@ ${transaction.meta_data && typeof transaction.meta_data === 'object' && 'phone' 
             onPress={handleShareReceipt}
             disabled={isCapturing}
           >
-              <View className="flex-row items-center">
-                {isCapturing ? (
-                  <>
-                    <ActivityIndicator color="white" size="small" />
-                  </>
-                ) : (
-                  <>
-                    <Ionicons name="share" size={22} color="white" />
-                  </>
-                )}
-              </View>
+            <View className="flex-row items-center">
+              {isCapturing ? (
+                <>
+                  <ActivityIndicator color="white" size="small" />
+                </>
+              ) : (
+                <>
+                  <Ionicons name="share" size={22} color="white" />
+                </>
+              )}
+            </View>
           </TouchableOpacity>
 
           <TouchableOpacity

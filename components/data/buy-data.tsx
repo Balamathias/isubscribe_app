@@ -14,6 +14,7 @@ import { useSession } from '../session-context';
 import { COLORS } from '@/constants/colors';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import QuickDataBuy from './quick-data-buy';
 
 const buyDataSchema = z.object({
   phoneNumber: z.string().min(10, 'Phone number must be at least 10 digits').regex(/^[0-9]+$/, 'Phone number must contain only digits'),
@@ -60,7 +61,7 @@ const BuyDataScreen = () => {
 
   const handleBundleCardPress = async (bundle: any) => {
     const isValid = await trigger('phoneNumber');
-    
+
     if (isValid) {
       handleCardPress(bundle);
     } else {
@@ -105,18 +106,19 @@ const BuyDataScreen = () => {
   return (
     <SafeAreaView edges={['bottom']} className="flex-1 bg-background/40 h-full">
       <Header />
-      <ScrollView 
-        showsVerticalScrollIndicator={false} 
+      <ScrollView
+        showsVerticalScrollIndicator={false}
         className="flex-1 p-4"
         refreshControl={
-          <RefreshControl 
+          <RefreshControl
             refreshing={loadingDataPlans}
             onRefresh={refetchDataPlans}
             colors={[COLORS.light.primary]}
           />
         }
       >
-       <View className=' bg-background p-4 py-1 rounded-xl shadow-sm mb-4'>
+
+        <View className=' bg-background p-4 py-1 rounded-xl shadow-sm mb-4'>
           <Controller
             control={control}
             name="phoneNumber"
@@ -135,7 +137,7 @@ const BuyDataScreen = () => {
             )}
           />
 
-       </View>
+        </View>
 
         <NetworkSelector
           networks={networks}
@@ -149,6 +151,8 @@ const BuyDataScreen = () => {
           onSelectCategory={handleSelectCategory}
         />
 
+        {/* <QuickDataBuy /> */}
+
         <Text className="text-foreground text-xl font-bold mt-8 mb-4 ml-2">{activeCategory} Bundles</Text>
         <View className="flex flex-1 flex-row flex-wrap gap-x-3 gap-y-3 pb-6 bg-background p-4 rounded-xl shadow-sm mb-6">
           {!bundles || bundles.length === 0 ? (
@@ -156,12 +160,12 @@ const BuyDataScreen = () => {
               <Ionicons name="wifi-outline" size={48} color={COLORS.light.mutedForeground} />
               <Text className="text-foreground text-lg font-semibold mt-4 mb-2">No bundles available</Text>
               <Text className="text-muted-foreground text-center">
-                {selectedNetworkId ? 
+                {selectedNetworkId ?
                   `No ${activeCategory.toLowerCase()} bundles available for ${selectedNetworkId.toUpperCase()}, or refresh.` :
                   'Please select a network to view available bundles, or refresh.'
                 }
               </Text>
-              <TouchableOpacity 
+              <TouchableOpacity
                 onPress={() => {
                   refetchDataPlans();
                   refetchBeneficiaries?.();
@@ -169,10 +173,10 @@ const BuyDataScreen = () => {
                 className="mt-4 bg-primary/10 px-4 py-2 rounded-lg flex-row items-center justify-center"
                 disabled={loadingDataPlans}
               >
-                <Ionicons 
-                  name="refresh" 
-                  size={20} 
-                  color={COLORS.light.primary} 
+                <Ionicons
+                  name="refresh"
+                  size={20}
+                  color={COLORS.light.primary}
                   style={{ marginRight: 8 }}
                 />
                 <Text className="text-primary font-medium">
@@ -195,13 +199,13 @@ const BuyDataScreen = () => {
         </View>
 
         <DataBundleDetailsModal
-            isVisible={isModalVisible}
-            onClose={closeModal}
-            selectedBundleDetails={selectedBundleDetails}
-            onSubmit={handleSubmit(onSubmit)}
-            networkId={selectedNetworkId || 'mtn'}
-            phoneNumber={getValues('phoneNumber')}
-            category={activeCategory.toLowerCase()}
+          isVisible={isModalVisible}
+          onClose={closeModal}
+          selectedBundleDetails={selectedBundleDetails}
+          onSubmit={handleSubmit(onSubmit)}
+          networkId={selectedNetworkId || 'mtn'}
+          phoneNumber={getValues('phoneNumber')}
+          category={activeCategory.toLowerCase()}
         />
       </ScrollView>
 
@@ -211,10 +215,10 @@ const BuyDataScreen = () => {
 
 
 export const networks = [
-    { id: 'mtn', name: 'MTN', logo: require('@/assets/services/mtn.png') },
-    { id: 'glo', name: 'GLO', logo: require('@/assets/services/glo.png') },
-    { id: 'airtel', name: 'Airtel', logo: require('@/assets/services/airtel.png') },
-    { id: '9mobile', name: '9MOBILE', logo: require('@/assets/services/9mobile.png') },
+  { id: 'mtn', name: 'MTN', logo: require('@/assets/services/mtn.png') },
+  { id: 'glo', name: 'GLO', logo: require('@/assets/services/glo.png') },
+  { id: 'airtel', name: 'Airtel', logo: require('@/assets/services/airtel.png') },
+  { id: '9mobile', name: '9MOBILE', logo: require('@/assets/services/9mobile.png') },
 ];
 
 

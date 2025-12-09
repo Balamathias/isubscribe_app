@@ -5,9 +5,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React from 'react';
 import { Text, TouchableOpacity, useColorScheme, View } from 'react-native';
-import Animated, { 
-  useAnimatedStyle, 
-  withRepeat, 
+import Animated, {
+  useAnimatedStyle,
+  withRepeat,
   withTiming,
   useSharedValue,
   withSequence
@@ -47,7 +47,7 @@ const TransactionSkeleton = () => {
   }));
 
   return (
-    <Animated.View 
+    <Animated.View
       style={animatedStyle}
       className="bg-card p-4 rounded-xl mb-3 flex-row items-center justify-between shadow-sm"
     >
@@ -137,7 +137,7 @@ export const TransactionItem: React.FC<TransactionItemProps> = ({
 };
 
 interface TransactionProps {
-  
+
 }
 
 const EmptyState = ({ isAuthenticated, colors }: { isAuthenticated: boolean, colors: any }) => {
@@ -149,16 +149,16 @@ const EmptyState = ({ isAuthenticated, colors }: { isAuthenticated: boolean, col
         <Text className="text-muted-foreground text-center mb-4 hidden">
           Please sign in to your account to view your transaction history
         </Text>
-        <TouchableOpacity 
+        <TouchableOpacity
           onPress={() => router.push('/auth/login')}
           className="bg-primary px-6 py-3 rounded-xl flex flex-row gap-x-1 items-center overflow-hidden"
         >
           <LinearGradient
-                          colors={[colors.primary, '#e65bf8']}
-                          start={{ x: 0, y: 0 }}
-                          end={{ x: 1, y: 0 }}
-                          className="absolute inset-0 rounded-xl"
-                                    />
+            colors={[colors.primary, '#e65bf8']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            className="absolute inset-0 rounded-xl"
+          />
           <Ionicons name='log-in-outline' color={'white'} size={18} />
           <Text className="text-white font-semibold">Sign In</Text>
         </TouchableOpacity>
@@ -177,14 +177,14 @@ const EmptyState = ({ isAuthenticated, colors }: { isAuthenticated: boolean, col
   );
 };
 
-const RecentTransactions = ({}: TransactionProps) => {
+const RecentTransactions = ({ }: TransactionProps) => {
   const { user, latestTransactions: loadedTransactions, loadingTransactions } = useSession();
-    const colorScheme = useColorScheme()
-    const theme = colorScheme === 'dark' ? 'dark' : 'light'
-    const colors = COLORS[theme]
+  const colorScheme = useColorScheme()
+  const theme = colorScheme === 'dark' ? 'dark' : 'light'
+  const colors = COLORS[theme]
 
   return (
-    <View className="mt-6">
+    <View className="mt-2">
       <View className="flex-row justify-between items-center mb-4">
         <Text className="text-foreground font-bold text-lg">Recent Transactions</Text>
         <TouchableOpacity onPress={() => router.push(`/history`)}>

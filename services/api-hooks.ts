@@ -28,6 +28,7 @@ import {
     updateProfile,
     listPromoBanners,
     generateWebAuthLink,
+    getRecentDataPurchases,
 } from "./api";
 
 export const QUERY_KEYS = {
@@ -36,6 +37,7 @@ export const QUERY_KEYS = {
     getUserProfile: 'getUserProfile',
     getWalletBalance: 'getWalletBalance',
     getLatestTransactions: 'getLatestTransactions',
+    getRecentDataPurchases: 'getRecentDataPurchases',
     getTransactions: 'getTransactions',
     getTransaction: 'getTransaction',
     processTransaction: 'processTransaction',
@@ -106,6 +108,14 @@ export const useGetLatestTransactions = () => useQuery({
     refetchOnWindowFocus: 'always',
     // Keep trying to fetch if it fails
     refetchOnReconnect: 'always',
+})
+
+export const useGetRecentDataPurchases = () => useQuery({
+    queryKey: [QUERY_KEYS.getRecentDataPurchases],
+    queryFn: getRecentDataPurchases,
+    // Transactions should be considered fresh for 1 minute
+    staleTime: 60 * 1000,
+    refetchOnMount: 'always',
 })
 
 export const useGetTransactions = (limit: number = 30, offset: number = 0) => useQuery({

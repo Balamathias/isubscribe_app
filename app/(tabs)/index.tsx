@@ -15,6 +15,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useCallback, useEffect, useState } from "react";
 import { Platform, RefreshControl, ScrollView, Text, TouchableOpacity, useColorScheme, View } from "react-native";
 import PromoCarousel from "@/components/home/promo-carousel";
+import QuickDataBuy from "@/components/data/quick-data-buy";
 
 
 export default function Index() {
@@ -82,10 +83,12 @@ export default function Index() {
 
           <QuickActions />
 
+          <QuickDataBuy />
+
+          <PromoCarousel />
 
           <RecentTransactions />
 
-          <PromoCarousel />
 
           <TouchableOpacity activeOpacity={0.7} onPress={() => setShowRatingsModal(true)} className="bg-card border border-border/50 rounded-2xl p-4 shadow-none">
             <View className="flex-row items-center justify-between mb-3">

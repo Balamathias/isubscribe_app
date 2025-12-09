@@ -21,6 +21,35 @@ export const getAccount = async (id?: string) => {
     return { data, error }
 }
 
+export interface RecentDataPurchase {
+    id: string
+    date: string
+    amount: number
+    phone: string
+    network: string
+    plan_id: string
+    plan_name: string
+    status?: string
+    category: string
+    meta_data: any
+}
+
+export const getRecentDataPurchases = async (): Promise<Response<RecentDataPurchase[]>> => {
+    try {
+        const { data, status } = await microservice.get('/mobile/quick-buy/data/')
+        return data
+    } catch (error: any) {
+        return {
+            data: [],
+            error: {
+                message: error?.response?.data?.message || error?.message
+            },
+            status: error?.response?.status,
+            message: error?.response?.data?.message || error?.message
+        }
+    }
+}
+
 export const generatePalmpayAccount = async () => {
     const { data: user, error: userError } = await getUserProfile()
 

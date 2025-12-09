@@ -10,10 +10,19 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { EvilIcons, Ionicons } from '@expo/vector-icons';
 
 interface Props {
+  /**
+   * Whether the spinner is pending or not.
+   * @default false
+   */
   isPending?: boolean;
+  /**
+   * Whether to show the background or not. Also affects gradient bar visibility.
+   * @default true
+   */
+  showBg?: boolean;
 }
 
-const LoadingSpinner: React.FC<Props> = ({ isPending }) => {
+const LoadingSpinner: React.FC<Props> = ({ isPending, showBg = true }) => {
   const screenWidth = Dimensions.get('window').width;
   const progressAnim = useRef(new Animated.Value(0)).current;
     const spinAnim = useRef(new Animated.Value(0)).current;
@@ -57,11 +66,11 @@ const LoadingSpinner: React.FC<Props> = ({ isPending }) => {
   if (!isPending) return null;
 
   return (
-    <View style={styles.overlay} className=' rounded-t-3xl'>
+    <View style={[styles.overlay, { backgroundColor: showBg ? 'rgba(0,0,0,0.3)' : 'transparent' }]} className=' rounded-t-3xl'>
       {/* Spinner in center */}
-      <View style={styles.spinnerBox}>
-        <ActivityIndicator size="large" color="#7C3AED" />
-      </View> 
+      {<View style={styles.spinnerBox}>
+        <ActivityIndicator size="large" color="#7C3AED" className='' />
+      </View>}
 
      {/* <View style={styles.spinnerBox}>
         <Animated.View style={{ transform: [{ rotate: spin }] }}>
@@ -71,14 +80,14 @@ const LoadingSpinner: React.FC<Props> = ({ isPending }) => {
       </View> */}
 
       {/* Animated Gradient Progress Bar */}
-      <Animated.View style={[styles.animatedBar, { left: progressAnim }]}>
+      { showBg && <Animated.View style={[styles.animatedBar, { left: progressAnim }]}>
         <LinearGradient
           colors={['#7C3AED', '#DB2777', '#A21CAF']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
           style={styles.gradientBar}
         />
-      </Animated.View>
+      </Animated.View>}
     </View>
   );
 };

@@ -78,18 +78,8 @@ const Accounts = () => {
       ) : !hasPalmPayAccount && !hasReservedAccount ? (
         renderNoAccountsMessage()
       ) : (
-        <View className='mt-6'>          
+        <View className='mt-0'>          
           <View className="flex-col md:flex-row justify-center items-center gap-4 gap-y-8">
-            {hasPalmPayAccount && (
-              <CreditCard
-                colors={['#6017b9', '#af5eed', '#31033d']}
-                accountNumber={account?.palmpay_account_number || '**********'}
-                bankName={'Palmpay'}
-                accountName={account?.palmpay_account_name || '****** ******'}
-                onCopy={() => handleCopy(account?.palmpay_account_number || '')}
-              />
-            )}
-
             {hasReservedAccount && (
               <CreditCard
                 colors={['#5f4808', '#4c0a2d', '#131d37']}
@@ -97,6 +87,16 @@ const Accounts = () => {
                 bankName="Moniepoint"
                 accountName={"iSubscribe Network Technology.-" + account?.account_name}
                 onCopy={() => handleCopy(account?.account_number || '')}
+              />
+            )}
+
+            {hasPalmPayAccount && (
+              <CreditCard
+                colors={['#6017b9', '#af5eed', '#31033d']}
+                accountNumber={account?.palmpay_account_number || '**********'}
+                bankName={'Palmpay'}
+                accountName={account?.palmpay_account_name || '****** ******'}
+                onCopy={() => handleCopy(account?.palmpay_account_number || '')}
               />
             )}
           </View>

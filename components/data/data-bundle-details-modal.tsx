@@ -114,9 +114,8 @@ const DataBundleDetailsModal: React.FC<DataBundleDetailsModalProps> = ({
       }
 
       if (isInsufficientFunds) {
-        const paymentMethodName = selectedPaymentMethod === 'wallet' ? 'wallet' : 'Data Bonus';
-        Alert.alert("Insufficient Funds", `You do not have enough funds in your ${paymentMethodName} to complete this transaction.`);
-        return;
+        router.push(`/accounts`)
+        return
       }
 
       if (isBiometricEnabled) {
@@ -244,7 +243,7 @@ const DataBundleDetailsModal: React.FC<DataBundleDetailsModalProps> = ({
               className="rounded-xl py-3 sm:py-4 overflow-hidden bg-primary flex flex-row items-center justify-center gap-x-1 mb-4"
               onPress={handleProceed}
               activeOpacity={0.5}
-              disabled={!user || isInsufficientFunds} 
+              disabled={isPending}
             >
               <LinearGradient
                 colors={[colors.primary, '#e65bf8']}
@@ -253,7 +252,7 @@ const DataBundleDetailsModal: React.FC<DataBundleDetailsModalProps> = ({
                 className="absolute inset-0"
               />
               {!user && <Ionicons size={18} name='log-in-outline' color={'white'} />}
-              <Text className="text-primary-foreground text-base sm:text-lg font-bold">{user ? 'Proceed' : 'Login'}</Text>
+              <Text className="text-primary-foreground text-base sm:text-lg font-bold">{user ? (isInsufficientFunds ? 'Fund Wallet' : 'Proceed') : 'Login'}</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>

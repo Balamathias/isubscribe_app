@@ -3,250 +3,472 @@ import { performOAuth } from '@/services/auth';
 import { useSignIn } from '@/services/auth-hooks';
 import { Ionicons } from '@expo/vector-icons';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { ActivityIndicator, Image, KeyboardTypeOptions, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Animated,
+  Dimensions,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+  useColorScheme,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import * as z from 'zod';
-import IsubscribeLogo from './logo-isubscribe';
 import { ScrollView } from 'react-native';
 
+const { width, height } = Dimensions.get('window');
+
 const loginSchema = z.object({
-  email: z.string().email('Invalid email address').min(1, 'Email is required'),
-  password: z.string().min(6, 'Password must be at least 6 characters').min(1, 'Password is required'),
+  email: z.string().email('Please enter a valid email').min(1, 'Email is required'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
 type LoginFormInputs = z.infer<typeof loginSchema>;
 
-interface CustomTextInputProps {
-  icon: keyof typeof Ionicons.glyphMap; // More specific typing for Ionicons
-  placeholder: string;
-  onChange: (text: string) => void;
-  value: string;
-  secureTextEntry?: boolean;
-  toggleVisibility?: () => void;
-  isPasswordVisible?: boolean;
-  error?: string;
-  keyboardType?: KeyboardTypeOptions;
-}
+// Floating orb component for background
+const FloatingOrb: React.FC<{
+  size: number;
+  color: string;
+  initialX: number;
+  initialY: number;
+  delay: number;
+}> = ({ size, color, initialX, initialY, delay }) => {
+  const translateY = useRef(new Animated.Value(0)).current;
+  const translateX = useRef(new Animated.Value(0)).current;
+  const scale = useRef(new Animated.Value(1)).current;
 
-const CustomTextInput: React.FC<CustomTextInputProps> = ({
-  icon, placeholder, onChange, value, secureTextEntry, toggleVisibility, isPasswordVisible, error, keyboardType = 'default'
-}) => {
-  const { colors } = useThemedColors()
+  useEffect(() => {
+    const animate = () => {
+      Animated.loop(
+        Animated.sequence([
+          Animated.parallel([
+            Animated.timing(translateY, {
+              toValue: 20,
+              duration: 3000 + delay,
+              useNativeDriver: true,
+            }),
+            Animated.timing(translateX, {
+              toValue: 10,
+              duration: 2500 + delay,
+              useNativeDriver: true,
+            }),
+            Animated.timing(scale, {
+              toValue: 1.1,
+              duration: 3000 + delay,
+              useNativeDriver: true,
+            }),
+          ]),
+          Animated.parallel([
+            Animated.timing(translateY, {
+              toValue: 0,
+              duration: 3000 + delay,
+              useNativeDriver: true,
+            }),
+            Animated.timing(translateX, {
+              toValue: 0,
+              duration: 2500 + delay,
+              useNativeDriver: true,
+            }),
+            Animated.timing(scale, {
+              toValue: 1,
+              duration: 3000 + delay,
+              useNativeDriver: true,
+            }),
+          ]),
+        ])
+      ).start();
+    };
+    animate();
+  }, []);
+
   return (
-    <View className="mb-1 pb-24">
-      <View className={`flex-row items-center bg-card border rounded-2xl px-4 py-4 shadow-sm ${
-        error ? 'border-destructive' : 'border-border'
-      }`}>
-        <Ionicons name={icon} size={20} color={error ? colors.destructive : colors.mutedForeground} className="mr-3" />
-        <TextInput
-          className="flex-1 text-base text-foreground"
-          placeholder={placeholder}
-          placeholderTextColor={colors.mutedForeground}
-          onChangeText={onChange}
-          value={value}
-          secureTextEntry={secureTextEntry}
-          keyboardType={keyboardType}
-          autoCapitalize="none"
-        />
-        {secureTextEntry !== undefined && (
-          <TouchableOpacity onPress={toggleVisibility} className="p-1 active:scale-95">
-            <Ionicons 
-              name={isPasswordVisible ? "eye-off-outline" : "eye-outline"} 
-              size={20} 
-              color={colors.mutedForeground} 
-            />
-          </TouchableOpacity>
-        )}
-      </View>
-      {error && (
-        <Text className="text-destructive text-xs mt-1 ml-3 font-medium">{error}</Text>
-      )}
-    </View>
+    <Animated.View
+      style={{
+        position: 'absolute',
+        left: initialX,
+        top: initialY,
+        width: size,
+        height: size,
+        borderRadius: size / 2,
+        backgroundColor: color,
+        opacity: 0.6,
+        transform: [{ translateY }, { translateX }, { scale }],
+      }}
+    />
   );
 };
 
-const LoginForm = () => {
-  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+// Premium Input Component
+const PremiumInput: React.FC<{
+  icon: keyof typeof Ionicons.glyphMap;
+  placeholder: string;
+  value: string;
+  onChangeText: (text: string) => void;
+  secureTextEntry?: boolean;
+  keyboardType?: 'default' | 'email-address';
+  error?: string;
+  autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
+}> = ({
+  icon,
+  placeholder,
+  value,
+  onChangeText,
+  secureTextEntry = false,
+  keyboardType = 'default',
+  error,
+  autoCapitalize = 'none',
+}) => {
+    const { colors } = useThemedColors();
+    const colorScheme = useColorScheme();
+    const isDark = colorScheme === 'dark';
+    const [isFocused, setIsFocused] = useState(false);
+    const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+    const borderAnim = useRef(new Animated.Value(0)).current;
 
-  const { mutate: signIn, isPending } = useSignIn()
+    const handleFocus = () => {
+      setIsFocused(true);
+      Animated.spring(borderAnim, {
+        toValue: 1,
+        useNativeDriver: false,
+        tension: 50,
+        friction: 7,
+      }).start();
+    };
+
+    const handleBlur = () => {
+      setIsFocused(false);
+      Animated.spring(borderAnim, {
+        toValue: 0,
+        useNativeDriver: false,
+        tension: 50,
+        friction: 7,
+      }).start();
+    };
+
+    const borderColor = borderAnim.interpolate({
+      inputRange: [0, 1],
+      outputRange: [
+        error ? '#ef4444' : isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
+        '#7B2FF2',
+      ],
+    });
+
+    const bgColor = borderAnim.interpolate({
+      inputRange: [0, 1],
+      outputRange: [
+        isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.8)',
+        isDark ? 'rgba(123,47,242,0.1)' : 'rgba(123,47,242,0.05)',
+      ],
+    });
+
+    return (
+      <View className="mb-4">
+        <Animated.View
+          style={{
+            borderWidth: 1.5,
+            borderColor,
+            backgroundColor: bgColor,
+            borderRadius: 16,
+            overflow: 'hidden',
+          }}
+        >
+          <View className="flex-row items-center px-4 h-14">
+            <Ionicons
+              name={icon}
+              size={20}
+              color={isFocused ? '#7B2FF2' : error ? '#ef4444' : colors.mutedForeground}
+              style={{ marginRight: 12 }}
+            />
+            <TextInput
+              className="flex-1 text-foreground text-base"
+              placeholder={placeholder}
+              placeholderTextColor={colors.mutedForeground}
+              value={value}
+              onChangeText={onChangeText}
+              secureTextEntry={secureTextEntry && !isPasswordVisible}
+              keyboardType={keyboardType}
+              autoCapitalize={autoCapitalize}
+              onFocus={handleFocus}
+              onBlur={handleBlur}
+              style={{ fontSize: 16 }}
+            />
+            {secureTextEntry && (
+              <TouchableOpacity
+                onPress={() => setIsPasswordVisible(!isPasswordVisible)}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <Ionicons
+                  name={isPasswordVisible ? 'eye-off' : 'eye'}
+                  size={20}
+                  color={colors.mutedForeground}
+                />
+              </TouchableOpacity>
+            )}
+          </View>
+        </Animated.View>
+        {error && (
+          <View className="flex-row items-center mt-2 ml-1">
+            <Ionicons name="alert-circle" size={14} color="#ef4444" />
+            <Text className="text-red-500 text-xs ml-1.5 font-medium">{error}</Text>
+          </View>
+        )}
+      </View>
+    );
+  };
+
+const LoginForm = () => {
+  const { colors } = useThemedColors();
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(30)).current;
+
+  const { mutate: signIn, isPending } = useSignIn();
 
   const { control, handleSubmit, formState: { errors } } = useForm<LoginFormInputs>({
     resolver: zodResolver(loginSchema),
-    defaultValues: {
-      email: '',
-      password: '',
-    },
+    defaultValues: { email: '', password: '' },
   });
 
-  const togglePasswordVisibility = () => {
-    setIsPasswordVisible(!isPasswordVisible);
-  };
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+      Animated.spring(slideAnim, {
+        toValue: 0,
+        tension: 50,
+        friction: 8,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
 
   const onSubmit = (data: LoginFormInputs) => {
     signIn(data, {
       onSuccess: () => {
-        router.replace(`/`)
-        Toast.show({
-          type: `success`,
-          text1: `Signed in successfully.`
-        })
+        router.replace('/');
+        Toast.show({ type: 'success', text1: 'Welcome back!', text2: 'Signed in successfully' });
       },
       onError: (error) => {
-        Toast.show({
-          type: `error`,
-          text1: `Sign In failed!`,
-          text2: error?.message
-        })
-      }
-    })
+        Toast.show({ type: 'error', text1: 'Sign in failed', text2: error?.message });
+      },
+    });
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-background">
-      <ScrollView contentContainerClassName="flex-1 px-6 py-4 justify-center">
-        {/* Header Section */}
-        <View className="items-center mb-12">          
-          {/* Icon with background */}
-          <View className="w-20 h-20 rounded-full bg-primary/10 items-center justify-center mb-6 mt-8">
-            <Ionicons name="log-in-outline" size={32} color="#7B2FF2" />
-          </View>
-          
-          <Text className="text-foreground text-2xl font-bold mb-3">Welcome Back</Text>
-          <Text className="text-muted-foreground text-center text-base leading-6 px-4">
-            Sign in to your account to continue managing your subscriptions
-          </Text>
-        </View>
+    <View className="flex-1 bg-background">
+      {/* Background gradient */}
+      <LinearGradient
+        colors={isDark
+          ? ['#0a0a0a', '#1a0a2e', '#0a0a0a']
+          : ['#faf5ff', '#f3e8ff', '#fdf4ff']
+        }
+        style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+      />
 
-        {/* Google Sign In */}
-        <TouchableOpacity 
-          onPress={performOAuth} 
-          className="flex-row items-center bg-card border border-border rounded-2xl px-6 py-4 shadow-sm w-full justify-center mb-6 active:scale-95"
-          style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4 }}
+      {/* Floating orbs */}
+      <FloatingOrb size={200} color={isDark ? 'rgba(123,47,242,0.15)' : 'rgba(123,47,242,0.1)'} initialX={-50} initialY={100} delay={0} />
+      <FloatingOrb size={150} color={isDark ? 'rgba(243,87,168,0.15)' : 'rgba(243,87,168,0.1)'} initialX={width - 100} initialY={200} delay={500} />
+      <FloatingOrb size={100} color={isDark ? 'rgba(123,47,242,0.1)' : 'rgba(123,47,242,0.08)'} initialX={50} initialY={height - 300} delay={1000} />
+
+      <SafeAreaView className="flex-1">
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          className="flex-1"
         >
-          <Image source={require('@/assets/images/google-icon.png')} className="w-5 h-5 mr-3" />
-          <Text className="text-foreground font-semibold text-base">Continue with Google</Text>
-        </TouchableOpacity>
-
-        {/* Divider */}
-        <View className="flex-row items-center w-full mb-6">
-          <View className="flex-1 h-px bg-border" />
-          <Text className="text-muted-foreground mx-4 text-sm font-medium">or sign in with email</Text>
-          <View className="flex-1 h-px bg-border" />
-        </View>
-
-        {/* Form Section */}
-        <View className="mb-6">
-          {/* Email */}
-          <View className="mb-4">
-            <Text className="text-foreground text-sm font-semibold mb-2">Email Address</Text>
-            <Controller
-              control={control}
-              name="email"
-              render={({ field: { onChange, value } }) => (
-                <CustomTextInput
-                  icon="mail-outline"
-                  placeholder="Enter your email address"
-                  value={value}
-                  onChange={onChange}
-                  keyboardType="email-address"
-                  error={errors.email?.message}
-                />
-              )}
-            />
-          </View>
-
-          {/* Password */}
-          <View className="mb-4">
-            <View className="flex-row justify-between items-center mb-2">
-              <Text className="text-foreground text-sm font-semibold">Password</Text>
-              <TouchableOpacity onPress={() => router.push('/auth/forgot-password')} className="active:scale-95">
-                <Text className="text-primary text-sm font-medium">Forgot?</Text>
-              </TouchableOpacity>
-            </View>
-            <Controller
-              control={control}
-              name="password"
-              render={({ field: { onChange, value } }) => (
-                <CustomTextInput
-                  icon="lock-closed-outline"
-                  placeholder="Enter your password"
-                  value={value}
-                  onChange={onChange}
-                  secureTextEntry={!isPasswordVisible}
-                  toggleVisibility={togglePasswordVisibility}
-                  isPasswordVisible={isPasswordVisible}
-                  error={errors.password?.message}
-                />
-              )}
-            />
-          </View>
-        </View>
-
-        {/* Sign In Button */}
-        <TouchableOpacity 
-          onPress={handleSubmit(onSubmit)} 
-          disabled={isPending}
-          className="w-full rounded-2xl overflow-hidden mb-8 active:scale-98"
-          style={{ 
-            shadowColor: '#7B2FF2', 
-            shadowOffset: { width: 0, height: 4 }, 
-            shadowOpacity: 0.3, 
-            shadowRadius: 8,
-            elevation: 8 
-          }}
-        >
-          <LinearGradient
-            colors={['#7B2FF2', '#F357A8']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            className="py-4 items-center justify-center rounded-2xl"
+          <ScrollView
+            contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
           >
-            {isPending ? (
-              <View className="flex-row items-center">
-                <ActivityIndicator color="white" size="small" />
-                <Text className="text-white font-bold text-lg ml-2">Signing In...</Text>
+            <Animated.View
+              style={{
+                opacity: fadeAnim,
+                transform: [{ translateY: slideAnim }],
+              }}
+              className={'px-2'}
+            >
+              {/* Logo & Header */}
+              <View className="items-center mb-10">
+                <View className="mb-6">
+                  <Image source={require('@/assets/images/logo-icon.png')} className="w-20 h-20" />
+                </View>
+                <Text className="text-foreground text-3xl font-bold tracking-tight mb-2">
+                  Welcome back
+                </Text>
+                <Text className="text-muted-foreground text-base text-center">
+                  Sign in to continue to isubscribe
+                </Text>
               </View>
-            ) : (
-              <View className="flex-row items-center">
-                <Ionicons name="log-in-outline" size={20} color="white" />
-                <Text className="text-white font-bold text-lg ml-2">Sign In</Text>
+
+              {/* Form Card */}
+              <View
+                className="rounded-3xl p-6 mb-6"
+                style={{
+                  backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.7)',
+                  borderWidth: 1,
+                  borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 10 },
+                  shadowOpacity: isDark ? 0.3 : 0.1,
+                  shadowRadius: 30,
+                  elevation: 10,
+                }}
+              >
+                {/* Google Sign In */}
+                <TouchableOpacity
+                  onPress={performOAuth}
+                  activeOpacity={0.8}
+                  className="mb-6"
+                  style={{
+                    backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#fff',
+                    borderRadius: 14,
+                    borderWidth: 1,
+                    borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.05,
+                    shadowRadius: 8,
+                    elevation: 2,
+                  }}
+                >
+                  <View className="flex-row items-center justify-center py-3.5">
+                    <Image
+                      source={require('@/assets/images/google-icon.png')}
+                      style={{ width: 20, height: 20, marginRight: 12 }}
+                    />
+                    <Text className="text-foreground font-semibold text-base">
+                      Continue with Google
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+
+                {/* Divider */}
+                <View className="flex-row items-center mb-6">
+                  <View className="flex-1 h-px" style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)' }} />
+                  <Text className="text-muted-foreground text-xs mx-4 uppercase tracking-widest font-medium">
+                    or
+                  </Text>
+                  <View className="flex-1 h-px" style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)' }} />
+                </View>
+
+                {/* Email Input */}
+                <Controller
+                  control={control}
+                  name="email"
+                  render={({ field: { onChange, value } }) => (
+                    <PremiumInput
+                      icon="mail-outline"
+                      placeholder="Email address"
+                      value={value}
+                      onChangeText={onChange}
+                      keyboardType="email-address"
+                      error={errors.email?.message}
+                    />
+                  )}
+                />
+
+                {/* Password Input */}
+                <Controller
+                  control={control}
+                  name="password"
+                  render={({ field: { onChange, value } }) => (
+                    <PremiumInput
+                      icon="lock-closed-outline"
+                      placeholder="Password"
+                      value={value}
+                      onChangeText={onChange}
+                      secureTextEntry
+                      error={errors.password?.message}
+                    />
+                  )}
+                />
+
+                {/* Forgot Password */}
+                <TouchableOpacity
+                  onPress={() => router.push('/auth/forgot-password')}
+                  className="self-end mb-6"
+                >
+                  <Text className="text-primary font-semibold text-sm">
+                    Forgot password?
+                  </Text>
+                </TouchableOpacity>
+
+                {/* Sign In Button */}
+                <TouchableOpacity
+                  onPress={handleSubmit(onSubmit)}
+                  disabled={isPending}
+                  activeOpacity={0.9}
+                >
+                  <LinearGradient
+                    colors={isPending ? ['#9ca3af', '#9ca3af'] : ['#7B2FF2', '#9333ea', '#F357A8']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={{
+                      borderRadius: 14,
+                      paddingVertical: 16,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      shadowColor: '#7B2FF2',
+                      shadowOffset: { width: 0, height: 8 },
+                      shadowOpacity: isPending ? 0 : 0.4,
+                      shadowRadius: 16,
+                      elevation: isPending ? 0 : 10,
+                    }}
+                  >
+                    {isPending ? (
+                      <ActivityIndicator color="white" size="small" />
+                    ) : (
+                      <Text className="text-white font-bold text-base tracking-wide">
+                        Sign In
+                      </Text>
+                    )}
+                  </LinearGradient>
+                </TouchableOpacity>
               </View>
-            )}
-          </LinearGradient>
-        </TouchableOpacity>
 
-        {/* Sign Up Link */}
-        <View className="flex-row justify-center items-center mb-6">
-          <Text className="text-muted-foreground text-base">Don't have an account? </Text>
-          <TouchableOpacity onPress={() => router.push('/auth/register')} className="active:scale-95">
-            <Text className="text-primary font-semibold text-base">Create Account</Text>
-          </TouchableOpacity>
-        </View>
+              {/* Sign Up Link */}
+              <View className="flex-row justify-center items-center">
+                <Text className="text-muted-foreground text-base">
+                  Don't have an account?{' '}
+                </Text>
+                <TouchableOpacity onPress={() => router.push('/auth/register')}>
+                  <Text className="text-primary font-bold text-base">
+                    Sign up
+                  </Text>
+                </TouchableOpacity>
+              </View>
 
-        {/* Terms Notice */}
-        <Text className="text-muted-foreground text-center text-xs leading-5 px-4">
-          By signing in, you agree to our{' '}
-          <Text 
-            className="text-primary text-xs font-medium" 
-            onPress={() => router.push('/terms')}
-          >
-            Terms of Service
-          </Text>
-          {' '}and{' '}
-          <Text 
-            className="text-primary text-xs font-medium" 
-            onPress={() => router.push('/privacy')}
-          >
-            Privacy Policy
-          </Text>
-        </Text>
-      </ScrollView>
-    </SafeAreaView>
+              {/* Terms */}
+              <Text className="text-muted-foreground/60 text-center text-xs mt-8 leading-5 px-4">
+                By continuing, you agree to our{' '}
+                <Text className="text-primary/80" onPress={() => router.push('/terms')}>
+                  Terms of Service
+                </Text>
+                {' '}and{' '}
+                <Text className="text-primary/80 mb-16" onPress={() => router.push('/privacy')}>
+                  Privacy Policy
+                </Text>
+              </Text>
+            </Animated.View>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </View>
   );
 };
 

@@ -5,313 +5,488 @@ import { Ionicons } from '@expo/vector-icons';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { ActivityIndicator, Image, KeyboardTypeOptions, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Animated,
+  Dimensions,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+  useColorScheme,
+  ScrollView,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import * as z from 'zod';
-import IsubscribeLogo from './logo-isubscribe';
 
-interface CustomTextInputProps {
-  icon: keyof typeof Ionicons.glyphMap;
-  placeholder: string;
-  onChange: (text: string) => void;
-  value: string;
-  secureTextEntry?: boolean;
-  toggleVisibility?: () => void;
-  isPasswordVisible?: boolean;
-  error?: string;
-  keyboardType?: KeyboardTypeOptions;
-}
-
-const CustomTextInput: React.FC<CustomTextInputProps> = ({
-  icon, placeholder, onChange, value, secureTextEntry, toggleVisibility, isPasswordVisible, error, keyboardType = 'default'
-}) => {
-  const { colors } = useThemedColors();
-  return (
-    <View className="mb-1 pb-24">
-      <View className={`flex-row items-center bg-card border rounded-2xl px-4 py-4 shadow-sm ${
-        error ? 'border-destructive' : 'border-border'
-      }`}>
-        <Ionicons name={icon} size={20} color={error ? colors.destructive : colors.mutedForeground} className="mr-3" />
-        <TextInput
-          className="flex-1 text-base text-foreground"
-          placeholder={placeholder}
-          placeholderTextColor={colors.mutedForeground}
-          onChangeText={onChange}
-          value={value}
-          secureTextEntry={secureTextEntry}
-          keyboardType={keyboardType}
-          autoCapitalize="none"
-        />
-        {secureTextEntry !== undefined && (
-          <TouchableOpacity onPress={toggleVisibility} className="p-1 active:scale-95">
-            <Ionicons 
-              name={isPasswordVisible ? "eye-off-outline" : "eye-outline"} 
-              size={20} 
-              color={colors.mutedForeground} 
-            />
-          </TouchableOpacity>
-        )}
-      </View>
-      {error && (
-        <Text className="text-destructive text-xs mt-1 ml-3 font-medium">{error}</Text>
-      )}
-    </View>
-  );
-};
+const { width, height } = Dimensions.get('window');
 
 const registerSchema = z.object({
-  fullName: z.string().min(1, 'Full Name is required'),
-  phoneNumber: z.string().min(10, 'Phone Number must be at least 10 digits').max(15, 'Phone Number cannot exceed 15 digits').regex(/^[0-9]+$/, 'Phone Number must contain only digits'),
-  email: z.string().email('Invalid email address').min(1, 'Email is required'),
-  password: z.string().min(6, 'Password must be at least 6 characters').min(1, 'Password is required'),
-  confirmPassword: z.string().min(1, 'Confirm Password is required'),
+  fullName: z.string().min(2, 'Name must be at least 2 characters'),
+  phoneNumber: z.string()
+    .min(10, 'Phone must be at least 10 digits')
+    .max(15, 'Phone cannot exceed 15 digits')
+    .regex(/^[0-9]+$/, 'Phone must contain only digits'),
+  email: z.string().email('Please enter a valid email'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
+  confirmPassword: z.string().min(1, 'Please confirm your password'),
 }).refine((data) => data.password === data.confirmPassword, {
-  message: 'Passwords don\'t match',
+  message: 'Passwords do not match',
   path: ['confirmPassword'],
 });
 
 type RegisterFormInputs = z.infer<typeof registerSchema>;
 
-const RegisterForm = () => {
-  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-  const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] = useState(false);
+// Floating orb component
+const FloatingOrb: React.FC<{
+  size: number;
+  color: string;
+  initialX: number;
+  initialY: number;
+  delay: number;
+}> = ({ size, color, initialX, initialY, delay }) => {
+  const translateY = useRef(new Animated.Value(0)).current;
+  const translateX = useRef(new Animated.Value(0)).current;
 
-  const { mutate: register, isPending } = useSignUp()
-
-  const { control, handleSubmit, formState: { errors }, getValues } = useForm<RegisterFormInputs>({
-    resolver: zodResolver(registerSchema),
-    defaultValues: {
-      fullName: '',
-      phoneNumber: '',
-      email: '',
-      password: '',
-      confirmPassword: '',
-    },
-  });
-
-  const togglePasswordVisibility = () => {
-    setIsPasswordVisible(!isPasswordVisible);
-  };
-
-  const toggleConfirmPasswordVisibility = () => {
-    setIsConfirmPasswordVisible(!isConfirmPasswordVisible);
-  };
-
-  const onSubmit = (data: RegisterFormInputs) => {
-    register({
-      email: data.email,
-      password: data.password,
-      metadata: {
-        phone: data.phoneNumber,
-        full_name: data.fullName,
-      }
-    }, {
-      onSuccess: (data) => {
-        if (data?.error) {
-          throw new Error(data?.message)
-        } else {
-          Toast.show({
-            type: 'success',
-            text1: 'Success',
-            text2: 'Account created successfully!',
-          })
-
-          router.replace(`/auth/verify-otp?email=${data?.data?.user?.email || getValues('email')}`)
-        }
-      },
-      onError: (error) => {
-        Toast.show({
-          type: 'error',
-          text1: 'Error!',
-          text2: error?.message
-        })
-      }
-    })
-  };
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.parallel([
+          Animated.timing(translateY, { toValue: 15, duration: 2500 + delay, useNativeDriver: true }),
+          Animated.timing(translateX, { toValue: 8, duration: 2000 + delay, useNativeDriver: true }),
+        ]),
+        Animated.parallel([
+          Animated.timing(translateY, { toValue: 0, duration: 2500 + delay, useNativeDriver: true }),
+          Animated.timing(translateX, { toValue: 0, duration: 2000 + delay, useNativeDriver: true }),
+        ]),
+      ])
+    ).start();
+  }, []);
 
   return (
-    <SafeAreaView className="flex-1 bg-background">
-      <View className="flex-1 px-4 py-4">
-        <View className="items-center mb-8 mt-4">
-          <IsubscribeLogo />
-          <Text className="text-foreground text-2xl font-bold mt-6 mb-2">Create Account</Text>
-          <Text className="text-muted-foreground text-center text-base">
-            Join thousands of users managing their subscriptions
-          </Text>
-        </View>
-
-        <TouchableOpacity 
-          onPress={performOAuth} 
-          className="flex-row items-center bg-card border border-border rounded-2xl px-6 py-4 shadow-sm w-full justify-center mb-6 active:scale-95"
-          style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4 }}
-        >
-          <Image source={require('../../assets/images/google-icon.png')} className="w-5 h-5 mr-3" />
-          <Text className="text-foreground font-semibold text-base">Continue with Google</Text>
-        </TouchableOpacity>
-
-        <View className="flex-row items-center w-full mb-6">
-          <View className="flex-1 h-px bg-border" />
-          <Text className="text-muted-foreground mx-4 text-sm font-medium">or sign up with email</Text>
-          <View className="flex-1 h-px bg-border" />
-        </View>
-
-        <View className="flex-1">
-          <View className="mb-4">
-            <Text className="text-foreground text-sm font-semibold mb-2">Full Name</Text>
-            <Controller
-              control={control}
-              name="fullName"
-              render={({ field: { onChange, value } }) => (
-                <CustomTextInput
-                  icon="person-outline"
-                  placeholder="Enter your full name"
-                  value={value}
-                  onChange={onChange}
-                  error={errors.fullName?.message}
-                />
-              )}
-            />
-          </View>
-
-          <View className="mb-4">
-            <Text className="text-foreground text-sm font-semibold mb-2">Phone Number</Text>
-            <Controller
-              control={control}
-              name="phoneNumber"
-              render={({ field: { onChange, value } }) => (
-                <CustomTextInput
-                  icon="call-outline"
-                  placeholder="e.g., 08012345678"
-                  value={value}
-                  onChange={onChange}
-                  keyboardType="phone-pad"
-                  error={errors.phoneNumber?.message}
-                />
-              )}
-            />
-          </View>
-
-          <View className="mb-4">
-            <Text className="text-foreground text-sm font-semibold mb-2">Email Address</Text>
-            <Controller
-              control={control}
-              name="email"
-              render={({ field: { onChange, value } }) => (
-                <CustomTextInput
-                  icon="mail-outline"
-                  placeholder="your-email@example.com"
-                  value={value}
-                  onChange={onChange}
-                  keyboardType="email-address"
-                  error={errors.email?.message}
-                />
-              )}
-            />
-          </View>
-
-          {/* Password Row */}
-          <View className="flex-row gap-3 mb-4">
-            <View className="flex-1">
-              <Text className="text-foreground text-sm font-semibold mb-2">Password</Text>
-              <Controller
-                control={control}
-                name="password"
-                render={({ field: { onChange, value } }) => (
-                  <CustomTextInput
-                    icon="lock-closed-outline"
-                    placeholder="••••••"
-                    value={value}
-                    onChange={onChange}
-                    secureTextEntry={!isPasswordVisible}
-                    toggleVisibility={togglePasswordVisibility}
-                    isPasswordVisible={isPasswordVisible}
-                    error={errors.password?.message}
-                  />
-                )}
-              />
-            </View>
-            <View className="flex-1">
-              <Text className="text-foreground text-sm font-semibold mb-2">Confirm</Text>
-              <Controller
-                control={control}
-                name="confirmPassword"
-                render={({ field: { onChange, value } }) => (
-                  <CustomTextInput
-                    icon="lock-closed-outline"
-                    placeholder="••••••"
-                    value={value}
-                    onChange={onChange}
-                    secureTextEntry={!isConfirmPasswordVisible}
-                    toggleVisibility={toggleConfirmPasswordVisibility}
-                    isPasswordVisible={isConfirmPasswordVisible}
-                    error={errors.confirmPassword?.message}
-                  />
-                )}
-              />
-            </View>
-          </View>
-
-            <View className="mb-6">
-            <Text className="text-muted-foreground text-center text-xs leading-5">
-              By creating an account, you agree to our{' '}
-              <Text 
-              className="text-primary text-xs font-medium" 
-              onPress={() => router.push('/terms')}
-              >
-              Terms of Service
-              </Text>
-              {' '}and{' '}
-              <Text 
-              className="text-primary text-xs font-medium" 
-              onPress={() => router.push('/privacy')}
-              >
-              Privacy Policy
-              </Text>
-            </Text>
-            </View>
-
-          <TouchableOpacity 
-            onPress={handleSubmit(onSubmit)} 
-            className="w-full rounded-2xl overflow-hidden mb-6 active:scale-98"
-            disabled={isPending}
-            style={{ 
-              shadowColor: '#7B2FF2', 
-              shadowOffset: { width: 0, height: 4 }, 
-              shadowOpacity: 0.3, 
-              shadowRadius: 8,
-              elevation: 8 
-            }}
-          >
-            <LinearGradient
-              colors={['#7B2FF2', '#F357A8']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              className="py-4 items-center justify-center rounded-2xl"
-            >
-              {isPending ? (
-                <View className="flex-row items-center">
-                  <ActivityIndicator color="white" size="small" />
-                  <Text className="text-white font-bold text-lg ml-2">Creating Account...</Text>
-                </View>
-              ) : (
-                <Text className="text-white font-bold text-lg">Create Account</Text>
-              )}
-            </LinearGradient>
-          </TouchableOpacity>
-
-          <View className="flex-row justify-center items-center">
-            <Text className="text-muted-foreground text-base">Already have an account? </Text>
-            <TouchableOpacity onPress={() => router.push('/auth/login')} className="active:scale-95">
-              <Text className="text-primary font-semibold text-base">Sign In</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
-    </SafeAreaView>
+    <Animated.View
+      style={{
+        position: 'absolute',
+        left: initialX,
+        top: initialY,
+        width: size,
+        height: size,
+        borderRadius: size / 2,
+        backgroundColor: color,
+        opacity: 0.5,
+        transform: [{ translateY }, { translateX }],
+      }}
+    />
   );
 };
 
-export default RegisterForm; 
+// Premium Input Component
+const PremiumInput: React.FC<{
+  icon: keyof typeof Ionicons.glyphMap;
+  placeholder: string;
+  value: string;
+  onChangeText: (text: string) => void;
+  secureTextEntry?: boolean;
+  keyboardType?: 'default' | 'email-address' | 'phone-pad';
+  error?: string;
+  autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
+}> = ({
+  icon,
+  placeholder,
+  value,
+  onChangeText,
+  secureTextEntry = false,
+  keyboardType = 'default',
+  error,
+  autoCapitalize = 'none',
+}) => {
+  const { colors } = useThemedColors();
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const [isFocused, setIsFocused] = useState(false);
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const borderAnim = useRef(new Animated.Value(0)).current;
+
+  const handleFocus = () => {
+    setIsFocused(true);
+    Animated.spring(borderAnim, { toValue: 1, useNativeDriver: false, tension: 50, friction: 7 }).start();
+  };
+
+  const handleBlur = () => {
+    setIsFocused(false);
+    Animated.spring(borderAnim, { toValue: 0, useNativeDriver: false, tension: 50, friction: 7 }).start();
+  };
+
+  const borderColor = borderAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [
+      error ? '#ef4444' : isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
+      '#7B2FF2',
+    ],
+  });
+
+  const bgColor = borderAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [
+      isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.9)',
+      isDark ? 'rgba(123,47,242,0.1)' : 'rgba(123,47,242,0.05)',
+    ],
+  });
+
+  return (
+    <View className="mb-3">
+      <Animated.View
+        style={{
+          borderWidth: 1.5,
+          borderColor,
+          backgroundColor: bgColor,
+          borderRadius: 14,
+          overflow: 'hidden',
+        }}
+      >
+        <View className="flex-row items-center px-4 h-[52px]">
+          <Ionicons
+            name={icon}
+            size={18}
+            color={isFocused ? '#7B2FF2' : error ? '#ef4444' : colors.mutedForeground}
+            style={{ marginRight: 12 }}
+          />
+          <TextInput
+            className="flex-1 text-foreground"
+            placeholder={placeholder}
+            placeholderTextColor={colors.mutedForeground}
+            value={value}
+            onChangeText={onChangeText}
+            secureTextEntry={secureTextEntry && !isPasswordVisible}
+            keyboardType={keyboardType}
+            autoCapitalize={autoCapitalize}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
+            style={{ fontSize: 15 }}
+          />
+          {secureTextEntry && (
+            <TouchableOpacity
+              onPress={() => setIsPasswordVisible(!isPasswordVisible)}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Ionicons
+                name={isPasswordVisible ? 'eye-off' : 'eye'}
+                size={18}
+                color={colors.mutedForeground}
+              />
+            </TouchableOpacity>
+          )}
+        </View>
+      </Animated.View>
+      {error && (
+        <View className="flex-row items-center mt-1.5 ml-1">
+          <Ionicons name="alert-circle" size={12} color="#ef4444" />
+          <Text className="text-red-500 text-xs ml-1 font-medium">{error}</Text>
+        </View>
+      )}
+    </View>
+  );
+};
+
+// Password Strength Component
+const PasswordStrength: React.FC<{ password: string }> = ({ password }) => {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+
+  const getStrength = () => {
+    let s = 0;
+    if (password.length >= 6) s++;
+    if (password.length >= 8) s++;
+    if (/[A-Z]/.test(password)) s++;
+    if (/[0-9]/.test(password)) s++;
+    if (/[^A-Za-z0-9]/.test(password)) s++;
+    return s;
+  };
+
+  const strength = getStrength();
+  const labels = ['Very weak', 'Weak', 'Fair', 'Good', 'Strong'];
+  const colors = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#10b981'];
+
+  if (!password) return null;
+
+  return (
+    <View className="mb-3 mt-1">
+      <View className="flex-row gap-1">
+        {[0, 1, 2, 3, 4].map((i) => (
+          <View
+            key={i}
+            className="flex-1 h-1 rounded-full"
+            style={{
+              backgroundColor: i < strength
+                ? colors[strength - 1]
+                : isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
+            }}
+          />
+        ))}
+      </View>
+      <Text
+        className="text-xs mt-1.5 font-medium"
+        style={{ color: strength > 0 ? colors[strength - 1] : isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)' }}
+      >
+        {strength > 0 ? labels[strength - 1] : ''}
+      </Text>
+    </View>
+  );
+};
+
+const RegisterForm = () => {
+  const { colors } = useThemedColors();
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(40)).current;
+
+  const { mutate: register, isPending } = useSignUp();
+
+  const { control, handleSubmit, formState: { errors }, getValues, watch } = useForm<RegisterFormInputs>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: { fullName: '', phoneNumber: '', email: '', password: '', confirmPassword: '' },
+  });
+
+  const password = watch('password');
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }),
+      Animated.spring(slideAnim, { toValue: 0, tension: 50, friction: 9, useNativeDriver: true }),
+    ]).start();
+  }, []);
+
+  const onSubmit = (data: RegisterFormInputs) => {
+    register(
+      { email: data.email, password: data.password, metadata: { phone: data.phoneNumber, full_name: data.fullName } },
+      {
+        onSuccess: (res) => {
+          if (res?.error) throw new Error(res?.message);
+          Toast.show({ type: 'success', text1: 'Account created!', text2: 'Please verify your email' });
+          router.replace(`/auth/verify-otp?email=${res?.data?.user?.email || getValues('email')}`);
+        },
+        onError: (error) => {
+          Toast.show({ type: 'error', text1: 'Registration failed', text2: error?.message });
+        },
+      }
+    );
+  };
+
+  return (
+    <View className="flex-1 bg-background">
+      {/* Background */}
+      <LinearGradient
+        colors={isDark ? ['#0a0a0a', '#1a0a2e', '#0f0520'] : ['#faf5ff', '#f3e8ff', '#fdf4ff']}
+        style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+      />
+
+      {/* Orbs */}
+      <FloatingOrb size={180} color={isDark ? 'rgba(123,47,242,0.12)' : 'rgba(123,47,242,0.08)'} initialX={-60} initialY={80} delay={0} />
+      <FloatingOrb size={120} color={isDark ? 'rgba(243,87,168,0.12)' : 'rgba(243,87,168,0.08)'} initialX={width - 80} initialY={150} delay={400} />
+      <FloatingOrb size={90} color={isDark ? 'rgba(123,47,242,0.08)' : 'rgba(123,47,242,0.06)'} initialX={30} initialY={height - 250} delay={800} />
+
+      <SafeAreaView className="flex-1">
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
+          <ScrollView
+            contentContainerStyle={{ flexGrow: 1 }}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
+            <Animated.View
+              style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}
+            >
+              {/* Header */}
+              <View className="items-center mb-6">
+                <View className="mb-4">
+                  <View className="mb-6">
+                    <Image source={require('@/assets/images/logo-icon.png')} className="w-20 h-20" />
+                  </View>
+                </View>
+                <Text className="text-foreground text-2xl font-bold tracking-tight mb-1">
+                  Create account
+                </Text>
+                <Text className="text-muted-foreground text-sm text-center">
+                  Join isubscribe today
+                </Text>
+              </View>
+
+              {/* Form Card */}
+              <View
+                className="rounded-3xl p-5 mb-5"
+                style={{
+                  backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.75)',
+                  borderWidth: 1,
+                  borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 8 },
+                  shadowOpacity: isDark ? 0.25 : 0.08,
+                  shadowRadius: 24,
+                  elevation: 8,
+                }}
+              >
+                {/* Google */}
+                <TouchableOpacity
+                  onPress={performOAuth}
+                  activeOpacity={0.8}
+                  className="mb-5"
+                  style={{
+                    backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#fff',
+                    borderRadius: 12,
+                    borderWidth: 1,
+                    borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
+                  }}
+                >
+                  <View className="flex-row items-center justify-center py-3">
+                    <Image source={require('../../assets/images/google-icon.png')} style={{ width: 18, height: 18, marginRight: 10 }} />
+                    <Text className="text-foreground font-semibold text-sm">Continue with Google</Text>
+                  </View>
+                </TouchableOpacity>
+
+                {/* Divider */}
+                <View className="flex-row items-center mb-5">
+                  <View className="flex-1 h-px" style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)' }} />
+                  <Text className="text-muted-foreground text-xs mx-3 uppercase tracking-widest font-medium">or</Text>
+                  <View className="flex-1 h-px" style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)' }} />
+                </View>
+
+                {/* Full Name */}
+                <Controller
+                  control={control}
+                  name="fullName"
+                  render={({ field: { onChange, value } }) => (
+                    <PremiumInput
+                      icon="person-outline"
+                      placeholder="Full name"
+                      value={value}
+                      onChangeText={onChange}
+                      autoCapitalize="words"
+                      error={errors.fullName?.message}
+                    />
+                  )}
+                />
+
+                {/* Phone */}
+                <Controller
+                  control={control}
+                  name="phoneNumber"
+                  render={({ field: { onChange, value } }) => (
+                    <PremiumInput
+                      icon="call-outline"
+                      placeholder="Phone number"
+                      value={value}
+                      onChangeText={onChange}
+                      keyboardType="phone-pad"
+                      error={errors.phoneNumber?.message}
+                    />
+                  )}
+                />
+
+                {/* Email */}
+                <Controller
+                  control={control}
+                  name="email"
+                  render={({ field: { onChange, value } }) => (
+                    <PremiumInput
+                      icon="mail-outline"
+                      placeholder="Email address"
+                      value={value}
+                      onChangeText={onChange}
+                      keyboardType="email-address"
+                      error={errors.email?.message}
+                    />
+                  )}
+                />
+
+                {/* Password */}
+                <Controller
+                  control={control}
+                  name="password"
+                  render={({ field: { onChange, value } }) => (
+                    <PremiumInput
+                      icon="lock-closed-outline"
+                      placeholder="Password"
+                      value={value}
+                      onChangeText={onChange}
+                      secureTextEntry
+                      error={errors.password?.message}
+                    />
+                  )}
+                />
+                <PasswordStrength password={password} />
+
+                {/* Confirm Password */}
+                <Controller
+                  control={control}
+                  name="confirmPassword"
+                  render={({ field: { onChange, value } }) => (
+                    <PremiumInput
+                      icon="shield-checkmark-outline"
+                      placeholder="Confirm password"
+                      value={value}
+                      onChangeText={onChange}
+                      secureTextEntry
+                      error={errors.confirmPassword?.message}
+                    />
+                  )}
+                />
+
+                {/* Terms */}
+                <Text className="text-muted-foreground/70 text-xs text-center leading-5 mb-4 mt-1">
+                  By creating an account, you agree to our{' '}
+                  <Text className="text-primary" onPress={() => router.push('/terms')}>Terms</Text>
+                  {' '}and{' '}
+                  <Text className="text-primary" onPress={() => router.push('/privacy')}>Privacy Policy</Text>
+                </Text>
+
+                {/* Submit */}
+                <TouchableOpacity onPress={handleSubmit(onSubmit)} disabled={isPending} activeOpacity={0.9}>
+                  <LinearGradient
+                    colors={isPending ? ['#9ca3af', '#9ca3af'] : ['#7B2FF2', '#9333ea', '#F357A8']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={{
+                      borderRadius: 14,
+                      paddingVertical: 15,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      shadowColor: '#7B2FF2',
+                      shadowOffset: { width: 0, height: 6 },
+                      shadowOpacity: isPending ? 0 : 0.35,
+                      shadowRadius: 14,
+                      elevation: isPending ? 0 : 8,
+                    }}
+                  >
+                    {isPending ? (
+                      <ActivityIndicator color="white" size="small" />
+                    ) : (
+                      <Text className="text-white font-bold text-base tracking-wide">Create Account</Text>
+                    )}
+                  </LinearGradient>
+                </TouchableOpacity>
+              </View>
+
+              {/* Sign In Link */}
+              <View className="flex-row justify-center items-center pb-4 mb-16">
+                <Text className="text-muted-foreground text-sm">Already have an account? </Text>
+                <TouchableOpacity onPress={() => router.push('/auth/login')}>
+                  <Text className="text-primary font-bold text-sm">Sign in</Text>
+                </TouchableOpacity>
+              </View>
+            </Animated.View>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </View>
+  );
+};
+
+export default RegisterForm;

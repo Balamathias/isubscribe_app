@@ -136,16 +136,6 @@ const FundWalletBottomSheet: React.FC<FundWalletBottomSheetProps> = ({ isVisible
   const renderPartialAccounts = () => (
     <View className="space-y-4">
       <View className="flex-col md:flex-row justify-center items-center gap-4">
-        {hasPalmPayAccount && (
-          <CreditCard
-            colors={['#a13ae1', '#740faa']}
-            accountNumber={account?.palmpay_account_number || '**********'}
-            bankName={'Palmpay'}
-            accountName={account?.palmpay_account_name || '****** ******'}
-            onCopy={() => handleCopy(account?.palmpay_account_number || '**********')}
-          />
-        )}
-
         {hasReservedAccount && (
           <CreditCard
             colors={['#6017b9', '#af5eed']}
@@ -153,6 +143,16 @@ const FundWalletBottomSheet: React.FC<FundWalletBottomSheetProps> = ({ isVisible
             bankName="Moniepoint"
             accountName={"iSubscribe Network Technology.-" + account?.account_name}
             onCopy={() => handleCopy(account?.account_number || '')}
+          />
+        )}
+
+        {hasPalmPayAccount && (
+          <CreditCard
+            colors={['#a13ae1', '#740faa']}
+            accountNumber={account?.palmpay_account_number || '**********'}
+            bankName={'Palmpay'}
+            accountName={account?.palmpay_account_name || '****** ******'}
+            onCopy={() => handleCopy(account?.palmpay_account_number || '**********')}
           />
         )}
       </View>

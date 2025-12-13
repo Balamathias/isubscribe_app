@@ -1,15 +1,19 @@
 import RegisterForm from '@/components/auth/register-form'
 import React from 'react'
-import { View, ScrollView, Text, useColorScheme } from 'react-native'
+import { StatusBar, useColorScheme, View } from 'react-native'
 
 const RegisterScreen = () => {
   const colorScheme = useColorScheme()
-  const theme = colorScheme === 'dark' ? 'dark' : 'light'
+  const isDark = colorScheme === 'dark'
+
   return (
-    <View className={"flex flex-1 bg-background min-h-full justify-center items-center w-full py-4" + ` ${theme}`}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}>
-        <RegisterForm />
-      </ScrollView>
+    <View className={`flex-1 bg-background ${isDark ? 'dark' : 'light'}`}>
+      <StatusBar
+        barStyle={isDark ? 'light-content' : 'dark-content'}
+        backgroundColor="transparent"
+        translucent
+      />
+      <RegisterForm />
     </View>
   )
 }

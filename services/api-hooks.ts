@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
     createRating,
     deleteAccount,
@@ -136,10 +136,18 @@ export const useGetTransaction = (id: string) => useQuery({
     queryFn: () => getTransaction(id),
 })
 
-export const useProcessTransaction = () => useMutation({
-    mutationKey: [QUERY_KEYS.processTransaction],
-    mutationFn: processTransaction,
-})
+export const useProcessTransaction = () => {
+    const queryClient = useQueryClient()
+    return useMutation({
+        mutationKey: [QUERY_KEYS.processTransaction],
+        mutationFn: processTransaction,
+        onSuccess: ({ data }) => {
+            if (data?.type == 'data_bundle' || data?.title?.startsWith('Data')) {
+                queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.getRecentDataPurchases] })
+            }
+        }
+    })
+}
 
 export const useVerifyPin = () => useMutation({
     mutationKey: [QUERY_KEYS.verifyPin],

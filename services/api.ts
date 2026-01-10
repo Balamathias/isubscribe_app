@@ -660,3 +660,92 @@ export const getTransactionAnalytics = async (): Promise<Response<TransactionAna
         }
     }
 }
+
+// ==============================================
+// Guest Checkout / Wallet Funding Types
+// ==============================================
+
+export type CheckoutChannel = 'airtime' | 'data_bundle' | 'wallet_fund'
+export type GuestPaymentStatus = 'pending' | 'paid' | 'expired' | 'failed'
+export type GuestFulfillmentStatus = 'pending' | 'processing' | 'success' | 'failed'
+
+export interface GuestCheckoutPayload {
+    channel: CheckoutChannel
+    amount: number
+    guest_email?: string
+    guest_phone?: string
+    recipient_phone?: string
+    network?: string
+    plan_id?: number
+    category?: 'best' | 'super' | 'regular'
+}
+
+export interface GuestTransactionInitResponse {
+    id: string
+    payment_reference: string
+    checkout_url: string
+    amount: number
+    cashback_amount: number
+    expires_at: string
+    channel: CheckoutChannel
+}
+
+export interface GuestTransactionStatusResponse {
+    id: string
+    payment_reference: string
+    payment_status: GuestPaymentStatus
+    fulfillment_status: GuestFulfillmentStatus
+    fulfillment_error?: string
+    amount: number
+    cashback_amount: number
+    created_at: string
+    expires_at: string
+}
+
+// ==============================================
+// Guest Checkout / Wallet Funding Functions
+// ==============================================
+
+/**
+ * Initiate a guest checkout transaction (wallet funding, airtime, data)
+ * Returns a payment reference and checkout URL for Monnify
+ */
+export const initiateGuestTransaction = async (
+    payload: GuestCheckoutPayload
+): Promise<Response<GuestTransactionInitResponse | null>> => {
+    try {
+        const { data, status } = await microservice.post('/mobile/guest/initiate/', payload)
+        return data
+    } catch (error: any) {
+        return {
+            data: null,
+            error: {
+                message: error?.response?.data?.message || error?.message
+            },
+            status: error?.response?.status,
+            message: error?.response?.data?.message || error?.message
+        }
+    }
+}
+
+/**
+ * Get the status of a guest checkout transaction
+ * Used for polling after Monnify payment completes
+ */
+export const getGuestTransactionStatus = async (
+    reference: string
+): Promise<Response<GuestTransactionStatusResponse | null>> => {
+    try {
+        const { data, status } = await microservice.get(`/mobile/guest/transaction/${reference}/`)
+        return data
+    } catch (error: any) {
+        return {
+            data: null,
+            error: {
+                message: error?.response?.data?.message || error?.message
+            },
+            status: error?.response?.status,
+            message: error?.response?.data?.message || error?.message
+        }
+    }
+}

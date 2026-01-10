@@ -8,11 +8,12 @@ import { useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { colorScheme as nwColorScheme, useColorScheme } from 'nativewind';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Appearance, FlatList, Pressable, Switch, Text, View } from 'react-native';
+import { ActivityIndicator, Appearance, FlatList, Modal, Pressable, Switch, Text, TouchableOpacity, View } from 'react-native';
 import Toast from 'react-native-toast-message';
 import { useSession } from '../session-context';
 import BottomSheet from '../ui/bottom-sheet';
 import DeleteAccountModal from './delete-account-modal';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export function SettingsList() {
   const queryClient = useQueryClient();
@@ -25,6 +26,7 @@ export function SettingsList() {
   const { mutate: logout, isPending: loggingOut } = useSignOut();
   const { user, refetchTransactions } = useSession();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const THEME_STORAGE_KEY = '@isubscribe_theme_mode';
   const [showThemeSheet, setShowThemeSheet] = useState(false);
@@ -122,7 +124,7 @@ export function SettingsList() {
       icon: 'notifications-outline',
       type: 'toggle',
       value: false,
-      onToggle: () => {}
+      onToggle: () => { }
     },
     {
       id: 'theme',
@@ -138,7 +140,7 @@ export function SettingsList() {
       description: 'Change app language',
       icon: 'language-outline',
       type: 'link',
-      onPress: () => {}
+      onPress: () => { }
     },
     {
       id: 'privacy',
@@ -162,7 +164,7 @@ export function SettingsList() {
       description: user ? `Sign out of ${user?.email}` : 'Sign in to your account',
       icon: user ? 'log-out-outline' : 'log-in-outline',
       type: 'auth-action',
-      onPress: user ? handleLogout : () => router.push('/auth/login'),
+      onPress: user ? () => setShowLogoutModal(true) : () => router.push('/auth/login'),
       isDangerous: !!user,
       isLoading: loggingOut
     },
@@ -190,11 +192,10 @@ export function SettingsList() {
       return (
         <Pressable
           onPress={item.onPress}
-          className={`flex-row items-center p-5 rounded-3xl mb-3 border ${
-            item.isDangerous
-              ? 'border-red-500/30'
-              : 'border-primary/30'
-          }`}
+          className={`flex-row items-center p-5 rounded-3xl mb-3 border ${item.isDangerous
+            ? 'border-red-500/30'
+            : 'border-primary/30'
+            }`}
           style={{
             backgroundColor: item.isDangerous
               ? 'rgba(239, 68, 68, 0.08)'
@@ -217,14 +218,12 @@ export function SettingsList() {
           </View>
 
           <View className="flex-1">
-            <Text className={`font-semibold text-base mb-1 ${
-              item.isDangerous ? 'text-red-500' : 'text-primary'
-            }`}>
+            <Text className={`font-semibold text-base mb-1 ${item.isDangerous ? 'text-red-500' : 'text-primary'
+              }`}>
               {item.title}
             </Text>
-            <Text className={`text-xs ${
-              item.isDangerous ? 'text-red-400' : 'text-muted-foreground'
-            }`}>
+            <Text className={`text-xs ${item.isDangerous ? 'text-red-400' : 'text-muted-foreground'
+              }`}>
               {item.description}
             </Text>
           </View>
@@ -244,9 +243,8 @@ export function SettingsList() {
 
     return (
       <Pressable
-        className={`flex-row items-center p-5 rounded-3xl mb-3 border border-border/50 ${
-          item.disabled ? 'opacity-50' : ''
-        }`}
+        className={`flex-row items-center p-5 rounded-3xl mb-3 border border-border/50 ${item.disabled ? 'opacity-50' : ''
+          }`}
         style={{
           backgroundColor: item.isDangerous
             ? 'rgba(239, 68, 68, 0.08)'
@@ -271,14 +269,12 @@ export function SettingsList() {
         </View>
 
         <View className="flex-1">
-          <Text className={`font-semibold text-base mb-1 ${
-            item.isDangerous ? 'text-red-600 dark:text-red-400' : 'text-foreground'
-          }`}>
+          <Text className={`font-semibold text-base mb-1 ${item.isDangerous ? 'text-red-600 dark:text-red-400' : 'text-foreground'
+            }`}>
             {item.title}
           </Text>
-          <Text className={`text-xs ${
-            item.isDangerous ? 'text-red-500 dark:text-red-500' : 'text-muted-foreground'
-          }`}>
+          <Text className={`text-xs ${item.isDangerous ? 'text-red-500 dark:text-red-500' : 'text-muted-foreground'
+            }`}>
             {item.description}
           </Text>
         </View>
@@ -334,9 +330,8 @@ export function SettingsList() {
           <View className="gap-y-3 flex">
             <Pressable
               onPress={() => applyThemeMode('system')}
-              className={`flex-row items-center p-5 rounded-3xl border ${
-                themeMode === 'system' ? 'border-primary' : 'border-border/50'
-              }`}
+              className={`flex-row items-center p-5 rounded-3xl border ${themeMode === 'system' ? 'border-primary' : 'border-border/50'
+                }`}
             >
               <View
                 className="w-12 h-12 rounded-full items-center justify-center mr-4"
@@ -354,9 +349,8 @@ export function SettingsList() {
 
             <Pressable
               onPress={() => applyThemeMode('light')}
-              className={`flex-row items-center p-5 rounded-3xl border ${
-                themeMode === 'light' ? 'border-primary' : 'border-border/50'
-              }`}
+              className={`flex-row items-center p-5 rounded-3xl border ${themeMode === 'light' ? 'border-primary' : 'border-border/50'
+                }`}
             >
               <View
                 className="w-12 h-12 rounded-full items-center justify-center mr-4"
@@ -374,9 +368,8 @@ export function SettingsList() {
 
             <Pressable
               onPress={() => applyThemeMode('dark')}
-              className={`flex-row items-center p-5 rounded-3xl border ${
-                themeMode === 'dark' ? 'border-primary' : 'border-border/50'
-              }`}
+              className={`flex-row items-center p-5 rounded-3xl border ${themeMode === 'dark' ? 'border-primary' : 'border-border/50'
+                }`}
             >
               <View
                 className="w-12 h-12 rounded-full items-center justify-center mr-4"
@@ -395,6 +388,110 @@ export function SettingsList() {
           </View>
         </BottomSheet>
       }
+
+      {/* Logout Confirmation Modal */}
+      <Modal
+        visible={showLogoutModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowLogoutModal(false)}
+      >
+        <View
+          className="flex-1 items-center justify-center px-6"
+          style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)' }}
+        >
+          <View
+            className="w-full rounded-3xl p-6"
+            style={{
+              backgroundColor: isDark ? '#1a1a2e' : '#ffffff',
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 20 },
+              shadowOpacity: 0.3,
+              shadowRadius: 30,
+              elevation: 20,
+            }}
+          >
+            {/* Icon */}
+            <View className="items-center mb-5">
+              <View
+                className="w-16 h-16 rounded-full items-center justify-center"
+                style={{ backgroundColor: 'rgba(239, 68, 68, 0.12)' }}
+              >
+                <Ionicons name="log-out-outline" size={32} color="#ef4444" />
+              </View>
+            </View>
+
+            {/* Title */}
+            <Text
+              className="text-xl font-bold text-center mb-2"
+              style={{ color: isDark ? '#ffffff' : '#1a1a2e' }}
+            >
+              Sign Out?
+            </Text>
+
+            {/* Description */}
+            <Text
+              className="text-center text-base mb-6 leading-6"
+              style={{ color: isDark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.5)' }}
+            >
+              Are you sure you want to sign out of your account? You'll need to sign in again to access your wallet and transactions.
+            </Text>
+
+            {/* Buttons */}
+            <View className="gap-y-3">
+              {/* Logout Button */}
+              <TouchableOpacity
+                onPress={() => {
+                  setShowLogoutModal(false);
+                  handleLogout();
+                }}
+                activeOpacity={0.9}
+                disabled={loggingOut}
+              >
+                <View
+                  className="py-4 rounded-2xl flex-row items-center justify-center"
+                  style={{
+                    backgroundColor: '#ef4444',
+                    opacity: loggingOut ? 0.7 : 1,
+                  }}
+                >
+                  {loggingOut ? (
+                    <ActivityIndicator color="white" size="small" />
+                  ) : (
+                    <>
+                      <Ionicons name="log-out-outline" size={20} color="white" style={{ marginRight: 8 }} />
+                      <Text className="text-white font-bold text-base">
+                        Yes, Sign Out
+                      </Text>
+                    </>
+                  )}
+                </View>
+              </TouchableOpacity>
+
+              {/* Cancel Button */}
+              <TouchableOpacity
+                onPress={() => setShowLogoutModal(false)}
+                activeOpacity={0.8}
+                disabled={loggingOut}
+              >
+                <View
+                  className="py-4 rounded-2xl items-center justify-center"
+                  style={{
+                    backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
+                  }}
+                >
+                  <Text
+                    className="font-semibold text-base"
+                    style={{ color: isDark ? '#ffffff' : '#1a1a2e' }}
+                  >
+                    Cancel
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }

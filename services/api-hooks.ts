@@ -30,6 +30,9 @@ import {
     generateWebAuthLink,
     getRecentDataPurchases,
     getTransactionAnalytics,
+    // Guest checkout / Wallet funding
+    initiateGuestTransaction,
+    getGuestTransactionStatus,
 } from "./api";
 
 export const QUERY_KEYS = {
@@ -63,6 +66,9 @@ export const QUERY_KEYS = {
     listPromoBanners: 'listPromoBanners',
     generateWebAuthLink: 'generateWebAuthLink',
     getAnalytics: 'getAnalytics',
+    // Guest checkout / Wallet funding
+    initiateGuestTransaction: 'initiateGuestTransaction',
+    guestTransactionStatus: 'guestTransactionStatus',
 } as const
 
 export const useGetAccount = (id?: string) => useQuery({
@@ -255,4 +261,39 @@ export const useGenerateWebAuthLink = () => useMutation({
 export const useGetAnalytics = () => useQuery({
     queryKey: [QUERY_KEYS.getAnalytics],
     queryFn: getTransactionAnalytics,
+});
+
+// ==============================================
+// Guest Checkout / Wallet Funding Hooks
+// ==============================================
+
+/**
+ * Mutation hook to initiate a guest checkout transaction
+ * Used for wallet funding via Monnify
+ */
+export const useInitiateGuestTransaction = () => useMutation({
+    mutationKey: [QUERY_KEYS.initiateGuestTransaction],
+    mutationFn: initiateGuestTransaction,
+});
+
+/**
+ * Query hook to poll guest transaction status
+ * Polls every 3 seconds until success/failure
+ */
+export const useGuestTransactionStatus = (
+    reference: string | null,
+    options?: { enabled?: boolean }
+) => useQuery({
+    queryKey: [QUERY_KEYS.guestTransactionStatus, reference],
+    queryFn: () => getGuestTransactionStatus(reference!),
+    enabled: !!reference && (options?.enabled !== false),
+    refetchInterval: (query) => {
+        const status = query.state.data?.data?.fulfillment_status;
+        // Stop polling once transaction is complete or failed
+        if (status === 'success' || status === 'failed') {
+            return false;
+        }
+        // Poll every 3 seconds while pending/processing
+        return 3000;
+    },
 });

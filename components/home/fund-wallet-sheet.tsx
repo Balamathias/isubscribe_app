@@ -1,12 +1,53 @@
 import { COLORS } from '@/constants/colors';
-import { useGetAccount } from '@/services/api-hooks';
+import { useGetAccount, useInitiateGuestTransaction, useGuestTransactionStatus, QUERY_KEYS } from '@/services/api-hooks';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useState, useEffect } from 'react';
-import { ActivityIndicator, Clipboard, Platform, Text, ToastAndroid, TouchableOpacity, View } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { ActivityIndicator, Clipboard, Platform, Text, ToastAndroid, TouchableOpacity, View, ScrollView } from 'react-native';
 import Toast from 'react-native-toast-message';
+import { useQueryClient } from '@tanstack/react-query';
 import BottomSheet from '../ui/bottom-sheet';
 import GenerateAccountForm from './generate-account-form';
+import FundingMethodSelector from './funding-method-selector';
+import CheckoutFundingView from './checkout-funding-view';
+import FundingProcessingView from './funding-processing-view';
+import FundingStatusView from './funding-status-view';
+import MonnifyWebView, { MonnifyPaymentStatus } from '../payment/monnify-webview';
+import { useSession } from '../session-context';
+
+// ==============================================
+// Types
+// ==============================================
+
+type FundingFlow =
+  | 'accounts'           // Show virtual accounts (existing)
+  | 'method_select'      // Show funding method options
+  | 'checkout_form'      // Amount entry form
+  | 'webview'            // Monnify WebView open
+  | 'processing'         // Polling for status
+  | 'success'            // Funding successful
+  | 'failed'             // Funding failed
+  | 'generate_account';  // Generate account form
+
+interface FundingState {
+  flow: FundingFlow;
+  amount: number | null;
+  paymentReference: string | null;
+  checkoutUrl: string | null;
+  error: string | null;
+}
+
+const initialState: FundingState = {
+  flow: 'accounts',
+  amount: null,
+  paymentReference: null,
+  checkoutUrl: null,
+  error: null,
+};
+
+// ==============================================
+// Credit Card Component (unchanged)
+// ==============================================
 
 interface CreditCardProps {
   colors: string[];
@@ -61,149 +102,410 @@ export const CreditCard: React.FC<CreditCardProps> = ({
   );
 };
 
+// ==============================================
+// Main Component
+// ==============================================
+
 interface FundWalletBottomSheetProps {
   isVisible: boolean;
   onClose: () => void;
 }
 
 const FundWalletBottomSheet: React.FC<FundWalletBottomSheetProps> = ({ isVisible, onClose }) => {
-  const [copiedText, setCopiedText] = useState<string | null>(null);
-  const [showGenerateForm, setShowGenerateForm] = useState(false);
-  const { data: accountData, isPending, refetch: refetchAccount } = useGetAccount()
+  const queryClient = useQueryClient();
+  const { profile, refetchBalance } = useSession();
 
-  const account = accountData?.data || null
-  const hasPalmPayAccount = account?.palmpay_account_number
-  const hasReservedAccount = account?.account_number
+  // Account data
+  const { data: accountData, isPending: isLoadingAccount, refetch: refetchAccount } = useGetAccount();
+  const account = accountData?.data || null;
+  const hasPalmPayAccount = !!account?.palmpay_account_number;
+  const hasReservedAccount = !!account?.account_number;
+  const hasAnyAccount = hasPalmPayAccount || hasReservedAccount;
 
-  // Refetch account data when sheet becomes visible
+  // Funding state
+  const [state, setState] = useState<FundingState>(initialState);
+  const { flow, amount, paymentReference, checkoutUrl, error } = state;
+
+  // API hooks
+  const { mutateAsync: initiateCheckout, isPending: isInitiating } = useInitiateGuestTransaction();
+
+  // Poll for transaction status
+  const { data: txStatusData } = useGuestTransactionStatus(paymentReference, {
+    enabled: flow === 'processing' && !!paymentReference,
+  });
+
+  // ==============================================
+  // Effects
+  // ==============================================
+
+  // Reset state when sheet opens/closes
   useEffect(() => {
     if (isVisible) {
+      // Always reset to initial state when opening
+      setState(initialState);
       refetchAccount();
     }
+    // Note: We don't reset on close since handleDone already does that
+    // and resetting on close can cause flickering
   }, [isVisible, refetchAccount]);
 
-  const handleCopy = async (text: string) => {
+  // Set initial flow after account data loads
+  useEffect(() => {
+    if (isVisible && !isLoadingAccount) {
+      if (hasAnyAccount) {
+        setState(prev => ({ ...prev, flow: 'accounts' }));
+      } else {
+        setState(prev => ({ ...prev, flow: 'method_select' }));
+      }
+    }
+  }, [isVisible, isLoadingAccount, hasAnyAccount]);
+
+  // Handle transaction status updates from polling
+  useEffect(() => {
+    if (txStatusData?.data && flow === 'processing') {
+      const txStatus = txStatusData.data.fulfillment_status;
+
+      if (txStatus === 'success') {
+        setState(prev => ({ ...prev, flow: 'success', error: null }));
+        // Refresh balance
+        refetchBalance?.();
+        queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.getWalletBalance] });
+        queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.getLatestTransactions] });
+        Toast.show({ type: 'success', text1: 'Wallet funded successfully!' });
+      } else if (txStatus === 'failed') {
+        setState(prev => ({
+          ...prev,
+          flow: 'failed',
+          error: txStatusData.data?.fulfillment_error || 'Transaction failed',
+        }));
+      }
+    }
+  }, [txStatusData, flow, refetchBalance, queryClient]);
+
+  // ==============================================
+  // Handlers
+  // ==============================================
+
+  const handleCopy = useCallback(async (text: string) => {
     try {
       await Clipboard.setString(text);
-      setCopiedText(text);
-      
+
       if (Platform.OS === 'android') {
         ToastAndroid.show('Account number copied to clipboard', ToastAndroid.SHORT);
       } else {
         Toast.show({
           type: 'success',
-          text1: `Account Number copied successfully.`
-        })
+          text1: 'Account Number copied successfully.'
+        });
       }
-      
-      setTimeout(() => {
-        setCopiedText(null);
-      }, 2000);
     } catch (error) {
       console.error('Failed to copy text:', error);
     }
-  };
+  }, []);
 
-  const handleGenerateAccount = () => {
-    setShowGenerateForm(true);
-  };
+  // Transition to checkout form
+  const handleSelectCheckout = useCallback(() => {
+    setState(prev => ({ ...prev, flow: 'checkout_form' }));
+  }, []);
 
-  const handleCloseGenerateForm = () => {
-    setShowGenerateForm(false);
-  };
+  // Transition to generate account form
+  const handleSelectCreateAccount = useCallback(() => {
+    setState(prev => ({ ...prev, flow: 'generate_account' }));
+  }, []);
 
-  const renderNoAccountsAvailable = () => (
-    <View className="flex-col items-center justify-center p-6">
-      <View className="w-20 h-20 rounded-full bg-muted/20 items-center justify-center mb-4">
-        <Ionicons name="card-outline" size={40} color={COLORS.light.muted} />
-      </View>
-      <Text className="text-foreground font-semibold text-lg mb-2 text-center">
-        No Funding Account Available
-      </Text>
-      <Text className="text-muted-foreground text-center mb-6">
-        We couldn't generate a PalmPay account for you automatically. Generate a reserved account to fund your wallet.
-      </Text>
-      <TouchableOpacity
-        onPress={handleGenerateAccount}
-        className="bg-primary rounded-xl p-4 flex-row items-center"
-      >
-        <Ionicons name="add-circle-outline" size={20} color="#fff" style={{ marginRight: 8 }} />
-        <Text className="text-white font-semibold">Generate Reserved Account</Text>
-      </TouchableOpacity>
-    </View>
-  );
+  // Handle checkout form submission
+  const handleProceedWithAmount = useCallback(async (fundAmount: number) => {
+    try {
+      const response = await initiateCheckout({
+        channel: 'wallet_fund',
+        amount: fundAmount,
+        guest_email: profile?.email || undefined,
+        mobile: true, // Request checkout URL for WebView
+      });
 
-  const renderPartialAccounts = () => (
-    <View className="space-y-4">
-      <View className="flex-col md:flex-row justify-center items-center gap-4">
-        {hasReservedAccount && (
-          <CreditCard
-            colors={['#6017b9', '#af5eed']}
-            accountNumber={account?.account_number || ''}
-            bankName="Moniepoint"
-            accountName={"iSubscribe Network Technology.-" + account?.account_name}
-            onCopy={() => handleCopy(account?.account_number || '')}
-          />
-        )}
+      if (response.error || !response.data) {
+        Toast.show({
+          type: 'error',
+          text1: 'Error',
+          text2: response.message || 'Failed to initiate funding',
+        });
+        return;
+      }
 
-        {hasPalmPayAccount && (
-          <CreditCard
-            colors={['#a13ae1', '#740faa']}
-            accountNumber={account?.palmpay_account_number || '**********'}
-            bankName={'Palmpay'}
-            accountName={account?.palmpay_account_name || '****** ******'}
-            onCopy={() => handleCopy(account?.palmpay_account_number || '**********')}
-          />
-        )}
-      </View>
+      const { payment_reference, checkout_url } = response.data;
 
-      {!hasReservedAccount && hasPalmPayAccount && (
-        <View className="mt-4 p-4 bg-muted/10 rounded-xl">
-          <View className="flex-row items-center justify-between">
-            <View className="flex-1 mr-3">
-              <Text className="text-foreground font-medium mb-1">
-                Need an Alternative?
-              </Text>
-              <Text className="text-muted-foreground text-sm">
-                Generate a reserved account for additional funding options
-              </Text>
-            </View>
-            <TouchableOpacity
-              onPress={handleGenerateAccount}
-              className="bg-primary rounded-lg px-4 py-2"
-            >
-              <Text className="text-white font-medium text-sm">Generate</Text>
-            </TouchableOpacity>
-          </View>
+      // Ensure we have a checkout URL for the WebView
+      if (!checkout_url) {
+        Toast.show({
+          type: 'error',
+          text1: 'Payment Error',
+          text2: 'Unable to initialize payment gateway. Please try again.',
+        });
+        return;
+      }
+
+      setState(prev => ({
+        ...prev,
+        flow: 'webview',
+        amount: fundAmount,
+        paymentReference: payment_reference,
+        checkoutUrl: checkout_url, // Already validated above
+        error: null,
+      } as FundingState));
+    } catch (err: any) {
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: err?.message || 'An error occurred',
+      });
+    }
+  }, [initiateCheckout, profile?.email]);
+
+  // Handle Monnify payment completion
+  const handlePaymentComplete = useCallback((status: MonnifyPaymentStatus) => {
+    if (status === 'success' || status === 'pending') {
+      // Payment made or pending - start polling
+      setState(prev => ({ ...prev, flow: 'processing' }));
+    } else if (status === 'cancelled') {
+      // User cancelled - go back to form
+      setState(prev => ({
+        ...prev,
+        flow: 'checkout_form',
+        paymentReference: null,
+        checkoutUrl: null,
+      }));
+    } else {
+      // Failed
+      setState(prev => ({
+        ...prev,
+        flow: 'failed',
+        error: 'Payment was not completed',
+      }));
+    }
+  }, []);
+
+  // Handle WebView close (user manually closes)
+  const handleWebViewClose = useCallback(() => {
+    // If payment reference exists, check status via polling
+    if (paymentReference) {
+      setState(prev => ({ ...prev, flow: 'processing' }));
+    } else {
+      setState(prev => ({
+        ...prev,
+        flow: 'checkout_form',
+        checkoutUrl: null,
+      }));
+    }
+  }, [paymentReference]);
+
+  // Handle back navigation
+  const handleBack = useCallback(() => {
+    if (flow === 'checkout_form') {
+      setState(prev => ({
+        ...prev,
+        flow: hasAnyAccount ? 'accounts' : 'method_select',
+        amount: null,
+        error: null,
+      }));
+    } else if (flow === 'generate_account') {
+      setState(prev => ({
+        ...prev,
+        flow: hasAnyAccount ? 'accounts' : 'method_select',
+      }));
+    }
+  }, [flow, hasAnyAccount]);
+
+  // Handle retry after failure
+  const handleRetry = useCallback(() => {
+    setState(prev => ({
+      ...prev,
+      flow: 'checkout_form',
+      paymentReference: null,
+      checkoutUrl: null,
+      error: null,
+    }));
+  }, []);
+
+  // Handle done (close sheet)
+  const handleDone = useCallback(() => {
+    setState(initialState);
+    onClose();
+  }, [onClose]);
+
+  // Handle generate account success
+  const handleGenerateAccountSuccess = useCallback(() => {
+    refetchAccount();
+    setState(prev => ({ ...prev, flow: 'accounts' }));
+  }, [refetchAccount]);
+
+  // ==============================================
+  // Render Helpers
+  // ==============================================
+
+  // Render accounts view with "Fund Now" button
+  const renderAccountsView = () => (
+    <ScrollView showsVerticalScrollIndicator={false}>
+      <View className="space-y-4">
+        {/* Account Cards */}
+        <View className="flex-col md:flex-row justify-center items-center gap-4">
+          {hasReservedAccount && (
+            <CreditCard
+              colors={['#6017b9', '#af5eed']}
+              accountNumber={account?.account_number || ''}
+              bankName="Moniepoint"
+              accountName={"iSubscribe Network Technology.-" + account?.account_name}
+              onCopy={() => handleCopy(account?.account_number || '')}
+            />
+          )}
+
+          {hasPalmPayAccount && (
+            <CreditCard
+              colors={['#a13ae1', '#740faa']}
+              accountNumber={account?.palmpay_account_number || '**********'}
+              bankName={'Palmpay'}
+              accountName={account?.palmpay_account_name || '****** ******'}
+              onCopy={() => handleCopy(account?.palmpay_account_number || '**********')}
+            />
+          )}
         </View>
-      )}
-    </View>
+
+        {/* Fund Now Button */}
+        <TouchableOpacity
+          onPress={handleSelectCheckout}
+          activeOpacity={0.8}
+          className="mt-4 overflow-hidden rounded-2xl"
+        >
+          <LinearGradient
+            colors={['#740faa', '#a13ae1']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            className="py-4 flex-row items-center justify-center"
+          >
+            <Ionicons name="flash" size={20} color="#fff" />
+            <Text className="text-white font-semibold text-base ml-2">
+              Fund Now (Card/Bank/USSD)
+            </Text>
+          </LinearGradient>
+        </TouchableOpacity>
+
+        {/* Generate Account Option (if only PalmPay exists) */}
+        {!hasReservedAccount && hasPalmPayAccount && (
+          <View className="mt-2 p-4 bg-muted/10 rounded-xl">
+            <View className="flex-row items-center justify-between">
+              <View className="flex-1 mr-3">
+                <Text className="text-foreground font-medium mb-1">
+                  Need an Alternative?
+                </Text>
+                <Text className="text-muted-foreground text-sm">
+                  Generate a reserved account for bank transfers
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={handleSelectCreateAccount}
+                className="bg-primary rounded-lg px-4 py-2"
+              >
+                <Text className="text-white font-medium text-sm">Generate</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+      </View>
+    </ScrollView>
   );
+
+  // ==============================================
+  // Render
+  // ==============================================
+
+  // Get title based on flow
+  const getTitle = () => {
+    switch (flow) {
+      case 'checkout_form':
+        return 'Fund Wallet';
+      case 'processing':
+        return 'Processing';
+      case 'success':
+        return 'Success';
+      case 'failed':
+        return 'Failed';
+      case 'generate_account':
+        return 'Create Account';
+      default:
+        return 'Fund Your Wallet';
+    }
+  };
 
   return (
     <View>
       <BottomSheet
-        isVisible={isVisible}
-        onClose={onClose}
-        title='Fund Your Wallet'
+        isVisible={isVisible && flow !== 'webview'}
+        onClose={handleDone}
+        title={getTitle()}
       >
-        {
-          isPending && <ActivityIndicator color={COLORS.light.primary} />
-        }
+        {/* Loading State */}
+        {isLoadingAccount && (
+          <View className="items-center justify-center py-8">
+            <ActivityIndicator color={COLORS.light.primary} />
+          </View>
+        )}
 
-        {!isPending && !hasPalmPayAccount && !hasReservedAccount && renderNoAccountsAvailable()}
-        
-        {!isPending && (hasPalmPayAccount || hasReservedAccount) && renderPartialAccounts()}
-            
+        {/* Accounts View */}
+        {!isLoadingAccount && flow === 'accounts' && renderAccountsView()}
+
+        {/* Method Selector (for users without accounts) */}
+        {!isLoadingAccount && flow === 'method_select' && (
+          <FundingMethodSelector
+            onSelectCheckout={handleSelectCheckout}
+            onSelectCreateAccount={handleSelectCreateAccount}
+          />
+        )}
+
+        {/* Checkout Form */}
+        {flow === 'checkout_form' && (
+          <CheckoutFundingView
+            onBack={handleBack}
+            onProceed={handleProceedWithAmount}
+            isLoading={isInitiating}
+          />
+        )}
+
+        {/* Processing View */}
+        {flow === 'processing' && amount && (
+          <FundingProcessingView amount={amount} />
+        )}
+
+        {/* Success/Failed View */}
+        {(flow === 'success' || flow === 'failed') && amount && (
+          <FundingStatusView
+            status={flow}
+            amount={amount}
+            error={error || undefined}
+            onDone={handleDone}
+            onRetry={flow === 'failed' ? handleRetry : undefined}
+          />
+        )}
+
+        {/* Generate Account Form */}
+        {flow === 'generate_account' && (
+          <GenerateAccountForm
+            isVisible={true}
+            onClose={handleBack}
+            onSuccess={handleGenerateAccountSuccess}
+            isInline={true}
+          />
+        )}
       </BottomSheet>
 
-      <GenerateAccountForm
-        isVisible={showGenerateForm}
-        onClose={handleCloseGenerateForm}
-        onSuccess={() => {
-          // The account data will be automatically refetched due to query invalidation
-        }}
-      />
+      {/* Monnify WebView (full screen) */}
+      {flow === 'webview' && checkoutUrl && paymentReference && (
+        <MonnifyWebView
+          isVisible={true}
+          checkoutUrl={checkoutUrl}
+          paymentReference={paymentReference}
+          onPaymentComplete={handlePaymentComplete}
+          onClose={handleWebViewClose}
+        />
+      )}
     </View>
   );
 };

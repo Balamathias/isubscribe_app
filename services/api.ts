@@ -678,12 +678,15 @@ export interface GuestCheckoutPayload {
     network?: string
     plan_id?: number
     category?: 'best' | 'super' | 'regular'
+    /** Set to true to get checkout_url for WebView (mobile apps) */
+    mobile?: boolean
 }
 
 export interface GuestTransactionInitResponse {
     id: string
     payment_reference: string
-    checkout_url: string
+    /** Monnify checkout URL (only returned when mobile=true) */
+    checkout_url?: string
     amount: number
     cashback_amount: number
     expires_at: string

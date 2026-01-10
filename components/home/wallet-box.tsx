@@ -232,10 +232,8 @@ const WalletBox = ({}: Props) => {
             elevation: 1,
           }}
           onPress={
-            user 
-              ? account?.data?.palmpay_account_number 
-                ? handleFundWalletPress 
-                : () => router.push('/accounts')
+            user
+              ? handleFundWalletPress  // Sheet handles users with/without accounts
               : () => router.push('/auth/login')
           }
         >

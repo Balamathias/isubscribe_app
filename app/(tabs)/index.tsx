@@ -1,3 +1,4 @@
+import CustomerReviewsCard from "@/components/home/customer-reviews-card";
 import Header from "@/components/home/header";
 import QuickActions from "@/components/home/quick-actions";
 import RecentTransactions from "@/components/home/recent-transactions";
@@ -8,14 +9,14 @@ import { useSession } from "@/components/session-context";
 import { useUpdateModal } from "@/components/ui/update-modal";
 import { COLORS } from "@/constants/colors";
 import { useNotification } from "@/contexts/notification-context";
-import { useThemedColors } from "@/hooks/useThemedColors";
 import { useCreatePushToken } from "@/services/api-hooks";
 import { getGreeting } from "@/utils";
 import { Ionicons } from "@expo/vector-icons";
 import { useCallback, useEffect, useState } from "react";
-import { Platform, RefreshControl, ScrollView, Text, TouchableOpacity, useColorScheme, View } from "react-native";
+import { Platform, RefreshControl, ScrollView, Text, useColorScheme, View } from "react-native";
 import PromoCarousel from "@/components/home/promo-carousel";
 import QuickDataBuy from "@/components/data/quick-data-buy";
+import { useThemedColors } from "@/hooks/useThemedColors";
 
 
 export default function Index() {
@@ -89,29 +90,7 @@ export default function Index() {
 
           <RecentTransactions />
 
-
-          <TouchableOpacity activeOpacity={0.7} onPress={() => setShowRatingsModal(true)} className="bg-card border border-border/50 rounded-2xl p-4 shadow-none">
-            <View className="flex-row items-center justify-between mb-3">
-              <View className="flex-row items-center">
-                <Ionicons name="person" size={20} color="#FFD700" />
-                <Text className="text-foreground font-bold text-lg ml-2">
-                  Customer Reviews
-                </Text>
-              </View>
-              <TouchableOpacity
-                onPress={() => setShowRatingsModal(true)}
-                className="flex-row items-center"
-              >
-                <Text className="text-primary font-semibold text-sm mr-1">
-                  View All
-                </Text>
-                <Ionicons name="chevron-forward" size={16} color={colors.primary} />
-              </TouchableOpacity>
-            </View>
-            <Text className="text-muted-foreground text-sm">
-              See what our customers are saying about their experience
-            </Text>
-          </TouchableOpacity>
+          <CustomerReviewsCard onPress={() => setShowRatingsModal(true)} />
 
           <SocialHandles />
         </View>

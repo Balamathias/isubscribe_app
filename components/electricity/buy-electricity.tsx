@@ -1,4 +1,5 @@
 import { useThemedColors } from '@/hooks/useThemedColors';
+import { formatNigerianNaira } from '@/utils/format-naira';
 import { useVerifyMerchant } from '@/services/api-hooks';
 import { Ionicons } from '@expo/vector-icons';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -15,6 +16,15 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
+import Animated, {
+  FadeIn,
+  FadeInDown,
+  FadeInLeft,
+  FadeInRight,
+  FadeOut,
+  Layout,
+  LinearTransition,
+} from 'react-native-reanimated';
 import * as z from 'zod';
 import PhoneNumberInput from '../data/phone-number-input';
 import StackHeader from '../header.stack';
@@ -32,54 +42,171 @@ const electricitySchema = z.object({
     .min(5, 'Meter number is required'),
   amount: z
     .number()
-    .min(100, 'Minimum amount is ₦100'),
+    .min(1000, 'Minimum amount is ₦1,000'),
   isPrepaid: z.boolean(),
 });
 
 type ElectricityFormInputs = z.infer<typeof electricitySchema>;
 
-const PaymentTypeToggle = React.memo(({ 
-  isPrepaid, 
-  onToggle 
-}: { 
-  isPrepaid: boolean; 
+const quickAmounts = [1000, 2000, 3000, 5000, 10000, 20000];
+
+// Meter Type Toggle Component with polished styling
+const MeterTypeToggle = React.memo(({
+  isPrepaid,
+  onToggle
+}: {
+  isPrepaid: boolean;
   onToggle: (value: boolean) => void;
 }) => {
-  const { colors } = useThemedColors()
-
   return (
-    <View className="bg-muted/30 rounded-2xl p-1">
-      <View className="flex-row items-center justify-center">
-        <Text
+    <View className="bg-secondary/50 rounded-2xl p-1.5">
+      <View className="flex-row">
+        <TouchableOpacity
           onPress={() => onToggle(true)}
-          className={`flex-1 py-3 px-4 rounded-xl text-center font-semibold ${
-            isPrepaid 
-              ? 'bg-primary shadow-sm text-white' 
-              : 'bg-transparent text-muted-foreground'
-          }`}
+          activeOpacity={0.8}
+          className={`flex-1 py-3.5 px-4 rounded-xl items-center justify-center ${isPrepaid ? 'bg-amber-500' : 'bg-transparent'
+            }`}
         >
-          Prepaid
-        </Text>
-        <Text
+          <View className="flex-row items-center gap-x-2">
+            <Ionicons
+              name="flash"
+              size={16}
+              color={isPrepaid ? 'white' : '#9ca3af'}
+            />
+            <Text className={`font-semibold text-sm ${isPrepaid ? 'text-white' : 'text-muted-foreground'
+              }`}>
+              Prepaid
+            </Text>
+          </View>
+        </TouchableOpacity>
+        <TouchableOpacity
           onPress={() => onToggle(false)}
-          className={`flex-1 py-3 px-4 rounded-xl text-center font-semibold ${
-            !isPrepaid 
-              ? 'bg-primary shadow-sm text-white' 
-              : 'bg-transparent text-muted-foreground'
-          }`}
+          activeOpacity={0.8}
+          className={`flex-1 py-3.5 px-4 rounded-xl items-center justify-center ${!isPrepaid ? 'bg-amber-500' : 'bg-transparent'
+            }`}
         >
-          Postpaid
-        </Text>
+          <View className="flex-row items-center gap-x-2">
+            <Ionicons
+              name="calendar"
+              size={16}
+              color={!isPrepaid ? 'white' : '#9ca3af'}
+            />
+            <Text className={`font-semibold text-sm ${!isPrepaid ? 'text-white' : 'text-muted-foreground'
+              }`}>
+              Postpaid
+            </Text>
+          </View>
+        </TouchableOpacity>
       </View>
     </View>
-  )
-  }
-);
+  );
+});
 
+// Meter Verification Card Component
+const MeterVerificationCard = React.memo(({
+  verificationStatus,
+  customerInfo,
+  isVerifying,
+  onClear,
+}: {
+  verificationStatus: 'idle' | 'loading' | 'success' | 'error';
+  customerInfo: any;
+  isVerifying: boolean;
+  onClear: () => void;
+}) => {
+  if (verificationStatus === 'idle') return null;
+
+  return (
+    <Animated.View
+      entering={FadeIn.duration(300)}
+      exiting={FadeOut.duration(200)}
+      layout={Layout}
+    >
+      {verificationStatus === 'loading' && (
+        <View className="p-4 rounded-2xl bg-blue-500/10 border border-blue-500/30">
+          <View className="flex-row items-center gap-x-3">
+            <View className="w-10 h-10 rounded-xl bg-blue-500/20 items-center justify-center">
+              <Ionicons name="sync" size={20} color="#3b82f6" />
+            </View>
+            <View className="flex-1">
+              <Text className="text-blue-600 dark:text-blue-400 font-semibold text-sm">
+                Verifying meter number...
+              </Text>
+              <Text className="text-blue-500 dark:text-blue-300 text-xs mt-0.5">
+                Please wait while we fetch your details
+              </Text>
+            </View>
+          </View>
+        </View>
+      )}
+
+      {verificationStatus === 'success' && customerInfo && (
+        <View className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30">
+          <View className="flex-row items-start justify-between mb-3">
+            <View className="flex-row items-center gap-x-2">
+              <View className="w-8 h-8 rounded-lg bg-emerald-500/20 items-center justify-center">
+                <Ionicons name="checkmark-circle" size={18} color="#10b981" />
+              </View>
+              <Text className="text-emerald-600 dark:text-emerald-400 font-semibold text-sm">
+                Verified Successfully
+              </Text>
+            </View>
+            <TouchableOpacity onPress={onClear} activeOpacity={0.7}>
+              <Ionicons name="close-circle" size={22} color="#9ca3af" />
+            </TouchableOpacity>
+          </View>
+
+          <View className="bg-emerald-500/5 rounded-xl p-3 space-y-2">
+            <View className="flex-row items-center gap-x-2">
+              <Ionicons name="person" size={14} color="#10b981" />
+              <Text className="text-foreground font-medium text-sm flex-1" numberOfLines={1}>
+                {customerInfo.Customer_Name}
+              </Text>
+            </View>
+            {customerInfo.Address && (
+              <View className="flex-row items-start gap-x-2">
+                <Ionicons name="location" size={14} color="#10b981" />
+                <Text className="text-muted-foreground text-xs flex-1" numberOfLines={2}>
+                  {customerInfo.Address}
+                </Text>
+              </View>
+            )}
+          </View>
+
+          {customerInfo.Outstanding > 0 && (
+            <View className="mt-3 bg-orange-500/10 rounded-xl p-3 flex-row items-center gap-x-2">
+              <Ionicons name="alert-circle" size={16} color="#f59e0b" />
+              <Text className="text-orange-600 dark:text-orange-400 text-xs font-medium">
+                Outstanding: ₦{customerInfo.Outstanding.toLocaleString()}
+              </Text>
+            </View>
+          )}
+        </View>
+      )}
+
+      {verificationStatus === 'error' && (
+        <View className="p-4 rounded-2xl bg-red-500/10 border border-red-500/30">
+          <View className="flex-row items-center gap-x-3">
+            <View className="w-10 h-10 rounded-xl bg-red-500/20 items-center justify-center">
+              <Ionicons name="close-circle" size={20} color="#ef4444" />
+            </View>
+            <View className="flex-1">
+              <Text className="text-red-600 dark:text-red-400 font-semibold text-sm">
+                Verification Failed
+              </Text>
+              <Text className="text-red-500 dark:text-red-300 text-xs mt-0.5">
+                Please check the meter number and try again
+              </Text>
+            </View>
+          </View>
+        </View>
+      )}
+    </Animated.View>
+  );
+});
 
 const BuyElectricityScreen = () => {
-
-  const { colors } = useThemedColors()
+  const { colors } = useThemedColors();
   const [selectedProvider, setSelectedProvider] = useState<string | number | null>(8);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const [verificationStatus, setVerificationStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
@@ -89,8 +216,15 @@ const BuyElectricityScreen = () => {
   const [lastVerifiedType, setLastVerifiedType] = useState<boolean | null>(null);
 
   const { mutateAsync: verifyMerchant, isPending: isVerifyingMeter } = useVerifyMerchant();
-  
-  const { user, refetchElectricityServices, loadingElectricityServices, walletBalance, electricityServices, appConfig } = useSession();
+
+  const {
+    user,
+    refetchElectricityServices,
+    loadingElectricityServices,
+    walletBalance,
+    electricityServices,
+    appConfig
+  } = useSession();
 
   const {
     control,
@@ -106,19 +240,28 @@ const BuyElectricityScreen = () => {
       phoneNumber: user?.user_metadata?.phone || '',
       meterNumber: '',
       amount: 0,
-      isPrepaid: true, // Add isPrepaid to form defaults
+      isPrepaid: true,
     },
   });
 
   const watchedAmount = watch('amount');
   const watchedMeterNumber = watch('meterNumber');
-  const watchedIsPrepaid = watch('isPrepaid'); // Watch the form state instead of useState
+  const watchedIsPrepaid = watch('isPrepaid');
 
-  
   // Calculate commission (10% of the amount)
-  const commissionRate = appConfig?.electricity_commission_rate || 0.1; // 10%
+  const commissionRate = appConfig?.electricity_commission_rate || 0.1;
   const commissionAmount = watchedAmount * commissionRate;
   const totalAmount = watchedAmount + commissionAmount;
+
+  // Calculate data bonus (2.5% of total amount)
+  const dataBonus = Math.floor(totalAmount * 0.025);
+  const dataBonusMB = dataBonus > 0 ? `${dataBonus}MB` : null;
+
+  // Check if user can afford
+  const canAfford = useMemo(() => {
+    if (!walletBalance) return false;
+    return walletBalance.balance >= totalAmount;
+  }, [walletBalance, totalAmount]);
 
   const electricityData = useMemo(() => ({
     serviceID: selectedProvider!,
@@ -128,8 +271,9 @@ const BuyElectricityScreen = () => {
     commissionAmount: commissionAmount,
     totalAmount: totalAmount,
     isPrepaid: watchedIsPrepaid,
-    customerInfo: customerInfo
-  }), [selectedProvider, getValues, commissionAmount, totalAmount, watchedIsPrepaid, customerInfo]);
+    customerInfo: customerInfo,
+    dataBonus: dataBonusMB
+  }), [selectedProvider, getValues, commissionAmount, totalAmount, watchedIsPrepaid, customerInfo, dataBonusMB]);
 
   const handleVerifyMeter = useCallback(async () => {
     try {
@@ -141,16 +285,15 @@ const BuyElectricityScreen = () => {
         return;
       }
 
-      // Check if we already verified this exact combination
-      if (lastVerifiedMeter === watchedMeterNumber && 
-          lastVerifiedProvider === selectedProvider && 
-          lastVerifiedType === watchedIsPrepaid && 
-          verificationStatus === 'success') {
-        return; // Already verified, no need to verify again
+      if (lastVerifiedMeter === watchedMeterNumber &&
+        lastVerifiedProvider === selectedProvider &&
+        lastVerifiedType === watchedIsPrepaid &&
+        verificationStatus === 'success') {
+        return;
       }
 
       const selectedProviderData = electricityServices?.find(p => p.id === selectedProvider);
-      
+
       if (!selectedProviderData?.service_id) {
         Toast.show({ type: 'error', text1: 'Invalid provider selected.' });
         return;
@@ -171,8 +314,8 @@ const BuyElectricityScreen = () => {
         setLastVerifiedMeter(watchedMeterNumber);
         setLastVerifiedProvider(selectedProvider);
         setLastVerifiedType(watchedIsPrepaid);
-        Toast.show({ 
-          type: 'success', 
+        Toast.show({
+          type: 'success',
           text1: 'Meter verified successfully!',
           text2: `Customer: ${result.data.Customer_Name}`
         });
@@ -189,18 +332,16 @@ const BuyElectricityScreen = () => {
       setLastVerifiedMeter('');
       setLastVerifiedProvider(null);
       setLastVerifiedType(null);
-      Toast.show({ 
-        type: 'error', 
+      Toast.show({
+        type: 'error',
         text1: 'Verification failed',
         text2: error?.message || 'Please try again'
       });
     }
   }, [isVerifyingMeter, verificationStatus, selectedProvider, watchedMeterNumber, electricityServices, watchedIsPrepaid, lastVerifiedMeter, lastVerifiedProvider, lastVerifiedType]);
 
-  // Replace the useState toggle handler with a form setter
   const handleMeterTypeChange = useCallback((newIsPrepaid: boolean) => {
     setValue('isPrepaid', newIsPrepaid);
-    // Reset verification when payment type changes
     if (lastVerifiedType !== newIsPrepaid) {
       setVerificationStatus('idle');
       setCustomerInfo(null);
@@ -210,32 +351,40 @@ const BuyElectricityScreen = () => {
     }
   }, [setValue, lastVerifiedType]);
 
+  const handleClearVerification = useCallback(() => {
+    setVerificationStatus('idle');
+    setCustomerInfo(null);
+    setLastVerifiedMeter('');
+    setLastVerifiedProvider(null);
+    setLastVerifiedType(null);
+    setValue('meterNumber', '');
+  }, [setValue]);
+
   // Auto-verify meter when conditions are met
   useEffect(() => {
     const timer = setTimeout(() => {
       if (
         selectedProvider &&
         watchedMeterNumber &&
-        watchedMeterNumber.length >= 8 && // Minimum meter number length
-        watchedMeterNumber.length <= 15 && // Maximum meter number length
+        watchedMeterNumber.length >= 8 &&
+        watchedMeterNumber.length <= 15 &&
         !isVerifyingMeter &&
         verificationStatus !== 'loading' &&
-        // Only auto-verify if we haven't already verified this exact combination
-        !(lastVerifiedMeter === watchedMeterNumber && 
-          lastVerifiedProvider === selectedProvider && 
+        !(lastVerifiedMeter === watchedMeterNumber &&
+          lastVerifiedProvider === selectedProvider &&
           lastVerifiedType === watchedIsPrepaid &&
           verificationStatus === 'success')
       ) {
         handleVerifyMeter();
       }
-    }, 700); // 0.7 second delay to avoid too many API calls while typing
+    }, 700);
 
     return () => clearTimeout(timer);
   }, [
-    selectedProvider, 
-    watchedMeterNumber, 
-    watchedIsPrepaid, 
-    isVerifyingMeter, 
+    selectedProvider,
+    watchedMeterNumber,
+    watchedIsPrepaid,
+    isVerifyingMeter,
     verificationStatus,
     lastVerifiedMeter,
     lastVerifiedProvider,
@@ -249,8 +398,8 @@ const BuyElectricityScreen = () => {
       return;
     }
 
-    if (!data.amount || data.amount < 100) {
-      Toast.show({ type: 'error', text1: 'Please enter a valid amount.' });
+    if (!data.amount || data.amount < 1000) {
+      Toast.show({ type: 'error', text1: 'Minimum amount is ₦1,000.' });
       return;
     }
 
@@ -267,6 +416,10 @@ const BuyElectricityScreen = () => {
     trigger('phoneNumber');
   }, [setValue, trigger]);
 
+  const handleQuickAmount = useCallback((amount: number) => {
+    setValue('amount', amount);
+    trigger('amount');
+  }, [setValue, trigger]);
 
   return (
     <SafeAreaView edges={['bottom']} className="flex-1 bg-background h-full">
@@ -274,8 +427,8 @@ const BuyElectricityScreen = () => {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        className="px-4"
-        contentContainerStyle={{ paddingVertical: 12, flexGrow: 1, justifyContent: 'center' }}
+        className="flex-1"
+        contentContainerStyle={{ paddingBottom: 32 }}
         refreshControl={
           <RefreshControl
             refreshing={loadingElectricityServices!}
@@ -284,271 +437,375 @@ const BuyElectricityScreen = () => {
           />
         }
       >
-        
-        <View className="bg-card rounded-2xl p-5 mb-4 shadow-sm border border-border/20">
-          <View className="flex-row items-center mb-3">
-            <Ionicons name="business" size={18} color={colors.primary} />
-            <Text className="text-base font-semibold text-foreground ml-2">Select Provider</Text>
-          </View>
-          <ProviderSelector
-            selectedProvider={selectedProvider}
-            onSelect={setSelectedProvider}
-          />
-        </View>
+        {/* Hero Header */}
+        <Animated.View
+          entering={FadeInDown.duration(500).delay(100)}
+          className="mx-4 mt-4 mb-5"
+        >
+          <LinearGradient
+            colors={['#f59e0b', '#ef4444', '#ec4899']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            className="rounded-3xl p-6 relative overflow-hidden"
+          >
+            {/* Decorative circles */}
+            <View className="absolute -top-8 -right-8 w-32 h-32 bg-white/10 rounded-full" />
+            <View className="absolute -bottom-6 -left-6 w-24 h-24 bg-white/10 rounded-full" />
+            <Ionicons
+              name="sparkles"
+              size={24}
+              color="rgba(255,255,255,0.3)"
+              style={{ position: 'absolute', top: 16, right: 16 }}
+            />
 
-        <View className="bg-card rounded-2xl p-5 mb-4 shadow-sm border border-border/20">
-          <View className="flex-row items-center mb-4">
-            <Ionicons name="card" size={18} color={colors.primary} />
-            <Text className="text-base font-semibold text-foreground ml-2">Payment Type</Text>
-          </View>
-          <PaymentTypeToggle 
-            isPrepaid={watchedIsPrepaid} 
-            onToggle={handleMeterTypeChange}
-          />
-        </View>
-
-        <View className="bg-card rounded-2xl p-5 mb-4 shadow-sm border border-border/20">
-          <View className="flex-row items-center mb-3">
-            <Ionicons name="keypad" size={18} color={colors.primary} />
-            <Text className="text-base font-semibold text-foreground ml-2">Meter Information</Text>
-          </View>
-          <View className="space-y-3">
-            <Controller
-              control={control}
-              name="meterNumber"
-              render={({ field: { onChange, value } }) => (
-                <View className="relative">
-                  <TextInput
-                    placeholder="Enter meter number"
-                    value={value}
-                    placeholderTextColor={colors.mutedForeground}
-                    onChangeText={(text) => {
-                      onChange(text);
-                      // Reset verification status when meter number changes
-                      if (text !== lastVerifiedMeter) {
-                        setVerificationStatus('idle');
-                        setCustomerInfo(null);
-                      }
-                    }}
-                    className="bg-input border border-border rounded-xl px-4 py-5 text-base text-foreground font-medium"
-                    keyboardType="numeric"
-                  />
+            <View className="relative z-10">
+              <View className="flex-row items-center gap-x-3 mb-1">
+                <View className="w-12 h-12 rounded-xl bg-white/20 items-center justify-center">
+                  <Ionicons name="flash" size={24} color="white" />
                 </View>
-              )}
+                <View>
+                  <Text className="text-2xl font-bold text-white">Electricity</Text>
+                  <Text className="text-sm text-white/80">Pay your bills instantly</Text>
+                </View>
+              </View>
+            </View>
+          </LinearGradient>
+        </Animated.View>
+
+        {/* Quick Stats Grid */}
+        <View className="flex-row gap-x-3 mx-4 mb-5">
+          {/* Wallet Balance */}
+          <Animated.View
+            entering={FadeInLeft.duration(400).delay(200)}
+            className="flex-1 p-4 rounded-2xl bg-card border border-border/50"
+          >
+            <View className="flex-row items-center gap-x-3">
+              <View className="w-10 h-10 rounded-xl bg-primary/10 items-center justify-center">
+                <Ionicons name="wallet" size={20} color={colors.primary} />
+              </View>
+              <View className="flex-1">
+                <Text className="text-xs text-muted-foreground">Balance</Text>
+                <Text className="text-lg font-bold text-foreground" numberOfLines={1}>
+                  {formatNigerianNaira(walletBalance?.balance || 0)}
+                </Text>
+              </View>
+            </View>
+          </Animated.View>
+
+          {/* Data Bonus */}
+          <Animated.View
+            entering={FadeInRight.duration(400).delay(250)}
+            className="flex-1 p-4 rounded-2xl bg-card border border-border/50"
+          >
+            <View className="flex-row items-center gap-x-3">
+              <View className="w-10 h-10 rounded-xl bg-emerald-500/10 items-center justify-center">
+                <Ionicons name="gift" size={20} color="#10b981" />
+              </View>
+              <View className="flex-1">
+                <Text className="text-xs text-muted-foreground">Data Bonus</Text>
+                <Text className="text-lg font-bold text-foreground">
+                  {walletBalance?.data_bonus || '0MB'}
+                </Text>
+              </View>
+            </View>
+          </Animated.View>
+        </View>
+
+        {/* Provider Selection */}
+        <Animated.View
+          entering={FadeInDown.duration(400).delay(300)}
+          className="mx-4 mb-4"
+        >
+          <View className="bg-card rounded-2xl p-5 border border-border/50">
+            <View className="flex-row items-center gap-x-2 mb-4">
+              <Ionicons name="flash" size={18} color="#f59e0b" />
+              <Text className="text-base font-bold text-foreground">Select Provider</Text>
+            </View>
+            <ProviderSelector
+              selectedProvider={selectedProvider}
+              onSelect={setSelectedProvider}
             />
           </View>
-          
-          {verificationStatus !== 'idle' && (
-            <View className={`mt-4 p-4 rounded-xl border ${
-              verificationStatus === 'success' ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800' : 
-              verificationStatus === 'error' ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800' :
-              'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'
-            }`}>
-              <View className="flex-row items-center gap-x-3">
-                <View className={`w-5 h-5 rounded-full items-center justify-center ${
-                  verificationStatus === 'success' ? 'bg-green-500' :
-                  verificationStatus === 'error' ? 'bg-red-500' :
-                  'bg-blue-500'
-                }`}>
-                  <Ionicons 
-                    name={
-                      verificationStatus === 'success' ? 'checkmark' :
-                      verificationStatus === 'error' ? 'close' :
-                      'information'
-                    }
-                    size={12}
-                    color="white"
-                  />
-                </View>
-                <View className="flex-1">
-                  {verificationStatus === 'success' && customerInfo && (
-                    <View className="space-y-1">
-                      <Text className="text-green-800 dark:text-green-400 font-semibold text-sm">Meter Verified Successfully</Text>
-                      <Text className="text-green-700 dark:text-green-300 text-sm">
-                        Customer: {customerInfo.Customer_Name}
-                      </Text>
-                      {customerInfo.Address && (
-                        <Text className="text-green-600 dark:text-green-400 text-xs">
-                          Address: {customerInfo.Address}
-                        </Text>
-                      )}
-                      {customerInfo.Outstanding > 0 && (
-                        <View className="bg-orange-100 dark:bg-orange-900/30 px-2 py-1 rounded-lg mt-2">
-                          <Text className="text-orange-700 dark:text-orange-300 text-xs font-medium">
-                            Outstanding Balance: ₦{customerInfo.Outstanding.toLocaleString()}
-                          </Text>
+        </Animated.View>
+
+        {/* Meter Details Section - Shows when provider is selected */}
+        {selectedProvider && (
+          <Animated.View
+            entering={FadeInDown.duration(400)}
+            exiting={FadeOut.duration(200)}
+            layout={LinearTransition}
+            className="mx-4 mb-4"
+          >
+            <View className="bg-card rounded-2xl p-5 border border-border/50 space-y-5">
+              <View className="flex-row items-center gap-x-2">
+                <Ionicons name="keypad" size={18} color={colors.primary} />
+                <Text className="text-base font-bold text-foreground">Meter Details</Text>
+              </View>
+
+              {/* Meter Type Toggle */}
+              <View className='my-2'>
+                <Text className="text-sm font-semibold text-muted-foreground mb-2">
+                  Meter Type
+                </Text>
+                <MeterTypeToggle
+                  isPrepaid={watchedIsPrepaid}
+                  onToggle={handleMeterTypeChange}
+                />
+              </View>
+
+              {/* Meter Number Input */}
+              <View className='my-2'>
+                <Text className="text-sm font-semibold text-muted-foreground mb-2">
+                  Meter Number
+                </Text>
+                <Controller
+                  control={control}
+                  name="meterNumber"
+                  render={({ field: { onChange, value } }) => (
+                    <View className="relative">
+                      <View className="absolute left-4 top-[50%] -translate-y-1/2 z-10">
+                        <Ionicons name="keypad" size={18} color={colors.mutedForeground} />
+                      </View>
+                      <TextInput
+                        placeholder="Enter meter number"
+                        value={value}
+                        placeholderTextColor={colors.mutedForeground}
+                        onChangeText={(text) => {
+                          onChange(text);
+                          if (text !== lastVerifiedMeter) {
+                            setVerificationStatus('idle');
+                            setCustomerInfo(null);
+                          }
+                        }}
+                        className={`bg-secondary/50 border rounded-xl pl-12 pr-12 py-4 text-base text-foreground font-mono ${verificationStatus === 'success'
+                          ? 'border-emerald-500/50 bg-emerald-500/5'
+                          : verificationStatus === 'error'
+                            ? 'border-red-500/50'
+                            : 'border-border/50'
+                          }`}
+                        keyboardType="numeric"
+                        maxLength={15}
+                      />
+                      {isVerifyingMeter && (
+                        <View className="absolute right-4 top-1/2 -translate-y-1/2">
+                          <Ionicons name="sync" size={18} color={colors.primary} />
                         </View>
                       )}
                     </View>
                   )}
-                  {verificationStatus === 'error' && (
-                    <View className="space-y-1">
-                      <Text className="text-red-800 dark:text-red-400 font-semibold text-sm">Verification Failed</Text>
-                      <Text className="text-red-700 dark:text-red-300 text-sm">
-                        Please check the meter number and try again
-                      </Text>
+                />
+                {errors.meterNumber && (
+                  <Text className="text-destructive text-xs mt-1">
+                    {errors.meterNumber.message}
+                  </Text>
+                )}
+              </View>
+
+              {/* Verification Status Card */}
+              <MeterVerificationCard
+                verificationStatus={verificationStatus}
+                customerInfo={customerInfo}
+                isVerifying={isVerifyingMeter}
+                onClear={handleClearVerification}
+              />
+
+              {/* Phone Number Input */}
+              <View>
+                <Text className="text-sm font-semibold text-muted-foreground mb-2">
+                  Phone Number (for token notification)
+                </Text>
+                <Controller
+                  control={control}
+                  name="phoneNumber"
+                  render={({ field: { onChange, value } }) => (
+                    <PhoneNumberInput
+                      className="border-0 bg-secondary/50 rounded-xl text-base font-medium"
+                      value={value}
+                      onChange={onChange}
+                      error={errors.phoneNumber?.message}
+                      onSelectContact={handleSelectContact}
+                    />
+                  )}
+                />
+              </View>
+            </View>
+          </Animated.View>
+        )}
+
+        {/* Amount Section - Shows when meter is verified */}
+        {selectedProvider && verificationStatus === 'success' && (
+          <Animated.View
+            entering={FadeInDown.duration(400)}
+            exiting={FadeOut.duration(200)}
+            layout={Layout}
+            className="mx-4 mb-4"
+          >
+            <View className="bg-card rounded-2xl p-5 border border-border/50 space-y-4">
+              <View className="flex-row items-center gap-x-2">
+                <Ionicons name="wallet" size={18} color={colors.primary} />
+                <Text className="text-base font-bold text-foreground">Amount</Text>
+              </View>
+
+              {/* Quick Amounts */}
+              <View className="flex-row flex-wrap gap-2">
+                {quickAmounts.map((amt) => (
+                  <TouchableOpacity
+                    key={amt}
+                    onPress={() => handleQuickAmount(amt)}
+                    activeOpacity={0.7}
+                    className={`px-4 py-2.5 rounded-full border ${watchedAmount === amt
+                      ? 'bg-primary border-primary'
+                      : 'bg-secondary/50 border-border/50'
+                      }`}
+                  >
+                    <Text className={`font-semibold text-sm ${watchedAmount === amt ? 'text-white' : 'text-foreground'
+                      }`}>
+                      {formatNigerianNaira(amt)}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              {/* Custom Amount Input */}
+              <View>
+                <Text className="text-sm font-semibold text-muted-foreground mb-2">
+                  Custom Amount
+                </Text>
+                <Controller
+                  control={control}
+                  name="amount"
+                  render={({ field: { onChange, value } }) => (
+                    <View className="relative">
+                      <View className="absolute left-4 top-1/2 -translate-y-1/2 z-10">
+                        <Text className="text-xl font-bold text-muted-foreground">₦</Text>
+                      </View>
+                      <TextInput
+                        placeholder="0"
+                        keyboardType="numeric"
+                        value={value ? value.toString() : ''}
+                        placeholderTextColor={colors.mutedForeground}
+                        onChangeText={(text) => {
+                          const numericValue = parseFloat(text) || 0;
+                          onChange(numericValue);
+                        }}
+                        className="bg-secondary/50 border border-border/50 rounded-xl pl-12 pr-4 py-4 text-2xl font-bold text-foreground text-center"
+                      />
                     </View>
                   )}
-                  {verificationStatus === 'loading' && (
-                    <Text className="text-blue-800 dark:text-blue-400 font-semibold text-sm">Verifying meter number...</Text>
-                  )}
-                </View>
+                />
+                {errors.amount && (
+                  <Text className="text-destructive text-xs mt-1">
+                    {errors.amount.message}
+                  </Text>
+                )}
               </View>
-            </View>
-          )}
-          
-          {errors.meterNumber && (
-            <View className="mt-2 flex-row items-center">
-              <Ionicons name="alert-circle" size={16} color={colors.destructive} />
-              <Text className="text-destructive text-sm ml-2">{errors.meterNumber.message}</Text>
-            </View>
-          )}
-        </View>
 
-        <View className="bg-card rounded-2xl p-5 mb-4 shadow-sm border border-border/20">
-          <View className="flex-row items-center mb-3">
-            <Ionicons name="call" size={18} color={colors.primary} />
-            <Text className="text-base font-semibold text-foreground ml-2">Phone Number</Text>
-          </View>
-          <Controller
-            control={control}
-            name="phoneNumber"
-            render={({ field: { onChange, value } }) => (
-              <PhoneNumberInput
-                className="border-0 bg-input rounded-xl text-base font-medium"
-                value={value}
-                onChange={onChange}
-                error={errors.phoneNumber?.message}
-                onSelectContact={handleSelectContact}
-              />
-            )}
-          />
-        </View>
+              {/* Insufficient Balance Warning */}
+              {user && watchedAmount >= 1000 && !canAfford && (
+                <Animated.View
+                  entering={FadeIn.duration(200)}
+                  className="p-3 bg-red-500/10 rounded-xl flex-row items-center gap-x-2"
+                >
+                  <Ionicons name="alert-circle" size={16} color="#ef4444" />
+                  <Text className="text-red-500 text-xs font-medium flex-1">
+                    Insufficient balance. You need {formatNigerianNaira(totalAmount - (walletBalance?.balance || 0))} more.
+                  </Text>
+                </Animated.View>
+              )}
+            </View>
+          </Animated.View>
+        )}
 
-        <View className="bg-card rounded-2xl p-5 mb-6 shadow-sm border border-border/20">
-          <View className="flex-row items-center mb-4">
-            <Ionicons name="wallet" size={18} color={colors.primary} />
-            <Text className="text-base font-semibold text-foreground ml-2">Payment Amount</Text>
-          </View>
-          <Controller
-            control={control}
-            name="amount"
-            render={({ field: { onChange, value } }) => (
-              <View className="bg-input rounded-xl p-4 border border-border/30">
-                <View className="flex-row items-center justify-center">
-                  <Text className="text-2xl font-bold text-muted-foreground mr-2">₦</Text>
-                  <TextInput
-                    placeholder="0"
-                    keyboardType="numeric"
-                    value={value ? value.toString() : ''}
-                    placeholderTextColor={colors.mutedForeground}
-                    onChangeText={(text) => {
-                      const numericValue = parseFloat(text) || 0;
-                      onChange(numericValue);
-                    }}
-                    className="flex-1 text-center text-3xl font-bold text-foreground"
-                    style={{ minHeight: 40 }}
-                  />
-                </View>
-              </View>
-            )}
-          />
-          
-          {watchedAmount > 0 && (
-            <View className="mt-4 bg-gradient-to-r from-primary/5 to-purple-500/5 rounded-xl p-4 border border-primary/20">
-              <Text className="text-sm font-semibold text-foreground mb-3">Payment Breakdown</Text>
+        {/* Transaction Summary */}
+        {selectedProvider && verificationStatus === 'success' && watchedAmount >= 1000 && (
+          <Animated.View
+            entering={FadeInDown.duration(400)}
+            layout={Layout}
+            className="mx-4 mb-4"
+          >
+            <LinearGradient
+              colors={['rgba(245, 158, 11, 0.05)', 'rgba(249, 115, 22, 0.05)']}
+              className="rounded-2xl p-5 border border-amber-500/20"
+            >
+              <Text className="text-sm font-bold text-foreground mb-3">
+                Transaction Summary
+              </Text>
               <View className="space-y-2">
                 <View className="flex-row justify-between items-center">
-                  <Text className="text-muted-foreground text-sm">Bill Amount</Text>
-                  <Text className="text-foreground font-semibold">₦{watchedAmount.toLocaleString()}</Text>
+                  <Text className="text-muted-foreground text-sm">Electricity Amount</Text>
+                  <Text className="text-foreground font-semibold">
+                    {formatNigerianNaira(watchedAmount)}
+                  </Text>
                 </View>
                 <View className="flex-row justify-between items-center">
-                  <Text className="text-muted-foreground text-sm">Service Charge ({commissionRate * 100}%)</Text>
-                  <Text className="text-foreground font-semibold">₦{commissionAmount.toLocaleString()}</Text>
+                  <Text className="text-muted-foreground text-sm">
+                    Service Charge ({(commissionRate * 100).toFixed(0)}%)
+                  </Text>
+                  <Text className="text-foreground font-semibold">
+                    {formatNigerianNaira(commissionAmount)}
+                  </Text>
                 </View>
-                <View className="h-px bg-border my-2" />
+                {dataBonusMB && (
+                  <View className="flex-row justify-between items-center">
+                    <Text className="text-muted-foreground text-sm">Data Bonus</Text>
+                    <Text className="text-emerald-500 font-semibold">+{dataBonusMB}</Text>
+                  </View>
+                )}
+                <View className="h-px bg-border/50 my-2" />
                 <View className="flex-row justify-between items-center">
-                  <Text className="text-foreground font-bold text-base">Total Amount</Text>
-                  <Text className="text-primary font-bold text-lg">₦{totalAmount.toLocaleString()}</Text>
+                  <Text className="text-foreground font-bold">Total</Text>
+                  <Text className="text-lg font-bold text-primary">
+                    {formatNigerianNaira(totalAmount)}
+                  </Text>
                 </View>
               </View>
-            </View>
-          )}
-          
-          {customerInfo?.Min_Purchase_Amount && (
-            <View className="mt-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 border border-blue-200 dark:border-blue-800">
-              <View className="flex-row items-center">
-                <Ionicons name="information-circle" size={16} color={colors.primary} />
-                <Text className="text-blue-700 dark:text-blue-300 text-sm ml-2">
-                  Minimum purchase: ₦{customerInfo.Min_Purchase_Amount.toLocaleString()}
-                </Text>
-              </View>
-            </View>
-          )}
-          {errors.amount && (
-            <View className="mt-2 flex-row items-center">
-              <Ionicons name="alert-circle" size={16} color={colors.destructive} />
-              <Text className="text-destructive text-sm ml-2">{errors.amount.message}</Text>
-            </View>
-          )}
-        </View>
+            </LinearGradient>
+          </Animated.View>
+        )}
 
-        <View className="pt-4 pb-6 px-4">
+        {/* Submit Button */}
+        <Animated.View
+          entering={FadeInDown.duration(400).delay(400)}
+          className="mx-4 mt-2"
+        >
           <TouchableOpacity
             onPress={handleSubmit(onSubmit)}
             activeOpacity={0.8}
             disabled={
               verificationStatus !== 'success' ||
               !watchedAmount ||
-              watchedAmount < 100
+              watchedAmount < 1000
             }
-            className={`rounded-2xl overflow-hidden shadow-lg ${
-              verificationStatus !== 'success' || !watchedAmount || watchedAmount < 100
-                ? 'opacity-50'
-                : ''
-            }`}
-            style={{ elevation: 8 }}
+            className={`rounded-2xl overflow-hidden ${verificationStatus !== 'success' || !watchedAmount || watchedAmount < 1000
+              ? 'opacity-50'
+              : ''
+              }`}
           >
             <LinearGradient
-              colors={['#7B2FF2', '#F357A8', '#FF6B9D']}
+              colors={['#f59e0b', '#ef4444', '#ec4899']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               className="py-5 items-center justify-center"
             >
-              <View className="flex-row items-center">
-                  <>
-                    <Ionicons name="flash" size={20} color="white" />
-                    <Text className="text-white font-bold text-lg ml-2">
-                      Pay ₦{totalAmount.toLocaleString()}
-                    </Text>
-                  </>
+              <View className="flex-row items-center gap-x-3">
+                <Ionicons name="flash" size={22} color="white" />
+                <Text className="text-white font-bold text-lg">
+                  {isVerifyingMeter ? 'Verifying...' : 'Buy Electricity'}
+                </Text>
+                <Ionicons name="arrow-forward" size={20} color="white" />
               </View>
-              <Text className="text-white/80 text-sm mt-1">Instant electricity payment</Text>
             </LinearGradient>
           </TouchableOpacity>
-          
-          <View className="mt-4 bg-muted/30 rounded-xl p-4">
-            <View className="flex-row items-center mb-2">
-              <Ionicons name="bulb" size={16} color={colors.primary} />
-              <Text className="text-sm font-semibold text-foreground ml-2">Quick Tips</Text>
-            </View>
-            <Text className="text-xs text-muted-foreground leading-4">
-              • Ensure your meter number is correct before verification{'\n'}
-              • {watchedIsPrepaid ? 'Prepaid' : 'Postpaid'} payments are processed instantly{'\n'}
-              • You'll receive a confirmation SMS after successful payment
-            </Text>
-          </View>
-        </View>
-      </ScrollView>
+        </Animated.View>
 
-      <ElectricityConfirmationModal
-        isVisible={showConfirmationModal}
-        onClose={() => setShowConfirmationModal(false)}
-        electricityData={electricityData}
-      />
+        <ElectricityConfirmationModal
+          isVisible={showConfirmationModal}
+          onClose={() => setShowConfirmationModal(false)}
+          electricityData={electricityData}
+        />
+      </ScrollView>
     </SafeAreaView>
   );
 };
 
 export default React.memo(BuyElectricityScreen);
-

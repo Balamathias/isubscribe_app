@@ -9,9 +9,17 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import { Alert, Image, ScrollView, Text, TouchableOpacity, useColorScheme, View } from 'react-native';
+import Animated, {
+  FadeIn,
+  FadeOut,
+  useAnimatedStyle,
+  useSharedValue,
+  withSequence,
+  withSpring,
+} from 'react-native-reanimated';
 import PinPad from '../pin-pad';
 import { useSession } from '../session-context';
-import StatusModal from '../status-modal';
+import ElectricityStatusModal from './electricity-status-modal';
 import LoadingSpinner from '../ui/loading-spinner';
 
 interface ElectricityConfirmationModalProps {
@@ -26,6 +34,7 @@ interface ElectricityConfirmationModalProps {
     totalAmount: number;
     isPrepaid: boolean;
     customerInfo?: any;
+    dataBonus?: string | null;
   };
 }
 
@@ -37,6 +46,7 @@ const ElectricityConfirmationModal: React.FC<ElectricityConfirmationModalProps> 
   electricityData
 }) => {
   const [isPinPadVisible, setPinPadVisible] = useState(false);
+  const [detailsExpanded, setDetailsExpanded] = useState(false);
   const { user, walletBalance, electricityServices } = useSession();
   const { authenticate, isBiometricEnabled } = useLocalAuth();
 
@@ -44,7 +54,7 @@ const ElectricityConfirmationModal: React.FC<ElectricityConfirmationModalProps> 
   const theme = colorScheme === 'dark' ? 'dark' : 'light';
   const colors = COLORS[theme];
   const [loadingText, setLoadingText] = useState('');
-  
+
   const queryClient = useQueryClient();
 
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod>('wallet');
@@ -54,8 +64,23 @@ const ElectricityConfirmationModal: React.FC<ElectricityConfirmationModalProps> 
 
   const [openStatusModal, setOpenStatusModal] = useState(false);
 
-  const currentBalance = selectedPaymentMethod === 'wallet' 
-    ? (walletBalance?.balance || 0) 
+  // Animation for icon
+  const iconScale = useSharedValue(1);
+  const iconAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: iconScale.value }],
+  }));
+
+  React.useEffect(() => {
+    if (isVisible) {
+      iconScale.value = withSequence(
+        withSpring(1.1, { damping: 10 }),
+        withSpring(1, { damping: 15 })
+      );
+    }
+  }, [isVisible]);
+
+  const currentBalance = selectedPaymentMethod === 'wallet'
+    ? (walletBalance?.balance || 0)
     : (walletBalance?.cashback_balance || 0);
 
   const isInsufficientFunds = electricityData?.totalAmount > currentBalance;
@@ -71,7 +96,7 @@ const ElectricityConfirmationModal: React.FC<ElectricityConfirmationModalProps> 
       phone: electricityData.phoneNumber,
       billers_code: electricityData.meterNumber,
       variation_code: electricityData.isPrepaid ? 'prepaid' : 'postpaid',
-      amount: electricityData.amount, // Use total amount including commission
+      amount: electricityData.amount,
     }, {
       onSuccess: (data) => {
         setOpenStatusModal(true);
@@ -137,156 +162,271 @@ const ElectricityConfirmationModal: React.FC<ElectricityConfirmationModalProps> 
   };
 
   return (
-      <>
+    <>
       <BottomSheet
         isVisible={isVisible}
         onClose={onClose}
-        title={`${electricityData.isPrepaid ? 'Prepaid' : 'Postpaid'} Electricity`}
-       >
+        title="Confirm Purchase"
+      >
         {isPending && (
-            <LoadingSpinner isPending={isPending} />
+          <LoadingSpinner isPending={isPending} />
         )}
-        <ScrollView className="flex-1">
-          <View className="flex flex-col gap-4 w-full">
-            
-            <View className="p-4 bg-secondary rounded-xl mb-4 w-full">
-              <View className="flex-row justify-between mb-2">
-                <Text className="text-muted-foreground text-sm sm:text-base">Provider</Text>
-                <View className="flex-row items-center">
-                  <Text className="text-foreground font-semibold text-sm sm:text-base mr-2">{selectedProvider?.name}</Text>
-                  <Image 
-                    source={{ uri: selectedProvider?.thumbnail! }}
-                    className="w-5 h-5 rounded-full"
-                    resizeMode='contain'
+        <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+          <View className="flex flex-col gap-4 w-full pb-4">
+
+            {/* Animated Electricity Icon */}
+            <View className="items-center py-3">
+              <Animated.View style={iconAnimatedStyle}>
+                <View className="relative">
+                  <View
+                    className="w-12 h-12 rounded-full items-center justify-center"
+                  >
+                    <Ionicons name="bulb" size={20} color="white" />
+                  </View>
+                  {/* Pulse effect */}
+                  <Animated.View
+                    entering={FadeIn.duration(1000).delay(500)}
+                    className="absolute inset-0 rounded-full bg-amber-500/20"
+                    style={{ transform: [{ scale: 1.3 }] }}
                   />
                 </View>
-              </View>
-              
-              {electricityData.customerInfo && (
-                <View className="flex-row justify-between mb-2">
-                  <Text className="text-muted-foreground text-sm sm:text-base">Customer Name</Text>
-                  <Text className="text-foreground font-semibold text-sm sm:text-base flex-1 text-right ml-2" numberOfLines={1}>
-                    {electricityData.customerInfo.Customer_Name}
-                  </Text>
-                </View>
-              )}
-              
-              <View className="flex-row justify-between mb-2">
-                <Text className="text-muted-foreground text-sm sm:text-base">Meter Number</Text>
-                <Text className="text-foreground font-semibold text-sm sm:text-base">{electricityData.meterNumber}</Text>
-              </View>
-              
-              {electricityData.customerInfo?.Address && (
-                <View className="flex-row justify-between mb-2">
-                  <Text className="text-muted-foreground text-sm sm:text-base">Address</Text>
-                  <Text className="text-foreground font-semibold text-sm sm:text-base flex-1 text-right ml-2" numberOfLines={2}>
-                    {electricityData.customerInfo.Address}
-                  </Text>
-                </View>
-              )}
-              
-              <View className="flex-row justify-between mb-2">
-                <Text className="text-muted-foreground text-sm sm:text-base">Phone Number</Text>
-                <Text className="text-foreground font-semibold text-sm sm:text-base">{electricityData.phoneNumber}</Text>
-              </View>
-              
-              <View className="flex-row justify-between mb-2">
-                <Text className="text-muted-foreground text-sm sm:text-base">Amount</Text>
-                <Text className="text-foreground font-semibold text-sm sm:text-base">{formatNigerianNaira(electricityData.amount)}</Text>
-              </View>
-              
-              <View className="flex-row justify-between mb-2">
-                <Text className="text-muted-foreground text-sm sm:text-base">Charges (10%)</Text>
-                <Text className="text-foreground font-semibold text-sm sm:text-base">{formatNigerianNaira(electricityData.commissionAmount)}</Text>
-              </View>
-              
-              <View className="border-t border-border mt-2 pt-2">
-                <View className="flex-row justify-between mb-2">
-                  <Text className="text-foreground font-bold text-base sm:text-lg">Total Amount</Text>
-                  <Text className="text-primary font-bold text-base sm:text-lg">{formatNigerianNaira(electricityData.totalAmount)}</Text>
-                </View>
-              </View>
-              
-              <View className="flex-row justify-between mb-2">
-                <Text className="text-muted-foreground text-sm sm:text-base">Type</Text>
-                <Text className="text-foreground font-semibold text-sm sm:text-base">{electricityData.isPrepaid ? 'Prepaid' : 'Postpaid'}</Text>
-              </View>
-              
-              {electricityData.customerInfo?.Outstanding > 0 && (
-                <View className="flex-row justify-between mb-2">
-                  <Text className="text-orange-600 text-sm sm:text-base">Outstanding</Text>
-                  <Text className="text-orange-600 font-semibold text-sm sm:text-base">
-                    ₦{electricityData.customerInfo.Outstanding.toLocaleString()}
-                  </Text>
-                </View>
-              )}
+              </Animated.View>
             </View>
 
-            <TouchableOpacity 
-              disabled={(walletBalance?.balance || 0) < electricityData.totalAmount} 
-              activeOpacity={0.7} 
-              className={`bg-primary/10 rounded-xl p-3 sm:p-4 flex-row justify-between items-center
-                ${selectedPaymentMethod === 'wallet' ? 'border border-primary' : ''} 
-                ${((walletBalance?.balance || 0) < electricityData.totalAmount) ? ' bg-red-500/10' : ''}`}
-              onPress={() => setSelectedPaymentMethod('wallet')}
-            >
-              <View className="flex-row items-center">
-                <Ionicons name="wallet-outline" size={20} color={colors.primary} />
-                <View className="ml-2 sm:ml-3">
-                  <Text className="text-foreground font-bold text-base sm:text-lg">
-                    Wallet Balance <Text className="text-muted-foreground text-xs sm:text-sm font-normal">• 
-                    {((walletBalance?.balance || 0) < electricityData.totalAmount) ? ' Insufficient Funds' : ' Available' }
-                    </Text>
-                  </Text>
-                  <Text className="text-foreground font-bold text-lg sm:text-xl">
-                    {formatNigerianNaira(user ? (walletBalance?.balance || 0) : 0)}
-                  </Text>
-                </View>
-              </View>
-              {selectedPaymentMethod === 'wallet' && <Ionicons name="checkmark-circle" size={20} color={colors.primary} />}
-            </TouchableOpacity>
+            {/* Amount Display */}
+            <View className="items-center">
+              <Text className="text-sm text-muted-foreground">You are paying</Text>
+              <Text className="text-3xl font-bold text-foreground mt-1">
+                {formatNigerianNaira(electricityData.totalAmount)}
+              </Text>
+              <Text className="text-xs text-muted-foreground mt-1">
+                (₦{electricityData.amount.toLocaleString()} + ₦{electricityData.commissionAmount.toLocaleString()} service charge)
+              </Text>
+            </View>
 
-            {walletBalance?.cashback_balance !== undefined && walletBalance?.cashback_balance > 0 && (
-              <TouchableOpacity 
-                disabled={(walletBalance?.cashback_balance || 0) < electricityData.totalAmount} 
-                activeOpacity={0.7} 
-                className={`bg-primary/10 rounded-xl p-3 sm:p-4 flex-row justify-between items-center mb-2 
-                  ${selectedPaymentMethod === 'cashback' ? 'border border-primary' : ''} 
-                  ${((walletBalance?.cashback_balance || 0) < electricityData.totalAmount) ? ' bg-red-500/10' : ''}`}
-                onPress={() => setSelectedPaymentMethod('cashback')}
+            {/* Collapsible Details Section */}
+            <View className="bg-secondary/30 rounded-2xl overflow-hidden">
+              {/* Summary Row - Always visible */}
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() => setDetailsExpanded(!detailsExpanded)}
+                className="p-4 flex-row items-center justify-between"
               >
-                <View className="flex-row items-center">
-                  <Ionicons name="gift-outline" size={20} color={colors.primary} />
-                  <View className="ml-2 sm:ml-3">
-                    <Text className="text-foreground font-bold text-base sm:text-lg">
-                      Cashback Balance <Text className="text-muted-foreground text-xs sm:text-sm font-normal">• 
-                      {((walletBalance?.cashback_balance || 0) < electricityData.totalAmount) ? ' Insufficient Funds' : ' Available' }
-                      </Text>
-                    </Text>
-                    <Text className="text-foreground font-bold text-lg sm:text-xl">
-                      {formatNigerianNaira(user ? (walletBalance?.cashback_balance || 0) : 0)}
+                <View className="flex-row items-center gap-x-3 flex-1">
+                  <View className="w-10 h-10 rounded-xl bg-primary/10 items-center justify-center">
+                    <Ionicons name="person" size={18} color={colors.primary} />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="text-xs text-muted-foreground">Customer</Text>
+                    <Text className="text-sm font-semibold text-foreground" numberOfLines={1}>
+                      {electricityData.customerInfo?.Customer_Name || 'N/A'}
                     </Text>
                   </View>
                 </View>
-                {selectedPaymentMethod === 'cashback' && <Ionicons name="checkmark-circle" size={20} color={colors.primary} />}
+                <Ionicons
+                  name={detailsExpanded ? 'chevron-up' : 'chevron-down'}
+                  size={20}
+                  color={colors.mutedForeground}
+                />
               </TouchableOpacity>
-            )}
 
+              {/* Expandable Details */}
+              {detailsExpanded && (
+                <Animated.View
+                  entering={FadeIn.duration(200)}
+                  exiting={FadeOut.duration(150)}
+                  className="px-4 pb-4 gap-y-3 border-t border-border/30 pt-3"
+                >
+                  {/* Provider */}
+                  <View className="flex-row items-center gap-x-3">
+                    <View className="w-10 h-10 rounded-xl bg-amber-500/10 items-center justify-center">
+                      <Ionicons name="bulb" size={18} color="#f59e0b" />
+                    </View>
+                    <View className="flex-1">
+                      <Text className="text-xs text-muted-foreground">Provider</Text>
+                      <View className="flex-row items-center gap-x-2">
+                        <Text className="text-sm font-semibold text-foreground">{selectedProvider?.name}</Text>
+                        {selectedProvider?.thumbnail && (
+                          <Image
+                            source={{ uri: selectedProvider.thumbnail }}
+                            className="w-5 h-5 rounded-full"
+                            resizeMode='contain'
+                          />
+                        )}
+                      </View>
+                    </View>
+                  </View>
+
+                  {/* Meter Number */}
+                  <View className="flex-row items-center gap-x-3">
+                    <View className="w-10 h-10 rounded-xl bg-primary/10 items-center justify-center">
+                      <Ionicons name="keypad" size={18} color={colors.primary} />
+                    </View>
+                    <View className="flex-1">
+                      <Text className="text-xs text-muted-foreground">
+                        Meter Number ({electricityData.isPrepaid ? 'Prepaid' : 'Postpaid'})
+                      </Text>
+                      <Text className="text-sm font-semibold text-foreground font-mono">
+                        {electricityData.meterNumber}
+                      </Text>
+                    </View>
+                  </View>
+
+                  {/* Address */}
+                  {electricityData.customerInfo?.Address && (
+                    <View className="flex-row items-center gap-x-3">
+                      <View className="w-10 h-10 rounded-xl bg-primary/10 items-center justify-center">
+                        <Ionicons name="location" size={18} color={colors.primary} />
+                      </View>
+                      <View className="flex-1">
+                        <Text className="text-xs text-muted-foreground">Address</Text>
+                        <Text className="text-sm font-semibold text-foreground" numberOfLines={2}>
+                          {electricityData.customerInfo.Address}
+                        </Text>
+                      </View>
+                    </View>
+                  )}
+
+                  {/* Phone */}
+                  <View className="flex-row items-center gap-x-3">
+                    <View className="w-10 h-10 rounded-xl bg-primary/10 items-center justify-center">
+                      <Ionicons name="call" size={18} color={colors.primary} />
+                    </View>
+                    <View className="flex-1">
+                      <Text className="text-xs text-muted-foreground">Token will be sent to</Text>
+                      <Text className="text-sm font-semibold text-foreground">
+                        {electricityData.phoneNumber}
+                      </Text>
+                    </View>
+                  </View>
+
+                  {/* Data Bonus */}
+                  {electricityData.dataBonus && (
+                    <View className="flex-row items-center gap-x-3">
+                      <View className="w-10 h-10 rounded-xl bg-emerald-500/10 items-center justify-center">
+                        <Ionicons name="gift" size={18} color="#10b981" />
+                      </View>
+                      <View className="flex-1">
+                        <Text className="text-xs text-muted-foreground">Data Bonus</Text>
+                        <Text className="text-sm font-semibold text-emerald-500">
+                          +{electricityData.dataBonus}
+                        </Text>
+                      </View>
+                    </View>
+                  )}
+
+                  {/* Outstanding Balance */}
+                  {electricityData.customerInfo?.Outstanding > 0 && (
+                    <View className="bg-orange-500/10 rounded-xl p-3 flex-row items-center gap-x-2">
+                      <Ionicons name="alert-circle" size={16} color="#f59e0b" />
+                      <Text className="text-orange-600 dark:text-orange-400 text-xs font-medium">
+                        Outstanding: ₦{electricityData.customerInfo.Outstanding.toLocaleString()}
+                      </Text>
+                    </View>
+                  )}
+                </Animated.View>
+              )}
+            </View>
+
+            {/* Payment Method Selection */}
+            <View className="gap-y-2">
+              <Text className="text-sm font-semibold text-muted-foreground">Payment Method</Text>
+
+              {/* Wallet Option */}
+              <TouchableOpacity
+                disabled={(walletBalance?.balance || 0) < electricityData.totalAmount}
+                activeOpacity={0.7}
+                onPress={() => setSelectedPaymentMethod('wallet')}
+                className={`flex-row items-center gap-x-3 p-3 rounded-xl border ${
+                  selectedPaymentMethod === 'wallet'
+                    ? 'border-primary bg-primary/5'
+                    : 'border-border/50'
+                } ${(walletBalance?.balance || 0) < electricityData.totalAmount ? 'opacity-50' : ''}`}
+              >
+                <View className="w-10 h-10 rounded-xl bg-primary/10 items-center justify-center">
+                  <Ionicons name="wallet" size={18} color={colors.primary} />
+                </View>
+                <View className="flex-1">
+                  <Text className="text-sm font-semibold text-foreground">Wallet Balance</Text>
+                  <Text className="text-xs text-muted-foreground">
+                    {formatNigerianNaira(walletBalance?.balance || 0)}
+                    {(walletBalance?.balance || 0) < electricityData.totalAmount && ' • Insufficient'}
+                  </Text>
+                </View>
+                <View className={`w-5 h-5 rounded-full border-2 items-center justify-center ${
+                  selectedPaymentMethod === 'wallet'
+                    ? 'border-primary bg-primary'
+                    : 'border-muted-foreground/30'
+                }`}>
+                  {selectedPaymentMethod === 'wallet' && (
+                    <View className="w-2 h-2 rounded-full bg-white" />
+                  )}
+                </View>
+              </TouchableOpacity>
+
+              {/* Cashback Option */}
+              {walletBalance?.cashback_balance !== undefined && walletBalance?.cashback_balance > 0 && (
+                <TouchableOpacity
+                  disabled={(walletBalance?.cashback_balance || 0) < electricityData.totalAmount}
+                  activeOpacity={0.7}
+                  onPress={() => setSelectedPaymentMethod('cashback')}
+                  className={`flex-row items-center gap-x-3 p-3 rounded-xl border ${
+                    selectedPaymentMethod === 'cashback'
+                      ? 'border-emerald-500 bg-emerald-500/5'
+                      : 'border-border/50'
+                  } ${(walletBalance?.cashback_balance || 0) < electricityData.totalAmount ? 'opacity-50' : ''}`}
+                >
+                  <View className="w-10 h-10 rounded-xl bg-emerald-500/10 items-center justify-center">
+                    <Ionicons name="gift" size={18} color="#10b981" />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="text-sm font-semibold text-foreground">Cashback Balance</Text>
+                    <Text className="text-xs text-muted-foreground">
+                      {formatNigerianNaira(walletBalance?.cashback_balance || 0)}
+                      {(walletBalance?.cashback_balance || 0) < electricityData.totalAmount && ' • Insufficient'}
+                    </Text>
+                  </View>
+                  <View className={`w-5 h-5 rounded-full border-2 items-center justify-center ${
+                    selectedPaymentMethod === 'cashback'
+                      ? 'border-emerald-500 bg-emerald-500'
+                      : 'border-muted-foreground/30'
+                  }`}>
+                    {selectedPaymentMethod === 'cashback' && (
+                      <View className="w-2 h-2 rounded-full bg-white" />
+                    )}
+                  </View>
+                </TouchableOpacity>
+              )}
+            </View>
+
+            {/* Proceed Button */}
             <TouchableOpacity
-              className="rounded-xl py-3 sm:py-4 overflow-hidden bg-primary flex flex-row items-center justify-center gap-x-1 mb-4"
+              className="rounded-2xl overflow-hidden"
               onPress={handleProceed}
-              activeOpacity={0.5}
-              disabled={!user || isInsufficientFunds} 
+              activeOpacity={0.8}
+              disabled={!user || isInsufficientFunds}
+              style={{ opacity: (!user || isInsufficientFunds) ? 0.5 : 1 }}
             >
               <LinearGradient
-                colors={[colors.primary, '#e65bf8']}
+                colors={['#f59e0b', '#ef4444', '#ec4899']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
-                className="absolute inset-0"
-              />
-              {!user && <Ionicons size={18} name='log-in-outline' color={'white'} />}
-              <Text className="text-primary-foreground text-base sm:text-lg font-bold">{user ? 'Pay Now' : 'Login'}</Text>
+                className="py-4 items-center justify-center"
+              >
+                <View className="flex-row items-center gap-x-2">
+                  {!user && <Ionicons size={18} name='log-in-outline' color={'white'} />}
+                  <Text className="text-white text-lg font-bold">
+                    {user ? 'Proceed to Pay' : 'Login to Continue'}
+                  </Text>
+                  <Ionicons name="chevron-forward" size={20} color="white" />
+                </View>
+              </LinearGradient>
             </TouchableOpacity>
+
+            {/* Security Note */}
+            <Text className="text-center text-xs text-muted-foreground">
+              Your transaction is secured with end-to-end encryption
+            </Text>
           </View>
         </ScrollView>
       </BottomSheet>
@@ -303,26 +443,18 @@ const ElectricityConfirmationModal: React.FC<ElectricityConfirmationModalProps> 
         successMessage='Pin Verified.'
       />
 
-      <StatusModal 
-        amount={transaction?.data?.amount || 0}
-        status={
-          transaction?.error ? 'error' : transaction?.data?.status as any
-        }
-        transaction={transaction?.data}
+      <ElectricityStatusModal
         isVisible={openStatusModal}
-        description={transaction?.data?.description || transaction?.message || ''}
-        actionText={
-          transaction?.error ? 'Done' : 'View Receipt'
-        }
-        onAction={transaction?.error ? undefined : () => {
-          router.push({
-            pathname: '/transactions/[id]',
-            params: { id: String(transaction?.data?.id) }
-          })
-        }}
-        onClose={() => {
-          setOpenStatusModal(false)
-        }}
+        onClose={() => setOpenStatusModal(false)}
+        status={transaction?.error ? 'error' : (transaction?.data?.status as 'success' | 'error' | 'pending') || 'pending'}
+        amount={transaction?.data?.amount || electricityData.totalAmount}
+        token={transaction?.data?.token}
+        formattedToken={transaction?.data?.formatted_token}
+        dataBonus={electricityData.dataBonus || undefined}
+        customerName={electricityData.customerInfo?.Customer_Name}
+        meterNumber={electricityData.meterNumber}
+        providerName={selectedProvider?.name!}
+        error={transaction?.error ? (transaction?.message || 'Transaction failed') : undefined}
       />
     </>
   );

@@ -1,59 +1,95 @@
-import { useThemedColors } from '@/hooks/useThemedColors';
+import { COLORS } from '@/constants/colors';
 import React from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
-import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import { Text, TouchableOpacity, useColorScheme, View } from 'react-native';
+import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 
 interface DataBundleCategorySelectorProps {
   activeCategory: 'Super' | 'Best' | 'Regular';
   onSelectCategory: (category: 'Super' | 'Best' | 'Regular') => void;
 }
 
-const DataBundleCategorySelector: React.FC<DataBundleCategorySelectorProps> = ({
-  activeCategory, onSelectCategory
-}) => {
-  const categories = [
-    { id: 'Best' as const, name: 'Best', emoji: '⭐' },
-    { id: 'Super' as const, name: 'Super', emoji: '🚀' },
-    { id: 'Regular' as const, name: 'Regular', emoji: '📱' },
-  ];
+const categories = [
+  { id: 'Best' as const, name: 'Best', emoji: '⭐' },
+  { id: 'Super' as const, name: 'Super', emoji: '🚀' },
+  { id: 'Regular' as const, name: 'Regular', emoji: '📱' },
+];
 
-  const colors = useThemedColors().colors
+const CategoryTab: React.FC<{
+  category: (typeof categories)[0];
+  isSelected: boolean;
+  onPress: () => void;
+  isDark: boolean;
+  colors: typeof COLORS.light;
+}> = ({ category, isSelected, onPress, isDark, colors }) => {
+  const scale = useSharedValue(1);
+
+  React.useEffect(() => {
+    scale.value = withSpring(isSelected ? 1.02 : 1, {
+      damping: 15,
+      stiffness: 200,
+    });
+  }, [isSelected, scale]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
 
   return (
-    <View className="w-full mt-6 bg-card rounded-xl">
-      <View className="flex-row rounded-xl overflow-hidden">
-        {categories.map((category) => {
-          const isSelected = activeCategory === category.id;
-          const scale = useSharedValue(1);
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={0.8}
+      className="flex-1 py-3 rounded-xl items-center"
+      style={{
+        backgroundColor: isSelected
+          ? colors.primary
+          : 'transparent',
+      }}
+    >
+      <Animated.View style={animatedStyle} className="flex-row items-center">
+        <Text className="mr-1.5 text-base">{category.emoji}</Text>
+        <Text
+          className="font-semibold text-sm"
+          style={{
+            color: isSelected
+              ? '#fff'
+              : isDark
+                ? 'rgba(255,255,255,0.5)'
+                : 'rgba(0,0,0,0.4)',
+          }}
+        >
+          {category.name}
+        </Text>
+      </Animated.View>
+    </TouchableOpacity>
+  );
+};
 
-          React.useEffect(() => {
-            scale.value = withTiming(isSelected ? 1.05 : 1, { duration: 200 });
-          }, [isSelected]);
+const DataBundleCategorySelector: React.FC<DataBundleCategorySelectorProps> = ({
+  activeCategory,
+  onSelectCategory,
+}) => {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const colors = COLORS[isDark ? 'dark' : 'light'];
 
-          const animatedStyle = useAnimatedStyle(() => ({
-            transform: [{ scale: scale.value }],
-          }));
-
-          return (
-            <TouchableOpacity
-              key={category.id}
-              onPress={() => onSelectCategory(category.id)}
-              className={`flex-1 items-center py-4 rounded-xl ${isSelected ? 'bg-primary/10' : ''}`}
-            >
-              <Animated.View style={animatedStyle} className="flex-row items-center">
-                <Text className="mr-2 text-xl">
-                  {category.emoji}
-                </Text>
-                <Text
-                  className={`font-semibold text-base
-                    ${isSelected ? 'text-primary' : 'text-muted-foreground'}`}
-                >
-                  {category.name}
-                </Text>
-              </Animated.View>
-            </TouchableOpacity>
-          );
-        })}
+  return (
+    <View
+      className="w-full mt-5 p-1.5 rounded-2xl"
+      style={{
+        backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : '#f5f5f5',
+      }}
+    >
+      <View className="flex-row">
+        {categories.map((category) => (
+          <CategoryTab
+            key={category.id}
+            category={category}
+            isSelected={activeCategory === category.id}
+            onPress={() => onSelectCategory(category.id)}
+            isDark={isDark}
+            colors={colors}
+          />
+        ))}
       </View>
     </View>
   );

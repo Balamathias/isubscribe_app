@@ -202,12 +202,17 @@ export const getTransaction = async (id: string): Promise<Response<Tables<'histo
     }
 }
 
+interface ProcessTxResponse extends Tables<'history'> {
+    token?: string
+    formatted_token?: string
+}
+
 /**
  * Processes a transaction based on the provided transaction data.
  * @param transactionData - The data to process the transaction, typically includes details like amount, type, and other necessary information. A differentiating field is the `channel` field which can either be `airtime`, `data_bundle`, `electricity`, `tv`, or `education`.
  * @returns A promise that resolves to a Response object containing the processed transaction data or an error message.
  */
-export const processTransaction = async (transactionData: Record<string, any>): Promise<Response<Tables<'history'>>> => {
+export const processTransaction = async (transactionData: Record<string, any>): Promise<Response<ProcessTxResponse>> => {
     try {
         const { data, status } = await microservice.post('/mobile/process-transactions/', { ...transactionData, source: 'mobile' })
         return data

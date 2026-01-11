@@ -153,7 +153,7 @@ const QuickDataBuy = () => {
             {/* Header */}
             <View className="flex-row items-center justify-between mb-4">
                 <View className="flex-row items-center">
-                    <Ionicons name="flash" size={16} color={colors.primary} style={{ marginRight: 6 }} />
+                    <Ionicons name="bulb" size={16} color={colors.primary} style={{ marginRight: 6 }} />
                     <Text className="font-bold text-base" style={{ color: isDark ? '#fff' : '#111' }}>
                         Quick Buy
                     </Text>

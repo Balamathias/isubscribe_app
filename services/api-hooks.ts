@@ -37,6 +37,12 @@ import {
     listEducationServices,
     verifyEducationMerchant,
     type VerifyEducationMerchantRequest,
+    // Inter-wallet transfer
+    lookupTransferRecipient,
+    initiateTransfer,
+    getTransferLimits,
+    getRecentTransferRecipients,
+    type InitiateTransferRequest,
 } from "./api";
 
 export const QUERY_KEYS = {
@@ -76,6 +82,11 @@ export const QUERY_KEYS = {
     // Education
     listEducationServices: 'listEducationServices',
     verifyEducationMerchant: 'verifyEducationMerchant',
+    // Inter-wallet transfer
+    lookupTransferRecipient: 'lookupTransferRecipient',
+    initiateTransfer: 'initiateTransfer',
+    getTransferLimits: 'getTransferLimits',
+    getRecentTransferRecipients: 'getRecentTransferRecipients',
 } as const
 
 export const useGetAccount = (id?: string) => useQuery({
@@ -324,4 +335,55 @@ export const useListEducationServices = () => useQuery({
 export const useVerifyEducationMerchant = () => useMutation({
     mutationKey: [QUERY_KEYS.verifyEducationMerchant],
     mutationFn: (request: VerifyEducationMerchantRequest) => verifyEducationMerchant(request),
+});
+
+// ==============================================
+// Inter-Wallet Transfer Hooks
+// ==============================================
+
+/**
+ * Query hook to get transfer limits (daily, hourly, min/max amounts)
+ */
+export const useGetTransferLimits = (enabled?: boolean) => useQuery({
+    queryKey: [QUERY_KEYS.getTransferLimits],
+    queryFn: getTransferLimits,
+    enabled: enabled !== false,
+    staleTime: 30 * 1000, // Consider fresh for 30 seconds
+    refetchOnMount: 'always',
+});
+
+/**
+ * Mutation hook to look up a transfer recipient by email/phone/account number
+ */
+export const useLookupTransferRecipient = () => useMutation({
+    mutationKey: [QUERY_KEYS.lookupTransferRecipient],
+    mutationFn: (identifier: string) => lookupTransferRecipient(identifier),
+});
+
+/**
+ * Mutation hook to initiate an inter-wallet transfer
+ */
+export const useInitiateTransfer = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationKey: [QUERY_KEYS.initiateTransfer],
+        mutationFn: (request: InitiateTransferRequest) => initiateTransfer(request),
+        onSuccess: () => {
+            // Invalidate relevant queries after successful transfer
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.getWalletBalance] });
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.getLatestTransactions] });
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.getTransferLimits] });
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.getRecentTransferRecipients] });
+        },
+    });
+};
+
+/**
+ * Query hook to get recent transfer recipients
+ */
+export const useGetRecentTransferRecipients = (limit: number = 5, enabled?: boolean) => useQuery({
+    queryKey: [QUERY_KEYS.getRecentTransferRecipients, limit],
+    queryFn: () => getRecentTransferRecipients(limit),
+    enabled: enabled !== false,
+    staleTime: 60 * 1000, // Consider fresh for 1 minute
 });

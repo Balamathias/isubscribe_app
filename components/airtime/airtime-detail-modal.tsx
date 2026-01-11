@@ -1,4 +1,5 @@
 import BottomSheet from '@/components/ui/bottom-sheet';
+import LoadingSpinner from '@/components/ui/loading-spinner';
 import { COLORS } from '@/constants/colors';
 import { useLocalAuth } from '@/hooks/useLocalAuth';
 import { QUERY_KEYS, useProcessTransaction, useVerifyPin } from '@/services/api-hooks';
@@ -9,13 +10,11 @@ import { useQueryClient } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
-import { ActivityIndicator, Text, TouchableOpacity, useColorScheme, View } from 'react-native';
+import { Image, Text, TouchableOpacity, useColorScheme, View } from 'react-native';
 import PinPad from '../pin-pad';
 import { useSession } from '../session-context';
 import StatusModal from '../status-modal';
-import Avatar from '../ui/avatar';
 import { networks } from './buy-airtime';
-import LoadingSpinner from '../ui/loading-spinner';
 
 interface AirtimeDetailsModalProps {
   isVisible: boolean;
@@ -36,155 +35,272 @@ const AirtimeDetailsModal: React.FC<AirtimeDetailsModalProps> = ({
 }) => {
   const [isPinPadVisible, setPinPadVisible] = useState(false);
   const colorScheme = useColorScheme();
-  const theme = colorScheme === 'dark' ? 'dark' : 'light';
-  const colors = COLORS[theme];
-  const [loadingText, setLoadingText] = useState<string>('')
+  const isDark = colorScheme === 'dark';
+  const colors = COLORS[isDark ? 'dark' : 'light'];
+  const [loadingText, setLoadingText] = useState<string>('');
 
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
   const { authenticate, isBiometricEnabled } = useLocalAuth();
 
-  const { user, walletBalance } = useSession()
-  const { mutateAsync: processTransaction, isPending, data: transaction } = useProcessTransaction()
-  const { mutateAsync: verifyPin, isPending: verifyingPin } = useVerifyPin()
+  const { user, walletBalance } = useSession();
+  const { mutateAsync: processTransaction, isPending, data: transaction } = useProcessTransaction();
+  const { mutateAsync: verifyPin, isPending: verifyingPin } = useVerifyPin();
 
-  const [openStatusModal, setOpenStatusModal] = useState(false)
+  const [openStatusModal, setOpenStatusModal] = useState(false);
+
+  const network = networks.find((n) => n.id === networkId);
+  const insufficientFunds = (walletBalance?.balance || 0) < selectedPlan?.price;
+  const dataBonus = formatDataAmount(selectedPlan?.price * 0.01);
 
   const handleProcessRequest = async () => {
-    setLoadingText('Processing...')
-    const result = await processTransaction({
-      channel: 'airtime',
-      amount: selectedPlan?.price,
-      network: networkId,
-      payment_method: 'wallet',
-      phone: phoneNumber,
-    }, {
-      onSuccess: (data) => {
-        if (!data?.error) {
-          setOpenStatusModal(true)
-          onClose()
-          queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.getWalletBalance]})
-          queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.getLatestTransactions]})
-          queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.getBeneficiaries]})
-        } else {
-          setOpenStatusModal(true)
-          onClose()
-          setPinPadVisible(false)
-        }
+    setLoadingText('Processing...');
+    await processTransaction(
+      {
+        channel: 'airtime',
+        amount: selectedPlan?.price,
+        network: networkId,
+        payment_method: 'wallet',
+        phone: phoneNumber,
       },
-      onError: (error) => {
-        console.error(error?.message)
-        setOpenStatusModal(false)
-        onClose()
-        setPinPadVisible(false)
-        alert(error?.message)
+      {
+        onSuccess: (data) => {
+          if (!data?.error) {
+            setOpenStatusModal(true);
+            onClose();
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.getWalletBalance] });
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.getLatestTransactions] });
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.getBeneficiaries] });
+          } else {
+            setOpenStatusModal(true);
+            onClose();
+            setPinPadVisible(false);
+          }
+        },
+        onError: (error) => {
+          setOpenStatusModal(false);
+          onClose();
+          setPinPadVisible(false);
+        },
       }
-    })
-  }
+    );
+  };
 
   const handlePinSubmit = async (pin: string) => {
-    setLoadingText('Verifying Pin...')
-
-    const pinRequest = await verifyPin({ pin })
+    setLoadingText('Verifying PIN...');
+    const pinRequest = await verifyPin({ pin });
 
     if (pinRequest.data?.is_valid) {
-      setLoadingText('Verified.')
-      return true
+      setLoadingText('Verified.');
+      return true;
     } else {
-      setLoadingText('Pin verification failed.')
-      return false
+      setLoadingText('PIN verification failed.');
+      return false;
     }
   };
 
   const handleProceed = async () => {
     if (!user) {
-      router.push(`/auth/login`)
-      return
+      router.push(`/auth/login`);
+      return;
     }
 
     if (isBiometricEnabled) {
       try {
-        const authenticated = await authenticate()
+        const authenticated = await authenticate();
         if (authenticated) {
-          await handleProcessRequest()
+          await handleProcessRequest();
         } else {
-          setPinPadVisible(true)
+          setPinPadVisible(true);
         }
-      } catch (error) {
-        console.error('Local auth failed:', error)
-        setPinPadVisible(true)
+      } catch {
+        setPinPadVisible(true);
       }
     } else {
-      setPinPadVisible(true)
+      setPinPadVisible(true);
     }
-  }
+  };
 
   if (!selectedPlan) {
     return null;
   }
 
-  const network = networks.find(n => n.id === networkId);
-
   return (
     <>
-      <BottomSheet
-        isVisible={isVisible}
-        onClose={onClose}
-        title={`${formatNigerianNaira(selectedPlan?.price).split('.')[0]} Airtime`}
-      >
-        {(verifyingPin || isPending) && (
-            <LoadingSpinner isPending={(verifyingPin || isPending)} />
-        )}
-        <View className="flex flex-col gap-4 w-full relative">
+      <BottomSheet isVisible={isVisible} onClose={onClose} title="Confirm Purchase">
+        {(verifyingPin || isPending) && <LoadingSpinner isPending={verifyingPin || isPending} />}
 
-          <View className="p-4 bg-secondary rounded-xl mb-4 w-full">
-            <View className="flex-row justify-between mb-2">
-              <Text className="text-muted-foreground text-base">Product</Text>
+        <View className="py-2">
+          {/* Header with Network Logo */}
+          <View className="items-center mb-5">
+            <View
+              className="w-14 h-14 rounded-full items-center justify-center mb-3"
+              style={{ backgroundColor: '#fff' }}
+            >
+              <Image source={network?.logo} style={{ width: 40, height: 40 }} resizeMode="contain" className="rounded-full" />
+            </View>
+            <Text className="text-2xl font-bold" style={{ color: isDark ? '#fff' : '#111' }}>
+              {formatNigerianNaira(selectedPlan?.price).split('.')[0]}
+            </Text>
+            <Text
+              className="text-sm mt-1"
+              style={{ color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.45)' }}
+            >
+              {network?.name} Airtime
+            </Text>
+          </View>
+
+          {/* Details Card */}
+          <View
+            className="rounded-2xl p-4 mb-4"
+            style={{
+              backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
+              borderWidth: 1,
+              borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+            }}
+          >
+            {/* Phone Number */}
+            <View className="flex-row justify-between items-center py-3">
+              <Text
+                className="text-sm"
+                style={{ color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.45)' }}
+              >
+                Phone Number
+              </Text>
+              <Text className="font-semibold text-sm" style={{ color: isDark ? '#fff' : '#111' }}>
+                {phoneNumber}
+              </Text>
+            </View>
+
+            <View
+              className="h-px"
+              style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' }}
+            />
+
+            {/* Amount */}
+            <View className="flex-row justify-between items-center py-3">
+              <Text
+                className="text-sm"
+                style={{ color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.45)' }}
+              >
+                Amount
+              </Text>
+              <Text className="font-semibold text-sm" style={{ color: isDark ? '#fff' : '#111' }}>
+                {formatNigerianNaira(selectedPlan?.price)}
+              </Text>
+            </View>
+
+            <View
+              className="h-px"
+              style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' }}
+            />
+
+            {/* Data Bonus */}
+            <View className="flex-row justify-between items-center py-3">
+              <Text
+                className="text-sm"
+                style={{ color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.45)' }}
+              >
+                Data Bonus
+              </Text>
               <View className="flex-row items-center">
-                <Text className="text-foreground font-semibold text-base mr-2">{network?.name}</Text>
-                <Avatar resizeMode='contain' source={network?.logo} size={18} fallback={network?.id}/>
+                <View
+                  className="px-2 py-0.5 rounded-full mr-1"
+                  style={{ backgroundColor: 'rgba(34,197,94,0.1)' }}
+                >
+                  <Text className="text-xs font-semibold" style={{ color: '#22c55e' }}>
+                    FREE
+                  </Text>
+                </View>
+                <Text className="font-semibold text-sm" style={{ color: '#22c55e' }}>
+                  +{dataBonus}
+                </Text>
               </View>
-            </View>
-            <View className="flex-row justify-between mb-2">
-              <Text className="text-muted-foreground text-base">Phone Number</Text>
-              <Text className="text-foreground font-semibold text-base">{phoneNumber}</Text>
-            </View>
-            <View className="flex-row justify-between mb-2">
-              <Text className="text-muted-foreground text-base">Amount</Text>
-              <Text className="text-foreground font-semibold text-base">{formatNigerianNaira(selectedPlan?.price)}</Text>
-            </View>
-            <View className="flex-row justify-between mb-2">
-              <Text className="text-muted-foreground text-base">Bonus</Text>
-              <Text className="text-primary font-semibold text-base">+{formatDataAmount(selectedPlan?.price * 0.01)}</Text>
             </View>
           </View>
 
-          <TouchableOpacity disabled={(walletBalance?.balance || 0) < selectedPlan?.price} activeOpacity={0.7} className={"bg-primary/10 rounded-xl p-4 flex-row justify-between items-center mb-4" + ((walletBalance?.balance || 0) < selectedPlan?.price && " bg-red-500/10")}>
+          {/* Wallet Balance Card */}
+          <TouchableOpacity
+            disabled={insufficientFunds}
+            activeOpacity={0.85}
+            className="rounded-2xl p-4 mb-4 flex-row justify-between items-center"
+            style={{
+              backgroundColor: insufficientFunds
+                ? 'rgba(239,68,68,0.08)'
+                : isDark
+                  ? 'rgba(255,255,255,0.03)'
+                  : 'rgba(0,0,0,0.02)',
+              borderWidth: 1,
+              borderColor: insufficientFunds
+                ? 'rgba(239,68,68,0.2)'
+                : colors.primary + '40',
+            }}
+          >
             <View className="flex-row items-center">
-              <Ionicons name="wallet-outline" size={24} color={colors.primary} />
+              <View className="w-10 h-10 rounded-xl items-center justify-center bg-primary/15">
+                <Ionicons name="wallet" size={20} color={colors.primary} />
+              </View>
               <View className="ml-3">
-                <Text className="text-foreground font-bold text-lg">Wallet Balance <Text className="text-muted-foreground text-sm font-normal">• {(walletBalance?.balance || 0) < selectedPlan?.price ? 'Insufficient Funds' : 'Selected' }</Text></Text>
-                <Text className="text-foreground font-bold text-xl">{formatNigerianNaira(user ? (walletBalance?.balance || 0) : 0)}</Text>
+                <View className="flex-row items-center">
+                  <Text className="font-semibold text-sm" style={{ color: isDark ? '#fff' : '#111' }}>
+                    Wallet
+                  </Text>
+                  <Text
+                    className="text-xs ml-2"
+                    style={{
+                      color: insufficientFunds ? '#ef4444' : '#22c55e',
+                    }}
+                  >
+                    {insufficientFunds ? '• Insufficient' : '• Selected'}
+                  </Text>
+                </View>
+                <Text className="font-bold text-lg" style={{ color: isDark ? '#fff' : '#111' }}>
+                  {formatNigerianNaira(user ? walletBalance?.balance || 0 : 0)}
+                </Text>
               </View>
             </View>
-            <Ionicons name="checkmark-circle" size={24} color={colors.primary} />
+            <View
+              className="w-6 h-6 rounded-full items-center justify-center"
+              style={{ backgroundColor: colors.primary }}
+            >
+              <Ionicons name="checkmark" size={14} color="#fff" />
+            </View>
           </TouchableOpacity>
 
+          {/* Proceed Button */}
           <TouchableOpacity
-              className="rounded-xl py-4 overflow-hidden bg-primary flex flex-row items-center justify-center gap-x-1"
-              onPress={handleProceed}
-              activeOpacity={0.5}
-              disabled={(selectedPlan?.price > (walletBalance?.balance!))}
+            className="rounded-2xl overflow-hidden"
+            onPress={handleProceed}
+            activeOpacity={0.9}
+            disabled={insufficientFunds && !!user}
           >
-              <LinearGradient
-                  colors={[colors.primary, '#e65bf8']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  className="absolute inset-0"
-              />
-              {!user && <Ionicons size={20} name='log-in-outline' color={'white'} />}
-              <Text className="text-primary-foreground text-lg font-bold">{user ? 'Proceed' : 'Login'}</Text>
+            <LinearGradient
+              colors={
+                insufficientFunds && user
+                  ? isDark
+                    ? ['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.1)']
+                    : ['rgba(0,0,0,0.08)', 'rgba(0,0,0,0.08)']
+                  : [colors.primary, '#a855f7']
+              }
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              className="py-4 flex-row items-center justify-center"
+            >
+              {!user && <Ionicons size={18} name="log-in-outline" color="white" />}
+              <Text
+                className="font-bold text-base ml-1"
+                style={{
+                  color:
+                    insufficientFunds && user
+                      ? isDark
+                        ? 'rgba(255,255,255,0.4)'
+                        : 'rgba(0,0,0,0.3)'
+                      : '#fff',
+                }}
+              >
+                {!user ? 'Login to Continue' : insufficientFunds ? 'Insufficient Balance' : 'Proceed'}
+              </Text>
+            </LinearGradient>
           </TouchableOpacity>
-
         </View>
       </BottomSheet>
 
@@ -193,33 +309,33 @@ const AirtimeDetailsModal: React.FC<AirtimeDetailsModalProps> = ({
         onClose={() => setPinPadVisible(false)}
         handler={handlePinSubmit}
         title="Confirm Transaction"
-        description="Enter your 4-digit PIN to complete the payment."
+        description={`Enter your 4-digit PIN to buy ${formatNigerianNaira(selectedPlan?.price)} airtime.`}
         onSuccess={async () => await handleProcessRequest()}
-        onError={() => {console.error('PIN could not be verified.')}}
+        onError={() => { }}
         loadingText={loadingText}
-        successMessage='PIN Verified.'
+        successMessage="PIN Verified."
       />
 
-      <StatusModal 
+      <StatusModal
         amount={transaction?.data?.amount || 0}
-        status={
-          transaction?.error ? 'error' : transaction?.data?.status as any
-        }
+        status={transaction?.error ? 'error' : (transaction?.data?.status as any)}
         data_bonus={(transaction?.data as any)?.data_bonus}
         isVisible={openStatusModal}
         description={transaction?.data?.description || transaction?.message || ''}
-        actionText={
-          transaction?.error ? 'Done' : 'View Receipt'
+        actionText={transaction?.error ? 'Done' : 'View Receipt'}
+        onAction={
+          transaction?.error
+            ? undefined
+            : () => {
+              router.push({
+                pathname: '/transactions/[id]',
+                params: { id: String(transaction?.data?.id) },
+              });
+            }
         }
-        onAction={transaction?.error ? undefined : () => {
-          router.push({
-            pathname: '/transactions/[id]',
-            params: { id: String(transaction?.data?.id) }
-          })
-        }}
         onClose={() => {
-          onClose()
-          setOpenStatusModal(false)
+          onClose();
+          setOpenStatusModal(false);
         }}
       />
     </>

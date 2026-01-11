@@ -34,14 +34,6 @@ const services: Service[] = [
     href: '/services/airtime',
   },
   {
-    title: 'Cable TV',
-    description: 'DSTV, GOtv, Startimes',
-    iconName: 'tv',
-    iconType: 'ionicons',
-    iconColor: '#8b5cf6',
-    href: '/services/tv-cable',
-  },
-  {
     title: 'Electricity',
     description: 'Prepaid & Postpaid meters',
     iconName: 'flash',
@@ -56,6 +48,22 @@ const services: Service[] = [
     iconType: 'ionicons',
     iconColor: '#ec4899',
     href: '/services/education',
+  },
+  {
+    title: 'Send Money',
+    description: 'To isubscribe users.',
+    iconName: 'send',
+    iconType: 'ionicons',
+    iconColor: '#aa4899',
+    href: '/services/transfer',
+  },
+  {
+    title: 'Cable TV',
+    description: 'DSTV, GOtv, Startimes',
+    iconName: 'tv',
+    iconType: 'ionicons',
+    iconColor: '#8b5cf6',
+    href: '/services/tv-cable',
   },
   {
     title: 'Referrals',

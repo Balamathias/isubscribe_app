@@ -1,21 +1,20 @@
 import { COLORS } from '@/constants/colors';
 import { formatNigerianNaira } from '@/utils/format-naira';
 import { Ionicons } from '@expo/vector-icons';
+import * as Clipboard from 'expo-clipboard';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
-import { Text, TouchableOpacity, useColorScheme, View } from 'react-native';
+import { ScrollView, Text, TouchableOpacity, useColorScheme, View } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withSequence,
   withSpring,
-  withTiming
+  withTiming,
 } from 'react-native-reanimated';
-import BottomSheet from './ui/bottom-sheet';
-
-import { Clipboard } from 'react-native';
 import Toast from 'react-native-toast-message';
 import RatingModal from './ratings/rating-modal';
+import BottomSheet from './ui/bottom-sheet';
 
 interface StatusModalProps {
   isVisible: boolean;
@@ -26,8 +25,8 @@ interface StatusModalProps {
   description?: string;
   onAction?: () => void;
   actionText?: string;
-  quantity?: string,
-  data_bonus?: string,
+  quantity?: string;
+  data_bonus?: string;
   transaction?: any;
 }
 
@@ -42,25 +41,22 @@ const StatusModal: React.FC<StatusModalProps> = ({
   actionText = 'Done',
   data_bonus,
   quantity,
-  transaction
+  transaction,
 }) => {
   const colorScheme = useColorScheme();
-  const theme = colorScheme === 'dark' ? 'dark' : 'light';
-  const colors = COLORS[theme];
+  const isDark = colorScheme === 'dark';
+  const colors = COLORS[isDark ? 'dark' : 'light'];
 
   const scale = useSharedValue(0);
   const opacity = useSharedValue(0);
   const [showRatingModal, setShowRatingModal] = useState(false);
 
   const UTMEPins: string[] = transaction?.pins || [];
-  const WAECCards: { Serial: string, Pin: string }[] = transaction?.cards || [];
+  const WAECCards: { Serial: string; Pin: string }[] = transaction?.cards || [];
 
   React.useEffect(() => {
     if (isVisible) {
-      scale.value = withSequence(
-        withSpring(1.2),
-        withSpring(1)
-      );
+      scale.value = withSequence(withSpring(1.2, { damping: 10 }), withSpring(1, { damping: 12 }));
       opacity.value = withTiming(1, { duration: 300 });
     } else {
       scale.value = withSpring(0);
@@ -70,31 +66,34 @@ const StatusModal: React.FC<StatusModalProps> = ({
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
-    opacity: opacity.value
+    opacity: opacity.value,
   }));
 
   const getStatusConfig = () => {
     switch (status) {
       case 'success':
         return {
-          icon: 'checkmark-circle',
-          color: '#11c028',
+          icon: 'checkmark-circle' as const,
+          color: '#22c55e',
+          bgColor: 'rgba(34,197,94,0.1)',
           title: 'Transaction Successful',
-          gradient: ['#a13ae1', '#740faa']
+          gradient: ['#22c55e', '#16a34a'] as const,
         };
       case 'error':
         return {
-          icon: 'close-circle',
+          icon: 'close-circle' as const,
           color: '#ef4444',
+          bgColor: 'rgba(239,68,68,0.1)',
           title: 'Transaction Failed',
-          gradient: ['#ef4444', '#dc2626']
+          gradient: ['#ef4444', '#dc2626'] as const,
         };
       case 'pending':
         return {
-          icon: 'time',
+          icon: 'time' as const,
           color: '#f59e0b',
+          bgColor: 'rgba(245,158,11,0.1)',
           title: 'Transaction Pending',
-          gradient: ['#f59e0b', '#d97706']
+          gradient: ['#f59e0b', '#d97706'] as const,
         };
     }
   };
@@ -117,188 +116,302 @@ const StatusModal: React.FC<StatusModalProps> = ({
     setShowRatingModal(true);
   };
 
+  const copyToClipboard = async (text: string, label: string) => {
+    await Clipboard.setStringAsync(text);
+    Toast.show({ type: 'success', text1: `${label} copied!` });
+  };
+
   return (
     <>
-      <BottomSheet isVisible={isVisible} onClose={handleClose}>
-        <View className="flex items-center justify-center py-8">
-          <Animated.View style={animatedStyle} className="mb-6">
-            <View className="w-24 h-24 rounded-full bg-secondary flex items-center justify-center">
-              <Ionicons name={config?.icon as any} size={48} color={config?.color} />
-            </View>
-          </Animated.View>
-
-          <Text className="text-foreground text-2xl font-bold mb-2">{config?.title}</Text>
-          
-          {description && (
-            <Text className="text-muted-foreground text-center mb-6">{description}</Text>
-          )}
-
-          <View className="flex flex-col gap-6 w-full p-4">
-            {(amount || size) && (
-              <View className="rounded-xl w-full">
-                <View className="flex-row justify-between items-center">
-                  <Text className="text-muted-foreground">Amount</Text>
-                  <Text className="text-foreground font-semibold">
-                    {amount ? formatNigerianNaira(amount) : size}
-                  </Text>
-                </View>
+      <BottomSheet isVisible={isVisible} onClose={handleClose} title="">
+        <ScrollView showsVerticalScrollIndicator={false} className="max-h-[500px]">
+          <View className="items-center pb-4">
+            {/* Status Icon */}
+            <Animated.View style={animatedStyle} className="mb-4">
+              <View
+                className="w-20 h-20 rounded-full items-center justify-center"
+                style={{ backgroundColor: config?.bgColor }}
+              >
+                <Ionicons name={config?.icon} size={44} color={config?.color} />
               </View>
+            </Animated.View>
+
+            {/* Title */}
+            <Text className="text-xl font-bold mb-1" style={{ color: isDark ? '#fff' : '#111' }}>
+              {config?.title}
+            </Text>
+
+            {/* Description */}
+            {description && (
+              <Text
+                className="text-center text-sm mb-4 px-4"
+                style={{ color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.45)' }}
+              >
+                {description}
+              </Text>
             )}
 
-            {quantity && (
-              <View className="rounded-xl w-full">
-                <View className="flex-row justify-between items-center">
-                  <Text className="text-muted-foreground">Quantity</Text>
-                  <Text className="text-foreground font-semibold">{quantity}</Text>
-                </View>
-              </View>
-            )}
-
-            {data_bonus && (
-              <View className="rounded-xl w-full">
-                <View className="flex-row justify-between items-center">
-                  <Text className="text-muted-foreground">Data Bonus</Text>
-                  <Text className="text-primary font-semibold">+{data_bonus}</Text>
-                </View>
-              </View>
-            )}
-
-            {transaction?.token && (
-              <View className="rounded-xl w-full">
-                <View className="flex-row justify-between items-center">
-                  <Text className="text-muted-foreground">Transaction Token</Text>
-                  <TouchableOpacity
-                    onPress={() => {
-                      Clipboard.setString(transaction.token);
-                      Toast.show({ type: 'success', text1: 'Token copied to clipboard!' });
-                    }}
-                    activeOpacity={0.7}
-                    className="flex-row items-center gap-2"
-                  >
-                    <Text className="text-foreground font-bold text-lg">{transaction.formatted_token}</Text>
-                    <Ionicons name="copy-outline" size={16} color={colors.foreground} />
-                  </TouchableOpacity>
-                </View>
-              </View>
-            )}
-
-            {status === 'success' && (
-                <>
-                {UTMEPins.length > 0 && (
-                  <View className="rounded-xl w-full">
-                  <Text className="text-muted-foreground mb-2">UTME Pins</Text>
-                  {UTMEPins.map((pin, index) => (
-                    <View key={index} className="flex-row justify-between items-center mb-2">
-                    <Text className="text-foreground font-semibold">{`Pin ${index + 1}`}</Text>
-                    <TouchableOpacity
-                      onPress={() => {
-                      Clipboard.setString(pin);
-                      Toast.show({ type: 'success', text1: 'Pin copied to clipboard!' });
-                      }}
-                      activeOpacity={0.7}
+            {/* Details Card */}
+            {(amount || size || quantity || data_bonus || transaction?.token) && (
+              <View
+                className="w-full rounded-2xl p-4 mb-4"
+                style={{
+                  backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
+                  borderWidth: 1,
+                  borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+                }}
+              >
+                {/* Amount */}
+                {(amount || size) && (
+                  <View className="flex-row justify-between items-center py-2.5">
+                    <Text
+                      className="text-sm"
+                      style={{ color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.45)' }}
                     >
-                      <Text className="text-primary font-semibold">{pin}</Text>
-                    </TouchableOpacity>
-                    </View>
-                  ))}
+                      Amount
+                    </Text>
+                    <Text className="font-bold text-sm" style={{ color: isDark ? '#fff' : '#111' }}>
+                      {amount ? formatNigerianNaira(amount) : size}
+                    </Text>
                   </View>
                 )}
 
-                {WAECCards.length > 0 && (
-                  <View className="rounded-xl w-full">
-                  <Text className="text-muted-foreground mb-2">WAEC Cards</Text>
-                  {WAECCards.map((card, index) => (
-                    <View key={index} className="mb-3">
-                    <Text className="text-foreground font-semibold mb-2">{`Card ${index + 1}`}</Text>
-                    <View className="flex-row justify-between items-center mb-1">
-                      <Text className="text-muted-foreground">Serial</Text>
-                      <TouchableOpacity
-                      onPress={() => {
-                        Clipboard.setString(card.Serial);
-                        Toast.show({ type: 'success', text1: 'Serial copied to clipboard!' });
-                      }}
-                      activeOpacity={0.7}
-                      className="flex-row items-center gap-1"
+                {/* Quantity */}
+                {quantity && (
+                  <>
+                    <View
+                      className="h-px"
+                      style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' }}
+                    />
+                    <View className="flex-row justify-between items-center py-2.5">
+                      <Text
+                        className="text-sm"
+                        style={{ color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.45)' }}
                       >
-                      <Text className="text-primary font-semibold">{card.Serial}</Text>
-                      <Ionicons name="copy-outline" size={14} color="#7B2FF2" />
-                      </TouchableOpacity>
+                        Quantity
+                      </Text>
+                      <Text className="font-semibold text-sm" style={{ color: isDark ? '#fff' : '#111' }}>
+                        {quantity}
+                      </Text>
                     </View>
-                    <View className="flex-row justify-between items-center">
-                      <Text className="text-muted-foreground">Pin</Text>
-                      <TouchableOpacity
-                      onPress={() => {
-                        Clipboard.setString(card.Pin);
-                        Toast.show({ type: 'success', text1: 'Pin copied to clipboard!' });
-                      }}
-                      activeOpacity={0.7}
-                      className="flex-row items-center gap-1"
-                      >
-                      <Text className="text-primary font-semibold">{card.Pin}</Text>
-                      <Ionicons name="copy-outline" size={14} color="#7B2FF2" />
-                      </TouchableOpacity>
-                    </View>
-                    </View>
-                  ))}
-                  </View>
+                  </>
                 )}
-                </>
+
+                {/* Data Bonus */}
+                {data_bonus && (
+                  <>
+                    <View
+                      className="h-px"
+                      style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' }}
+                    />
+                    <View className="flex-row justify-between items-center py-2.5">
+                      <Text
+                        className="text-sm"
+                        style={{ color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.45)' }}
+                      >
+                        Data Bonus
+                      </Text>
+                      <Text className="font-semibold text-sm" style={{ color: '#22c55e' }}>
+                        +{data_bonus}
+                      </Text>
+                    </View>
+                  </>
+                )}
+
+                {/* Token */}
+                {transaction?.token && (
+                  <>
+                    <View
+                      className="h-px"
+                      style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' }}
+                    />
+                    <View className="py-2.5">
+                      <View className="flex-row justify-between items-center mb-2">
+                        <Text
+                          className="text-sm"
+                          style={{ color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.45)' }}
+                        >
+                          Token
+                        </Text>
+                        <TouchableOpacity
+                          onPress={() => copyToClipboard(transaction.token, 'Token')}
+                          activeOpacity={0.7}
+                          className="flex-row items-center px-2 py-1 rounded-lg"
+                          style={{ backgroundColor: colors.primary + '15' }}
+                        >
+                          <Ionicons name="copy" size={12} color={colors.primary} />
+                          <Text className="text-xs font-medium ml-1" style={{ color: colors.primary }}>
+                            Copy
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                      <Text
+                        className="font-mono font-bold text-base"
+                        style={{ color: isDark ? '#fff' : '#111' }}
+                        selectable
+                      >
+                        {transaction.formatted_token || transaction.token}
+                      </Text>
+                    </View>
+                  </>
+                )}
+              </View>
             )}
 
-          </View>
-
-          {/* Action Buttons - Show both for successful transactions */}
-          {status === 'success' ? (
-            <View className="w-full flex gap-y-3">
-              <TouchableOpacity
-                className="w-full rounded-xl py-4 overflow-hidden"
-                onPress={handleAction}
-                activeOpacity={0.7}
+            {/* UTME Pins */}
+            {status === 'success' && UTMEPins.length > 0 && (
+              <View
+                className="w-full rounded-2xl p-4 mb-4"
+                style={{
+                  backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
+                  borderWidth: 1,
+                  borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+                }}
               >
-                <LinearGradient
-                  colors={config?.gradient as any || [COLORS.light.primary, COLORS.light.primary] as any}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  className="absolute inset-0"
-                />
-                <Text className="text-white text-center font-bold text-lg">{actionText}</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                className="w-full rounded-xl py-4 border border-border/40 bg-transparent"
-                onPress={handleRateExperience}
-                activeOpacity={0.7}
-              >
-                <View className="flex-row items-center justify-center">
-                  <Ionicons name="star" size={20} color="#f2ae2f" />
-                  <Text className="text-primary text-center font-bold text-lg ml-2">
-                    Rate Experience
+                <View className="flex-row items-center mb-3">
+                  <Ionicons name="key" size={16} color={colors.primary} />
+                  <Text className="font-semibold text-sm ml-2" style={{ color: isDark ? '#fff' : '#111' }}>
+                    UTME Pins
                   </Text>
                 </View>
-              </TouchableOpacity>
+                {UTMEPins.map((pin, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    onPress={() => copyToClipboard(pin, `Pin ${index + 1}`)}
+                    activeOpacity={0.85}
+                    className="flex-row justify-between items-center py-2.5 px-3 rounded-xl mb-2"
+                    style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)' }}
+                  >
+                    <Text className="text-xs" style={{ color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.45)' }}>
+                      Pin {index + 1}
+                    </Text>
+                    <View className="flex-row items-center">
+                      <Text className="font-bold text-sm mr-2" style={{ color: colors.primary }}>
+                        {pin}
+                      </Text>
+                      <Ionicons name="copy-outline" size={14} color={colors.primary} />
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+
+            {/* WAEC Cards */}
+            {status === 'success' && WAECCards.length > 0 && (
+              <View
+                className="w-full rounded-2xl p-4 mb-4"
+                style={{
+                  backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
+                  borderWidth: 1,
+                  borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+                }}
+              >
+                <View className="flex-row items-center mb-3">
+                  <Ionicons name="card" size={16} color={colors.primary} />
+                  <Text className="font-semibold text-sm ml-2" style={{ color: isDark ? '#fff' : '#111' }}>
+                    WAEC Cards
+                  </Text>
+                </View>
+                {WAECCards.map((card, index) => (
+                  <View
+                    key={index}
+                    className="rounded-xl p-3 mb-2"
+                    style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)' }}
+                  >
+                    <Text className="font-semibold text-xs mb-2" style={{ color: isDark ? '#fff' : '#111' }}>
+                      Card {index + 1}
+                    </Text>
+                    <TouchableOpacity
+                      onPress={() => copyToClipboard(card.Serial, 'Serial')}
+                      activeOpacity={0.85}
+                      className="flex-row justify-between items-center py-1.5"
+                    >
+                      <Text className="text-xs" style={{ color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.45)' }}>
+                        Serial
+                      </Text>
+                      <View className="flex-row items-center">
+                        <Text className="font-bold text-xs mr-1.5" style={{ color: colors.primary }}>
+                          {card.Serial}
+                        </Text>
+                        <Ionicons name="copy-outline" size={12} color={colors.primary} />
+                      </View>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => copyToClipboard(card.Pin, 'Pin')}
+                      activeOpacity={0.85}
+                      className="flex-row justify-between items-center py-1.5"
+                    >
+                      <Text className="text-xs" style={{ color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.45)' }}>
+                        Pin
+                      </Text>
+                      <View className="flex-row items-center">
+                        <Text className="font-bold text-xs mr-1.5" style={{ color: colors.primary }}>
+                          {card.Pin}
+                        </Text>
+                        <Ionicons name="copy-outline" size={12} color={colors.primary} />
+                      </View>
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {/* Action Buttons */}
+            <View className="w-full gap-y-3">
+              {status === 'success' ? (
+                <>
+                  <TouchableOpacity
+                    className="rounded-2xl overflow-hidden"
+                    onPress={handleAction}
+                    activeOpacity={0.9}
+                  >
+                    <LinearGradient
+                      colors={config?.gradient || [colors.primary, colors.primary]}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
+                      className="py-4 items-center justify-center"
+                    >
+                      <Text className="text-white font-bold text-base">{actionText}</Text>
+                    </LinearGradient>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    className="rounded-2xl py-4 flex-row items-center justify-center"
+                    onPress={handleRateExperience}
+                    activeOpacity={0.85}
+                    style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' }}
+                  >
+                    <Ionicons name="star" size={18} color="#f59e0b" />
+                    <Text className="font-semibold text-sm ml-2" style={{ color: isDark ? '#fff' : '#111' }}>
+                      Rate Experience
+                    </Text>
+                  </TouchableOpacity>
+                </>
+              ) : (
+                <TouchableOpacity
+                  className="rounded-2xl overflow-hidden"
+                  onPress={handleAction}
+                  activeOpacity={0.9}
+                >
+                  <LinearGradient
+                    colors={config?.gradient || [colors.primary, colors.primary]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    className="py-4 items-center justify-center"
+                  >
+                    <Text className="text-white font-bold text-base">{actionText}</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+              )}
             </View>
-          ) : (
-            <TouchableOpacity
-              className="w-full rounded-xl py-4 overflow-hidden"
-              onPress={handleAction}
-              activeOpacity={0.7}
-            >
-              <LinearGradient
-                colors={config?.gradient as any || [COLORS.light.primary, COLORS.light.primary] as any}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                className="absolute inset-0"
-              />
-              <Text className="text-white text-center font-bold text-lg">{actionText}</Text>
-            </TouchableOpacity>
-          )}
-        </View>
+          </View>
+        </ScrollView>
       </BottomSheet>
 
       <RatingModal
         isVisible={showRatingModal}
         onClose={() => {
-          setShowRatingModal(false)
+          setShowRatingModal(false);
           handleClose();
         }}
         transactionTitle={transaction?.title || 'Transaction'}

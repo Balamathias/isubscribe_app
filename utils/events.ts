@@ -9,5 +9,7 @@ export const EVENT_TYPE = {
     wallet_fund_failed: 'wallet_fund_failed',
     cashback: 'cashback',
     reverse_transaction: 'reverse_transaction',
+    transfer_sent: 'transfer_sent',
+    transfer_received: 'transfer_received',
     money_transfer: 'money_transfer',
 } as const

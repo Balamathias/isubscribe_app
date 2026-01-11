@@ -17,9 +17,9 @@ const actions: Action[] = [
   { name: 'Data', icon: 'cellular', href: `/services/data`, color: '#10b981' },
   { name: 'Airtime', icon: 'call', href: `/services/airtime`, color: '#3b82f6' },
   { name: 'Electricity', icon: 'bulb', href: `/services/electricity`, color: '#f59e0b' },
-  { name: 'TV Cable', icon: 'tv', href: `/services/tv-cable`, color: '#8b5cf6' },
   { name: 'Education', icon: 'school', href: `/services/education`, color: '#ec4899' },
-  { name: 'Transfer', icon: 'swap-horizontal', href: `/coming-soon`, color: '#06b6d4' },
+  { name: 'Transfer', icon: 'send', href: `/services/transfer`, color: '#06b6d4' },
+  { name: 'TV Cable', icon: 'tv', href: `/services/tv-cable`, color: '#8b5cf6' },
   { name: 'Referral', icon: 'gift', href: `/coming-soon`, color: '#6366f1' },
   { name: 'More', icon: 'grid', href: `/subs`, color: '#64748b' },
 ];

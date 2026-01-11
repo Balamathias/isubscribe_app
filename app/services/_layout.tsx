@@ -50,7 +50,15 @@ const Layout = () => {
         />
         <Stack.Screen
             name='tv-cable'
-            options={{ 
+            options={{
+              headerShown: false,
+              gestureEnabled: true,
+              gestureDirection: 'horizontal'
+            }}
+        />
+        <Stack.Screen
+            name='transfer'
+            options={{
               headerShown: false,
               gestureEnabled: true,
               gestureDirection: 'horizontal'

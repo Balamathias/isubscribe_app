@@ -2,50 +2,45 @@ import BottomSheet from '@/components/ui/bottom-sheet';
 import LoadingSpinner from '@/components/ui/loading-spinner';
 import { COLORS } from '@/constants/colors';
 import { useLocalAuth } from '@/hooks/useLocalAuth';
-import { EducationCard, EducationService } from '@/services/api';
-import { QUERY_KEYS, useProcessTransaction, useVerifyPin } from '@/services/api-hooks';
+import { TransferRecipient } from '@/services/api';
+import { QUERY_KEYS, useInitiateTransfer, useVerifyPin } from '@/services/api-hooks';
 import { formatNigerianNaira } from '@/utils/format-naira';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
-import { Alert, ScrollView, Text, TouchableOpacity, useColorScheme, View } from 'react-native';
+import { Alert, Image, ScrollView, Text, TouchableOpacity, useColorScheme, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import PinPad from '../pin-pad';
 import { useSession } from '../session-context';
-import EducationStatusModal from './education-status-modal';
-import { ServiceType } from './service-type-tabs';
+import TransferStatusModal from './transfer-status-modal';
 
-interface EducationConfirmationModalProps {
+interface TransferConfirmModalProps {
   isVisible: boolean;
   onClose: () => void;
-  serviceType: ServiceType;
-  service: EducationService | null;
-  quantity: number;
-  phone: string;
-  profileId?: string;
-  profileName?: string;
-  totalAmount: number;
-  basePrice: number;
-  dataBonus: number;
+  recipient: TransferRecipient | null;
+  amount: number;
+  description?: string;
   onSuccess: () => void;
 }
 
 type PaymentMethod = 'wallet' | 'cashback';
 
-const EducationConfirmationModal: React.FC<EducationConfirmationModalProps> = ({
+const getInitials = (name: string): string => {
+  const parts = name.trim().split(' ');
+  if (parts.length > 1) {
+    return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+  }
+  return name.slice(0, 2).toUpperCase();
+};
+
+const TransferConfirmModal: React.FC<TransferConfirmModalProps> = ({
   isVisible,
   onClose,
-  serviceType,
-  service,
-  quantity,
-  phone,
-  profileId,
-  profileName,
-  totalAmount,
-  basePrice,
-  dataBonus,
+  recipient,
+  amount,
+  description,
   onSuccess,
 }) => {
   const [isPinPadVisible, setPinPadVisible] = useState(false);
@@ -62,14 +57,14 @@ const EducationConfirmationModal: React.FC<EducationConfirmationModalProps> = ({
 
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod>('wallet');
 
-  const { mutateAsync: processTransaction, isPending, data: transaction } = useProcessTransaction();
-  const { mutateAsync: verifyPin, isPending: verifyingPin } = useVerifyPin();
+  const { mutateAsync: initiateTransfer, isPending } = useInitiateTransfer();
+  const { mutateAsync: verifyPin } = useVerifyPin();
 
   const [openStatusModal, setOpenStatusModal] = useState(false);
-  const [purchaseResult, setPurchaseResult] = useState<{
+  const [transferResult, setTransferResult] = useState<{
     status: 'success' | 'error' | 'pending';
-    pins?: string[];
-    cards?: EducationCard[];
+    transactionId?: string;
+    balanceAfter?: number;
     error?: string;
   } | null>(null);
 
@@ -78,54 +73,36 @@ const EducationConfirmationModal: React.FC<EducationConfirmationModalProps> = ({
       ? walletBalance?.balance || 0
       : walletBalance?.cashback_balance || 0;
 
-  const isInsufficientFunds = totalAmount > currentBalance;
+  const isInsufficientFunds = amount > currentBalance;
 
-  // Get service type label
-  const getServiceTypeLabel = () => {
-    switch (serviceType) {
-      case 'jamb':
-        return 'JAMB';
-      case 'waec':
-        return 'WAEC';
-      case 'de':
-        return 'Direct Entry';
-    }
-  };
+  const handleProcessTransfer = async () => {
+    if (!recipient) return;
 
-  const handleProcessRequest = async () => {
-    if (!service) return;
-
-    setLoadingText('Processing...');
+    setLoadingText('Processing transfer...');
 
     const payload = {
-      channel: 'education',
-      service_type: serviceType,
-      variation_code: service.variation_code,
-      phone,
-      quantity,
-      payment_method: selectedPaymentMethod,
-      amount: totalAmount,
-      ...(profileId && {
-        billers_code: profileId,
-        profile_id: profileId,
-      }),
+      recipient_id: recipient.id,
+      amount,
+      ...(description && { description }),
     };
 
-    await processTransaction(payload, {
+    await initiateTransfer(payload, {
       onSuccess: (data) => {
         if (data?.error) {
-          setPurchaseResult({
+          setTransferResult({
             status: 'error',
-            error: data.message || 'Transaction failed',
+            error: data.message || 'Transfer failed',
           });
         } else {
-          setPurchaseResult({
+          setTransferResult({
             status: 'success',
-            pins: data?.data?.pins,
-            cards: data?.data?.cards,
+            transactionId: data?.data?.transaction_id,
+            balanceAfter: data?.data?.balance_after,
           });
           queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.getWalletBalance] });
           queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.getLatestTransactions] });
+          queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.getTransferLimits] });
+          queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.getRecentTransferRecipients] });
         }
         onClose();
         setPinPadVisible(false);
@@ -133,7 +110,7 @@ const EducationConfirmationModal: React.FC<EducationConfirmationModalProps> = ({
       },
       onError: (error) => {
         console.error(error?.message);
-        setPurchaseResult({
+        setTransferResult({
           status: 'error',
           error: error?.message || 'An unexpected error occurred',
         });
@@ -145,14 +122,15 @@ const EducationConfirmationModal: React.FC<EducationConfirmationModalProps> = ({
   };
 
   const handlePinSubmit = async (pin: string) => {
-    setLoadingText('Verifying Pin...');
+    setLoadingText('Verifying PIN...');
     const pinRequest = await verifyPin({ pin });
 
     if (pinRequest.data?.is_valid) {
       setLoadingText('Verified.');
+      await handleProcessTransfer();
       return true;
     } else {
-      setLoadingText('Pin verification failed.');
+      setLoadingText('PIN verification failed.');
       return false;
     }
   };
@@ -167,7 +145,7 @@ const EducationConfirmationModal: React.FC<EducationConfirmationModalProps> = ({
       const paymentMethodName = selectedPaymentMethod === 'wallet' ? 'wallet' : 'cashback';
       Alert.alert(
         'Insufficient Funds',
-        `You do not have enough funds in your ${paymentMethodName} to complete this transaction.`
+        `You do not have enough funds in your ${paymentMethodName} to complete this transfer.`
       );
       return;
     }
@@ -176,8 +154,10 @@ const EducationConfirmationModal: React.FC<EducationConfirmationModalProps> = ({
       try {
         const authenticated = await authenticate();
         if (authenticated) {
-          await handleProcessRequest();
+          // Biometric auth succeeded, process transfer directly
+          await handleProcessTransfer();
         } else {
+          // Biometric failed or cancelled, fallback to PIN
           setPinPadVisible(true);
         }
       } catch (error) {
@@ -191,7 +171,7 @@ const EducationConfirmationModal: React.FC<EducationConfirmationModalProps> = ({
 
   const handleStatusModalClose = () => {
     setOpenStatusModal(false);
-    if (purchaseResult?.status === 'success') {
+    if (transferResult?.status === 'success') {
       onSuccess();
     }
   };
@@ -201,21 +181,42 @@ const EducationConfirmationModal: React.FC<EducationConfirmationModalProps> = ({
       <BottomSheet
         isVisible={isVisible}
         onClose={onClose}
-        title={`Confirm ${getServiceTypeLabel()} Purchase`}
+        title="Confirm Transfer"
       >
         {isPending && <LoadingSpinner isPending={isPending} />}
         <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
           <View className="flex flex-col gap-4 w-full py-2">
-            {/* Header with gradient icon */}
+            {/* Header with recipient info */}
             <View className="items-center mb-2">
-              <View className="w-12 h-12 rounded-full items-center justify-center bg-primary/20">
-                <Ionicons name="school" size={24} color="white" />
+              {recipient?.avatar ? (
+                <View className="w-16 h-16 rounded-2xl overflow-hidden">
+                  <Image
+                    source={{ uri: recipient.avatar }}
+                    className="w-full h-full"
+                    resizeMode="cover"
+                  />
+                </View>
+              ) : (
+                <View
+                  className="w-16 h-16 rounded-full items-center justify-center bg-primary/20"
+                >
+                  <Text className="text-white font-bold text-xl">
+                    {recipient ? getInitials(recipient.full_name) : '?'}
+                  </Text>
+                </View>
+              )}
+              <View className="flex-row items-center mt-3">
+                <Text className="text-foreground font-bold text-lg">
+                  {recipient?.full_name}
+                </Text>
+                {recipient?.is_verified && (
+                  <View className="ml-2 bg-blue-500 rounded-full p-0.5">
+                    <Ionicons name="shield-checkmark" size={12} color="white" />
+                  </View>
+                )}
               </View>
-              <Text className="text-foreground font-bold text-lg mt-3">
-                {service?.name || service?.variation_code}
-              </Text>
               <Text className="text-muted-foreground text-sm">
-                {quantity} {quantity === 1 ? 'PIN' : 'PINs'} • {getServiceTypeLabel()}
+                {formatNigerianNaira(amount)}
               </Text>
             </View>
 
@@ -227,7 +228,7 @@ const EducationConfirmationModal: React.FC<EducationConfirmationModalProps> = ({
             >
               <View className="flex-row items-center">
                 <Ionicons name="receipt-outline" size={18} color={colors.primary} />
-                <Text className="text-foreground font-semibold ml-2">Transaction Details</Text>
+                <Text className="text-foreground font-semibold ml-2">Transfer Details</Text>
               </View>
               <Ionicons
                 name={showDetails ? 'chevron-up' : 'chevron-down'}
@@ -238,80 +239,70 @@ const EducationConfirmationModal: React.FC<EducationConfirmationModalProps> = ({
 
             {showDetails && (
               <Animated.View entering={FadeIn.duration(200)} className="gap-y-2">
-                {/* Service */}
+                {/* Recipient */}
                 <View className="flex-row justify-between p-3 bg-secondary/30 rounded-xl">
-                  <Text className="text-muted-foreground text-sm">Service</Text>
-                  <Text className="text-foreground font-semibold text-sm">
-                    {getServiceTypeLabel()}
+                  <Text className="text-muted-foreground text-sm">Recipient</Text>
+                  <Text className="text-foreground font-semibold text-sm" numberOfLines={1}>
+                    {recipient?.full_name}
                   </Text>
                 </View>
 
-                {/* Phone */}
-                <View className="flex-row justify-between p-3 bg-secondary/30 rounded-xl">
-                  <Text className="text-muted-foreground text-sm">Phone Number</Text>
-                  <Text className="text-foreground font-mono font-semibold text-sm">{phone}</Text>
-                </View>
-
-                {/* Profile ID (JAMB/DE) */}
-                {profileId && (
+                {/* Username */}
+                {recipient?.username && (
                   <View className="flex-row justify-between p-3 bg-secondary/30 rounded-xl">
-                    <Text className="text-muted-foreground text-sm">Profile ID</Text>
-                    <Text className="text-foreground font-mono font-semibold text-sm">
-                      {profileId}
+                    <Text className="text-muted-foreground text-sm">Username</Text>
+                    <Text className="text-foreground font-semibold text-sm">
+                      @{recipient.username}
                     </Text>
                   </View>
                 )}
 
-                {/* Profile Name */}
-                {profileName && (
-                  <View className="flex-row justify-between p-3 bg-secondary/30 rounded-xl">
-                    <Text className="text-muted-foreground text-sm">Profile Name</Text>
-                    <Text className="text-foreground font-semibold text-sm" numberOfLines={1}>
-                      {profileName}
+                {/* Amount */}
+                <View className="flex-row justify-between p-3 bg-secondary/30 rounded-xl">
+                  <Text className="text-muted-foreground text-sm">Amount</Text>
+                  <Text className="text-foreground font-semibold text-sm">
+                    {formatNigerianNaira(amount)}
+                  </Text>
+                </View>
+
+                {/* Fee */}
+                <View className="flex-row justify-between p-3 bg-emerald-500/10 rounded-xl">
+                  <View className="flex-row items-center">
+                    <Ionicons name="checkmark-circle" size={14} color="#10b981" />
+                    <Text className="text-emerald-600 dark:text-emerald-400 text-sm ml-2">
+                      Transaction Fee
                     </Text>
                   </View>
-                )}
-
-                {/* Quantity */}
-                <View className="flex-row justify-between p-3 bg-secondary/30 rounded-xl">
-                  <Text className="text-muted-foreground text-sm">Quantity</Text>
-                  <Text className="text-foreground font-semibold text-sm">
-                    {quantity} {quantity === 1 ? 'PIN' : 'PINs'}
-                  </Text>
+                  <Text className="text-emerald-500 font-semibold text-sm">Free</Text>
                 </View>
 
-                {/* Price per PIN */}
-                <View className="flex-row justify-between p-3 bg-secondary/30 rounded-xl">
-                  <Text className="text-muted-foreground text-sm">Price per PIN</Text>
-                  <Text className="text-foreground font-semibold text-sm">
-                    {formatNigerianNaira(basePrice)}
-                  </Text>
-                </View>
-
-                {/* Data Bonus */}
-                {dataBonus > 0 && (
-                  <View className="flex-row justify-between p-3 bg-emerald-500/10 rounded-xl">
-                    <View className="flex-row items-center">
-                      <Ionicons name="gift" size={14} color="#10b981" />
-                      <Text className="text-emerald-600 dark:text-emerald-400 text-sm ml-2">
-                        Data Bonus
-                      </Text>
-                    </View>
-                    <Text className="text-emerald-500 font-semibold text-sm">
-                      +{(dataBonus / 1000).toFixed(1)}MB
+                {/* Note */}
+                {description && (
+                  <View className="flex-row justify-between p-3 bg-secondary/30 rounded-xl">
+                    <Text className="text-muted-foreground text-sm">Note</Text>
+                    <Text className="text-foreground font-semibold text-sm flex-1 text-right ml-4" numberOfLines={2}>
+                      {description}
                     </Text>
                   </View>
                 )}
 
                 {/* Total */}
-                <View className="flex-row justify-between p-4 bg-blue-500/10 rounded-xl border border-blue-500/20">
+                <View className="flex-row justify-between p-4 bg-primary/10 rounded-xl border border-primary/20">
                   <Text className="text-foreground font-bold">Total Amount</Text>
-                  <Text className="text-blue-500 font-bold text-lg">
-                    {formatNigerianNaira(totalAmount)}
+                  <Text className="text-primary font-bold text-lg">
+                    {formatNigerianNaira(amount)}
                   </Text>
                 </View>
               </Animated.View>
             )}
+
+            {/* Warning */}
+            <View className="flex-row items-start p-3 bg-amber-500/10 rounded-xl border border-amber-500/20">
+              <Ionicons name="warning" size={18} color="#f59e0b" />
+              <Text className="text-amber-600 dark:text-amber-400 text-xs ml-2 flex-1">
+                This transfer is irreversible. Please confirm the recipient details before proceeding.
+              </Text>
+            </View>
 
             {/* Payment Method Selection */}
             <Text className="text-foreground font-semibold text-base mt-2">
@@ -320,31 +311,31 @@ const EducationConfirmationModal: React.FC<EducationConfirmationModalProps> = ({
 
             {/* Wallet Payment Option */}
             <TouchableOpacity
-              disabled={(walletBalance?.balance || 0) < totalAmount}
+              disabled={(walletBalance?.balance || 0) < amount}
               activeOpacity={0.7}
               className={`rounded-xl p-4 flex-row justify-between items-center border ${
                 selectedPaymentMethod === 'wallet'
-                  ? 'bg-blue-500/10 border-blue-500'
+                  ? 'bg-primary/10 border-primary'
                   : 'bg-secondary/30 border-border/30'
-              } ${(walletBalance?.balance || 0) < totalAmount ? 'opacity-50' : ''}`}
+              } ${(walletBalance?.balance || 0) < amount ? 'opacity-50' : ''}`}
               onPress={() => setSelectedPaymentMethod('wallet')}
             >
               <View className="flex-row items-center">
-                <View className="w-10 h-10 rounded-xl bg-blue-500/10 items-center justify-center">
-                  <Ionicons name="wallet" size={20} color="#3b82f6" />
+                <View className="w-10 h-10 rounded-xl bg-primary/10 items-center justify-center">
+                  <Ionicons name="wallet" size={20} color={colors.primary} />
                 </View>
                 <View className="ml-3">
                   <Text className="text-foreground font-semibold text-sm">Wallet Balance</Text>
                   <Text className="text-foreground font-bold text-base">
                     {formatNigerianNaira(walletBalance?.balance || 0)}
                   </Text>
-                  {(walletBalance?.balance || 0) < totalAmount && (
+                  {(walletBalance?.balance || 0) < amount && (
                     <Text className="text-red-500 text-xs">Insufficient funds</Text>
                   )}
                 </View>
               </View>
               {selectedPaymentMethod === 'wallet' && (
-                <View className="w-6 h-6 rounded-full bg-blue-500 items-center justify-center">
+                <View className="w-6 h-6 rounded-full bg-primary items-center justify-center">
                   <Ionicons name="checkmark" size={14} color="white" />
                 </View>
               )}
@@ -354,13 +345,13 @@ const EducationConfirmationModal: React.FC<EducationConfirmationModalProps> = ({
             {walletBalance?.cashback_balance !== undefined &&
               walletBalance?.cashback_balance > 0 && (
                 <TouchableOpacity
-                  disabled={(walletBalance?.cashback_balance || 0) < totalAmount}
+                  disabled={(walletBalance?.cashback_balance || 0) < amount}
                   activeOpacity={0.7}
                   className={`rounded-xl p-4 flex-row justify-between items-center border ${
                     selectedPaymentMethod === 'cashback'
                       ? 'bg-emerald-500/10 border-emerald-500'
                       : 'bg-secondary/30 border-border/30'
-                  } ${(walletBalance?.cashback_balance || 0) < totalAmount ? 'opacity-50' : ''}`}
+                  } ${(walletBalance?.cashback_balance || 0) < amount ? 'opacity-50' : ''}`}
                   onPress={() => setSelectedPaymentMethod('cashback')}
                 >
                   <View className="flex-row items-center">
@@ -372,7 +363,7 @@ const EducationConfirmationModal: React.FC<EducationConfirmationModalProps> = ({
                       <Text className="text-foreground font-bold text-base">
                         {formatNigerianNaira(walletBalance?.cashback_balance || 0)}
                       </Text>
-                      {(walletBalance?.cashback_balance || 0) < totalAmount && (
+                      {(walletBalance?.cashback_balance || 0) < amount && (
                         <Text className="text-red-500 text-xs">Insufficient funds</Text>
                       )}
                     </View>
@@ -396,7 +387,7 @@ const EducationConfirmationModal: React.FC<EducationConfirmationModalProps> = ({
                 colors={
                   !user || isInsufficientFunds
                     ? ['#9ca3af', '#6b7280']
-                    : ['#3b82f6', '#8b5cf6', '#a855f7']
+                    : ['#7c3aed', '#e65bf8']
                 }
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
@@ -409,7 +400,7 @@ const EducationConfirmationModal: React.FC<EducationConfirmationModalProps> = ({
                       ? 'Login to Continue'
                       : isInsufficientFunds
                       ? 'Insufficient Funds'
-                      : `Pay ${formatNigerianNaira(totalAmount)}`}
+                      : `Send ${formatNigerianNaira(amount)}`}
                   </Text>
                 </View>
               </LinearGradient>
@@ -422,30 +413,26 @@ const EducationConfirmationModal: React.FC<EducationConfirmationModalProps> = ({
         isVisible={isPinPadVisible}
         onClose={() => setPinPadVisible(false)}
         handler={handlePinSubmit}
-        title="Confirm Transaction"
-        description={`Enter your 4-digit PIN to complete the ${getServiceTypeLabel()} purchase.`}
-        onSuccess={async () => await handleProcessRequest()}
+        title="Confirm Transfer"
+        description={`Enter your 4-digit PIN to send ${formatNigerianNaira(amount)} to ${recipient?.full_name}.`}
+        onSuccess={() => {}}
         onError={() => console.error('Error occurred or invalid PIN.')}
         loadingText={loadingText}
-        successMessage="Pin Verified."
+        successMessage="Transfer initiated."
       />
 
-      <EducationStatusModal
+      <TransferStatusModal
         isVisible={openStatusModal}
         onClose={handleStatusModalClose}
-        status={purchaseResult?.status || 'pending'}
-        serviceType={serviceType}
-        serviceName={service?.name || service?.variation_code}
-        quantity={quantity}
-        amount={totalAmount}
-        pins={purchaseResult?.pins}
-        cards={purchaseResult?.cards}
-        dataBonus={dataBonus}
-        phone={phone}
-        error={purchaseResult?.error}
+        status={transferResult?.status || 'pending'}
+        amount={amount}
+        balanceAfter={transferResult?.balanceAfter}
+        transactionId={transferResult?.transactionId}
+        recipientName={recipient?.full_name}
+        error={transferResult?.error}
       />
     </>
   );
 };
 
-export default EducationConfirmationModal;
+export default TransferConfirmModal;

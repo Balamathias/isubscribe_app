@@ -182,7 +182,7 @@ const EducationStatusModal: React.FC<EducationStatusModalProps> = ({
             </Text>
 
             {/* Content Section */}
-            <View className="w-full space-y-3">
+            <View className="w-full gap-y-3">
               {/* PIN Display (JAMB/DE) */}
               {status === 'success' && hasPins && (
                 <View className="mx-4 p-4 rounded-2xl bg-blue-500/10 border border-blue-500/30">
@@ -207,7 +207,7 @@ const EducationStatusModal: React.FC<EducationStatusModalProps> = ({
                     )}
                   </View>
 
-                  <View className="space-y-2">
+                  <View className="gap-y-2">
                     {pins.map((pin, index) => (
                       <TouchableOpacity
                         key={index}
@@ -272,7 +272,7 @@ const EducationStatusModal: React.FC<EducationStatusModalProps> = ({
                     )}
                   </View>
 
-                  <View className="space-y-3">
+                  <View className="gap-y-3">
                     {cards.map((card, index) => (
                       <View
                         key={index}
@@ -355,7 +355,7 @@ const EducationStatusModal: React.FC<EducationStatusModalProps> = ({
               )}
 
               {/* Details Section */}
-              <View className="px-4 space-y-2">
+              <View className="px-4 gap-y-2">
                 {/* Service Type */}
                 {serviceName && status === 'success' && (
                   <View className="bg-secondary/30 rounded-xl p-3">
@@ -426,7 +426,7 @@ const EducationStatusModal: React.FC<EducationStatusModalProps> = ({
               </View>
 
               {/* Action Buttons */}
-              <View className="px-4 pt-4 space-y-3">
+              <View className="px-4 pt-4 gap-y-3">
                 {status === 'success' ? (
                   <>
                     <TouchableOpacity

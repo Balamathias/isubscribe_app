@@ -203,8 +203,31 @@ export const getTransaction = async (id: string): Promise<Response<Tables<'histo
 }
 
 interface ProcessTxResponse extends Tables<'history'> {
+
+    /**
+     * Electricity Only Value:
+     * token: The token for the electricity transaction.
+     */
     token?: string
+
+    /**
+     * Electricity Only Value:
+     * formatted_token: The formatted token for the electricity transaction.
+     */
     formatted_token?: string
+
+    /**
+     * Education Only Values:
+     * pins: The pins for the education transaction.
+     */
+    pins?: string[]
+
+    /**
+     * Education Only Values:
+     * cards: The cards for the education transaction.
+     */
+    cards?: EducationCard[]
+
 }
 
 /**
@@ -829,6 +852,145 @@ export const verifyEducationMerchant = async (
 ): Promise<Response<VerifyEducationMerchantResponse | null>> => {
     try {
         const { data, status } = await microservice.post('/mobile/verify-education-merchant/', request)
+        return data
+    } catch (error: any) {
+        return {
+            data: null,
+            error: {
+                message: error?.response?.data?.message || error?.message
+            },
+            status: error?.response?.status,
+            message: error?.response?.data?.message || error?.message
+        }
+    }
+}
+
+// ==============================================
+// Inter-Wallet Transfer Types & Functions
+// ==============================================
+
+export interface TransferRecipient {
+    id: string
+    full_name: string
+    avatar: string | null
+    username: string | null
+    email_masked: string
+    phone_masked: string
+    is_verified: boolean
+    is_onboarded: boolean
+    has_wallet: boolean
+}
+
+export interface LookupRecipientResponse {
+    recipient: TransferRecipient
+    identifier_type: 'email' | 'phone' | 'account_number'
+}
+
+export interface InitiateTransferRequest {
+    recipient_id: string
+    amount: number
+    description?: string
+}
+
+export interface InitiateTransferResponse {
+    transaction_id: string
+    amount: number
+    balance_after: number
+    status: 'success' | 'failed'
+}
+
+export interface TransferLimits {
+    min_amount: number
+    max_per_transaction: number
+    daily_limit: number
+    daily_used: number
+    daily_remaining: number
+    hourly_rate_limit: number
+    hourly_count: number
+    hourly_remaining: number
+    wallet_balance: number
+    can_transfer: boolean
+}
+
+export interface RecentTransferRecipient {
+    id: string
+    full_name: string
+    avatar: string | null
+    email_masked: string
+    phone_masked: string
+}
+
+/**
+ * Look up a transfer recipient by email, phone, or account number
+ */
+export const lookupTransferRecipient = async (
+    identifier: string
+): Promise<Response<LookupRecipientResponse | null>> => {
+    try {
+        const { data, status } = await microservice.post('/mobile/transfer/lookup/', { identifier })
+        return data
+    } catch (error: any) {
+        return {
+            data: null,
+            error: {
+                message: error?.response?.data?.message || error?.message
+            },
+            status: error?.response?.status,
+            message: error?.response?.data?.message || error?.message
+        }
+    }
+}
+
+/**
+ * Initiate an inter-wallet transfer
+ */
+export const initiateTransfer = async (
+    request: InitiateTransferRequest
+): Promise<Response<InitiateTransferResponse | null>> => {
+    try {
+        const { data, status } = await microservice.post('/mobile/transfer/initiate/', request)
+        return data
+    } catch (error: any) {
+        return {
+            data: null,
+            error: {
+                message: error?.response?.data?.message || error?.message
+            },
+            status: error?.response?.status,
+            message: error?.response?.data?.message || error?.message
+        }
+    }
+}
+
+/**
+ * Get transfer limits (daily, hourly, min/max amounts)
+ */
+export const getTransferLimits = async (): Promise<Response<TransferLimits | null>> => {
+    try {
+        const { data, status } = await microservice.get('/mobile/transfer/limits/')
+        return data
+    } catch (error: any) {
+        return {
+            data: null,
+            error: {
+                message: error?.response?.data?.message || error?.message
+            },
+            status: error?.response?.status,
+            message: error?.response?.data?.message || error?.message
+        }
+    }
+}
+
+/**
+ * Get recent transfer recipients
+ */
+export const getRecentTransferRecipients = async (
+    limit: number = 5
+): Promise<Response<RecentTransferRecipient[] | null>> => {
+    try {
+        const { data, status } = await microservice.get('/mobile/transfer/recent-recipients/', {
+            params: { limit }
+        })
         return data
     } catch (error: any) {
         return {

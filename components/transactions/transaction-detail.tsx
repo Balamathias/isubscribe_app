@@ -35,12 +35,14 @@ const DetailRow = ({
   valueStyle,
   copyable,
   onCopy,
+  numberOfLines = 1,
 }: {
   label: string;
   value: string;
   isDark: boolean;
   valueStyle?: object;
   copyable?: boolean;
+  numberOfLines?: number | 'auto';
   onCopy?: () => void;
 }) => (
   <View className="flex-row justify-between items-center py-3.5">
@@ -54,7 +56,7 @@ const DetailRow = ({
       <Text
         className="font-semibold text-sm"
         style={[{ color: isDark ? '#fff' : '#111' }, valueStyle]}
-        numberOfLines={1}
+        numberOfLines={numberOfLines === 'auto' ? undefined : numberOfLines}
       >
         {value}
       </Text>
@@ -511,6 +513,33 @@ const TransactionDetail = () => {
                     value={String(transaction.meta_data.data_bonus)}
                     isDark={isDark}
                     valueStyle={{ color: '#22c55e' }}
+                  />
+                )}
+
+                {'meter_number' in transaction.meta_data && (
+                  <DetailRow
+                    label="Meter Number"
+                    value={String(transaction.meta_data.meter_number)}
+                    isDark={isDark}
+                    valueStyle={{ color: '#53ee23' }}
+                  />
+                )}
+
+                {'provider_name' in transaction.meta_data && (
+                  <DetailRow
+                    label="Provider"
+                    value={String(transaction.meta_data.provider_name)}
+                    isDark={isDark}
+                  />
+                )}
+
+                {'customer_address' in transaction.meta_data && (
+                  <DetailRow
+                    label="Address"
+                    value={String(transaction.meta_data.customer_address)}
+                    isDark={isDark}
+                    valueStyle={{ color: '#e2d55e' }}
+                    numberOfLines={'auto'}
                   />
                 )}
               </View>

@@ -10,14 +10,13 @@ import {
   TextInput,
   TouchableOpacity,
   useColorScheme,
-  View
+  View,
 } from 'react-native';
 import Animated, {
-  runOnJS,
   useAnimatedStyle,
   useSharedValue,
   withSequence,
-  withSpring
+  withSpring,
 } from 'react-native-reanimated';
 import Toast from 'react-native-toast-message';
 import BottomSheet from '../ui/bottom-sheet';
@@ -28,41 +27,35 @@ interface RatingModalProps {
   transactionTitle?: string;
 }
 
-const AnimatedStar = ({ 
-  index, 
-  filled, 
-  onPress, 
-  animationDelay = 0 
-}: { 
-  index: number; 
-  filled: boolean; 
-  onPress: () => void; 
-  animationDelay?: number;
+const AnimatedStar = ({
+  index,
+  filled,
+  onPress,
+}: {
+  index: number;
+  filled: boolean;
+  onPress: () => void;
 }) => {
   const scale = useSharedValue(1);
+  const rotation = useSharedValue(0);
 
   const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }]
+    transform: [{ scale: scale.value }, { rotate: `${rotation.value}deg` }],
   }));
 
   const handlePress = () => {
-    scale.value = withSequence(
-      withSpring(1.2, { duration: 150 }),
-      withSpring(1, { duration: 150 })
-    );
-    
-    setTimeout(() => {
-      runOnJS(onPress)();
-    }, animationDelay);
+    scale.value = withSequence(withSpring(1.3, { damping: 8 }), withSpring(1, { damping: 10 }));
+    rotation.value = withSequence(withSpring(-10), withSpring(10), withSpring(0));
+    onPress();
   };
 
   return (
-    <TouchableOpacity onPress={handlePress} activeOpacity={0.8} className="p-1">
+    <TouchableOpacity onPress={handlePress} activeOpacity={0.8} className="p-1.5">
       <Animated.View style={animatedStyle}>
-        <Ionicons 
-          name={filled ? "star" : "star-outline"} 
-          size={36} 
-          color={filled ? "#FFD700" : "#D1D5DB"} 
+        <Ionicons
+          name={filled ? 'star' : 'star-outline'}
+          size={40}
+          color={filled ? '#FFD700' : '#9ca3af'}
         />
       </Animated.View>
     </TouchableOpacity>
@@ -72,18 +65,16 @@ const AnimatedStar = ({
 const RatingModal: React.FC<RatingModalProps> = ({
   isVisible,
   onClose,
-  transactionTitle = "Transaction"
+  transactionTitle = 'Transaction',
 }) => {
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
-  const [hoveredRating, setHoveredRating] = useState(0);
-  
+
   const colorScheme = useColorScheme();
-  const theme = colorScheme === 'dark' ? 'dark' : 'light';
-  const colors = COLORS[theme];
+  const isDark = colorScheme === 'dark';
+  const colors = COLORS[isDark ? 'dark' : 'light'];
 
   const { mutateAsync: createRating, isPending } = useCreateRating();
-
   const queryClient = useQueryClient();
 
   const handleStarPress = (starIndex: number) => {
@@ -95,7 +86,7 @@ const RatingModal: React.FC<RatingModalProps> = ({
       Toast.show({
         type: 'error',
         text1: 'Please rate your experience',
-        text2: 'Select at least one star'
+        text2: 'Select at least one star',
       });
       return;
     }
@@ -103,118 +94,183 @@ const RatingModal: React.FC<RatingModalProps> = ({
     try {
       const result = await createRating({
         rating,
-        comment: comment.trim()
+        comment: comment.trim(),
       });
 
       if (result.data) {
         Toast.show({
           type: 'success',
           text1: 'Thank you! 🙏',
-          text2: 'Your feedback helps us improve'
+          text2: 'Your feedback helps us improve',
         });
 
         queryClient.invalidateQueries({
-          queryKey: [QUERY_KEYS.listRatings]
-        })
-        
-        // Reset form
+          queryKey: [QUERY_KEYS.listRatings],
+        });
+
         setRating(0);
         setComment('');
         onClose();
       } else {
         throw new Error(result.message || 'Failed to submit rating');
       }
-    } catch (error: any) {
+    } catch {
       Toast.show({
         type: 'error',
         text1: 'Submission failed',
-        text2: 'Please try again'
+        text2: 'Please try again',
       });
     }
   };
 
   const getRatingEmoji = (ratingValue: number) => {
     switch (ratingValue) {
-      case 1: return "😞";
-      case 2: return "😐";
-      case 3: return "🙂";
-      case 4: return "😊";
-      case 5: return "🤩";
-      default: return "😊";
+      case 1:
+        return '😞';
+      case 2:
+        return '😐';
+      case 3:
+        return '🙂';
+      case 4:
+        return '😊';
+      case 5:
+        return '🤩';
+      default:
+        return '⭐';
     }
   };
 
   const getRatingText = (ratingValue: number) => {
     switch (ratingValue) {
-      case 1: return "Poor";
-      case 2: return "Fair";
-      case 3: return "Good";
-      case 4: return "Very Good";
-      case 5: return "Excellent";
-      default: return "How was your experience?";
+      case 1:
+        return 'Poor';
+      case 2:
+        return 'Fair';
+      case 3:
+        return 'Good';
+      case 4:
+        return 'Very Good';
+      case 5:
+        return 'Excellent!';
+      default:
+        return 'Tap to rate';
+    }
+  };
+
+  const getRatingColor = (ratingValue: number) => {
+    switch (ratingValue) {
+      case 1:
+        return '#ef4444';
+      case 2:
+        return '#f59e0b';
+      case 3:
+        return '#eab308';
+      case 4:
+        return '#22c55e';
+      case 5:
+        return '#10b981';
+      default:
+        return isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)';
     }
   };
 
   return (
-    <BottomSheet
-      isVisible={isVisible}
-      onClose={onClose}
-      title=""
-    >
-      <View className="flex-1 py-2">
+    <BottomSheet isVisible={isVisible} onClose={onClose} title="">
+      <View className="py-2">
         {/* Header Section */}
-        <View className="items-center mb-8">
-          <Text className="text-4xl mb-3">✨</Text>
-          <Text className="text-foreground text-xl font-bold mb-2">
+        <View className="items-center mb-6">
+          <View
+            className="w-16 h-16 rounded-full items-center justify-center mb-4"
+            style={{ backgroundColor: isDark ? 'rgba(255,215,0,0.1)' : 'rgba(255,215,0,0.15)' }}
+          >
+            <Text className="text-3xl">{getRatingEmoji(rating)}</Text>
+          </View>
+          <Text className="text-xl font-bold mb-1" style={{ color: isDark ? '#fff' : '#111' }}>
             Rate Your Experience
           </Text>
-          <Text className="text-muted-foreground text-center text-sm px-4">
-            Help us improve by sharing your feedback
+          <Text
+            className="text-center text-sm"
+            style={{ color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.45)' }}
+          >
+            Your feedback helps us improve
           </Text>
         </View>
 
-        {/* Rating Section */}
-        <View className="items-center mb-8">
-          <View className="flex-row items-center mb-4">
-            <Text className="text-3xl mr-3">
-              {getRatingEmoji(hoveredRating || rating)}
-            </Text>
-            <Text className="text-foreground text-lg font-semibold">
-              {getRatingText(hoveredRating || rating)}
-            </Text>
-          </View>
-          
-          <View className="flex-row space-x-3">
+        {/* Stars Section */}
+        <View
+          className="rounded-2xl p-5 mb-5 items-center"
+          style={{
+            backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
+            borderWidth: 1,
+            borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+          }}
+        >
+          {/* Rating Text */}
+          <Text
+            className="text-lg font-semibold mb-4"
+            style={{ color: getRatingColor(rating) }}
+          >
+            {getRatingText(rating)}
+          </Text>
+
+          {/* Stars Row */}
+          <View className="flex-row items-center justify-center">
             {[1, 2, 3, 4, 5].map((star) => (
               <AnimatedStar
                 key={star}
                 index={star}
-                filled={star <= (hoveredRating || rating)}
+                filled={star <= rating}
                 onPress={() => handleStarPress(star)}
-                animationDelay={star * 30}
               />
             ))}
           </View>
         </View>
 
         {/* Comment Section */}
-        <View className="mb-8">
-          <Text className="text-foreground font-medium mb-3 text-center">
-            💬 Share your thoughts <Text className="text-muted-foreground text-sm">(optional)</Text>
-          </Text>
-          <TextInput
-            className="border border-border rounded-2xl p-4 text-foreground bg-card"
-            placeholder="Tell us what made your experience great or how we can improve..."
-            placeholderTextColor={colors.mutedForeground}
-            multiline
-            textAlignVertical="top"
-            value={comment}
-            onChangeText={setComment}
-            maxLength={300}
-            style={{ minHeight: 80 }}
-          />
+        <View className="mb-5">
+          <View className="flex-row items-center mb-3">
+            <Text className="font-semibold text-sm" style={{ color: isDark ? '#fff' : '#111' }}>
+              Share your thoughts
+            </Text>
+            <Text
+              className="text-xs ml-1"
+              style={{ color: isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.35)' }}
+            >
+              (optional)
+            </Text>
+          </View>
+          <View
+            className="rounded-2xl overflow-hidden"
+            style={{
+              backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)',
+              borderWidth: 1,
+              borderColor: comment.length > 0
+                ? colors.primary + '50'
+                : isDark
+                  ? 'rgba(255,255,255,0.06)'
+                  : 'rgba(0,0,0,0.04)',
+            }}
+          >
+            <TextInput
+              className="p-4 text-sm"
+              style={{
+                color: isDark ? '#fff' : '#111',
+                minHeight: 90,
+              }}
+              placeholder="What did you like or how can we improve?"
+              placeholderTextColor={isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)'}
+              multiline
+              textAlignVertical="top"
+              value={comment}
+              onChangeText={setComment}
+              maxLength={300}
+            />
+          </View>
           {comment.length > 0 && (
-            <Text className="text-muted-foreground text-xs mt-2 text-right">
+            <Text
+              className="text-xs mt-2 text-right"
+              style={{ color: isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.35)' }}
+            >
               {comment.length}/300
             </Text>
           )}
@@ -224,22 +280,33 @@ const RatingModal: React.FC<RatingModalProps> = ({
         <View className="flex-row gap-x-3">
           <TouchableOpacity
             onPress={onClose}
-            className="flex-1 py-4 rounded-2xl border border-border/50"
             disabled={isPending}
+            activeOpacity={0.85}
+            className="flex-1 py-4 rounded-2xl items-center justify-center"
+            style={{
+              backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+            }}
           >
-            <Text className="text-muted-foreground text-center font-medium">
-              Skip
+            <Text className="font-semibold" style={{ color: isDark ? '#fff' : '#111' }}>
+              Maybe Later
             </Text>
           </TouchableOpacity>
-          
+
           <TouchableOpacity
             onPress={handleSubmit}
-            className="flex-2 py-4 rounded-2xl overflow-hidden px-4"
             disabled={isPending || rating === 0}
+            activeOpacity={0.9}
+            className="flex-[1.5] py-4 rounded-2xl overflow-hidden"
             style={{ opacity: rating === 0 ? 0.5 : 1 }}
           >
             <LinearGradient
-              colors={rating === 0 ? ['#6B7280', '#6B7280'] : ['#7B2FF2', '#F357A8']}
+              colors={
+                rating === 0
+                  ? isDark
+                    ? ['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.1)']
+                    : ['rgba(0,0,0,0.08)', 'rgba(0,0,0,0.08)']
+                  : [colors.primary, '#a855f7']
+              }
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               className="absolute inset-0"
@@ -248,12 +315,19 @@ const RatingModal: React.FC<RatingModalProps> = ({
               {isPending ? (
                 <>
                   <ActivityIndicator color="white" size="small" />
-                  <Text className="text-white font-semibold ml-2">Submitting...</Text>
+                  <Text className="text-white font-bold ml-2">Submitting...</Text>
                 </>
               ) : (
                 <>
-                  <Text className="text-white font-semibold">Submit Rating</Text>
-                  <Text className="text-white ml-2">🚀</Text>
+                  <Ionicons name="send" size={16} color={rating === 0 ? (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.3)') : '#fff'} />
+                  <Text
+                    className="font-bold ml-2"
+                    style={{
+                      color: rating === 0 ? (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.3)') : '#fff',
+                    }}
+                  >
+                    Submit
+                  </Text>
                 </>
               )}
             </View>

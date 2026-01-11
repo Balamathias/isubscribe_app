@@ -56,7 +56,7 @@ const BuyEducationScreen = () => {
   const [verificationData, setVerificationData] = useState<VerifyEducationMerchantResponse | null>(null);
   const [verificationError, setVerificationError] = useState<string | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const verifyDebounceTimer = useRef<NodeJS.Timeout | null>(null);
+  const verifyDebounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // API Hooks
   const { data: servicesData, isLoading: loadingServices } = useListEducationServices();
@@ -379,9 +379,8 @@ const BuyEducationScreen = () => {
                     placeholderTextColor={appColors.mutedForeground}
                     autoCapitalize="characters"
                     maxLength={20}
-                    className={`bg-secondary/50 border rounded-xl pl-12 pr-12 py-4 text-base font-mono text-foreground ${
-                      verificationData ? 'border-emerald-500/30 bg-emerald-500/5' : 'border-border'
-                    }`}
+                    className={`bg-secondary/50 border rounded-xl pl-12 pr-12 py-4 text-base font-mono text-foreground ${verificationData ? 'border-emerald-500/30 bg-emerald-500/5' : 'border-border'
+                      }`}
                   />
                   {isVerifying && (
                     <View className="absolute right-4 top-1/2 -translate-y-1/2">

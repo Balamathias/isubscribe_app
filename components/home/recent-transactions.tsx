@@ -305,6 +305,20 @@ export const getItemConfig = (item: Tables<'history'>) => {
     }
   }
 
+  if (item.type === EVENT_TYPE.transfer_sent) {
+    return {
+      icon: 'arrow-up',
+      iconColor: '#FF6347'
+    }
+  }
+
+  if (item.type === EVENT_TYPE.transfer_received) {
+    return {
+      icon: 'arrow-down',
+      iconColor: '#FF6347'
+    }
+  }
+
   if (item.type === EVENT_TYPE.money_transfer) {
     return {
       icon: 'swap-horizontal',

@@ -65,12 +65,12 @@ const NetworkItem: React.FC<{
       >
         {/* Network Logo */}
         <View
-          className="w-10 h-10 rounded-xl items-center justify-center overflow-hidden"
+          className="w-10 h-10 rounded-full items-center justify-center overflow-hidden"
           style={{ backgroundColor: '#fff' }}
         >
           <Image
             source={network.logo}
-            className="w-8 h-8"
+            className="w-8 h-8 rounded-full"
             resizeMode="contain"
             fadeDuration={0}
           />

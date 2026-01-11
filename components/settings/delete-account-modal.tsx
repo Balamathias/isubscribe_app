@@ -1,121 +1,148 @@
-import { COLORS } from '@/constants/colors';
 import { supabase } from '@/lib/supabase';
 import { useDeleteAccount } from '@/services/api-hooks';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Animated,
   Dimensions,
-  Modal,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   useColorScheme,
   View,
 } from 'react-native';
 import Toast from 'react-native-toast-message';
 import { useSession } from '../session-context';
 
-const { width: screenWidth } = Dimensions.get('window');
+const { height: screenHeight } = Dimensions.get('window');
 
 interface DeleteAccountModalProps {
   isVisible: boolean;
   onClose: () => void;
 }
 
-type DeleteStep = 'warning' | 'confirm' | 'final';
-
 const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
   isVisible,
   onClose,
 }) => {
-  const [currentStep, setCurrentStep] = useState<DeleteStep>('warning');
-  const [confirmationText, setConfirmationText] = useState('');
-  const [isChecked, setIsChecked] = useState(false);
+  const [step, setStep] = useState<1 | 2>(1);
+  const [confirmText, setConfirmText] = useState('');
+  const [countdown, setCountdown] = useState(5);
+  const [canDelete, setCanDelete] = useState(false);
   const { user } = useSession();
   const { mutateAsync: deleteAccount, isPending } = useDeleteAccount();
 
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
-  const colors = COLORS[isDark ? 'dark' : 'light'];
 
-  // Animation values
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const scaleAnim = useRef(new Animated.Value(0.9)).current;
-  const slideAnim = useRef(new Animated.Value(20)).current;
+  // Animations
+  const slideAnim = useRef(new Animated.Value(screenHeight)).current;
+  const backdropAnim = useRef(new Animated.Value(0)).current;
+  const shakeAnim = useRef(new Animated.Value(0)).current;
+  const pulseAnim = useRef(new Animated.Value(1)).current;
 
+  // Countdown timer for final step
+  useEffect(() => {
+    if (step === 2 && confirmText === 'DELETE' && countdown > 0) {
+      const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+    if (countdown === 0) {
+      setCanDelete(true);
+    }
+  }, [step, confirmText, countdown]);
+
+  // Pulse animation for delete button when ready
+  useEffect(() => {
+    if (canDelete) {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, {
+            toValue: 1.02,
+            duration: 800,
+            useNativeDriver: true,
+          }),
+          Animated.timing(pulseAnim, {
+            toValue: 1,
+            duration: 800,
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+    }
+  }, [canDelete, pulseAnim]);
+
+  // Open/close animations
   useEffect(() => {
     if (isVisible) {
       Animated.parallel([
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 250,
-          useNativeDriver: true,
-        }),
-        Animated.spring(scaleAnim, {
-          toValue: 1,
-          tension: 65,
-          friction: 10,
-          useNativeDriver: true,
-        }),
-        Animated.timing(slideAnim, {
+        Animated.spring(slideAnim, {
           toValue: 0,
-          duration: 250,
+          tension: 65,
+          friction: 11,
+          useNativeDriver: true,
+        }),
+        Animated.timing(backdropAnim, {
+          toValue: 1,
+          duration: 300,
           useNativeDriver: true,
         }),
       ]).start();
     }
-  }, [isVisible, fadeAnim, scaleAnim, slideAnim]);
+  }, [isVisible, slideAnim, backdropAnim]);
 
-  const animateStepChange = (callback: () => void) => {
-    Animated.timing(slideAnim, {
-      toValue: -20,
-      duration: 150,
-      useNativeDriver: true,
-    }).start(() => {
-      callback();
-      slideAnim.setValue(20);
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 200,
-        useNativeDriver: true,
-      }).start();
-    });
-  };
-
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
+    Keyboard.dismiss();
     Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 0,
-        duration: 200,
+      Animated.timing(slideAnim, {
+        toValue: screenHeight,
+        duration: 250,
         useNativeDriver: true,
       }),
-      Animated.timing(scaleAnim, {
-        toValue: 0.9,
+      Animated.timing(backdropAnim, {
+        toValue: 0,
         duration: 200,
         useNativeDriver: true,
       }),
     ]).start(() => {
-      setCurrentStep('warning');
-      setConfirmationText('');
-      setIsChecked(false);
+      setStep(1);
+      setConfirmText('');
+      setCountdown(5);
+      setCanDelete(false);
       onClose();
     });
+  }, [slideAnim, backdropAnim, onClose]);
+
+  const shakeButton = () => {
+    Animated.sequence([
+      Animated.timing(shakeAnim, { toValue: 10, duration: 50, useNativeDriver: true }),
+      Animated.timing(shakeAnim, { toValue: -10, duration: 50, useNativeDriver: true }),
+      Animated.timing(shakeAnim, { toValue: 10, duration: 50, useNativeDriver: true }),
+      Animated.timing(shakeAnim, { toValue: 0, duration: 50, useNativeDriver: true }),
+    ]).start();
   };
 
-  const handleDeleteAccount = async () => {
+  const handleDelete = async () => {
+    if (!canDelete) {
+      shakeButton();
+      return;
+    }
+
     try {
       const result = await deleteAccount();
-
       if (result.data) {
         Toast.show({
           type: 'success',
           text1: 'Account Deleted',
-          text2: 'Your account has been successfully deleted',
+          text2: 'Your account has been permanently removed',
         });
-
         await supabase.auth.signOut();
         handleClose();
         router.replace('/auth/login');
@@ -126,489 +153,364 @@ const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
       Toast.show({
         type: 'error',
         text1: 'Delete Failed',
-        text2: error.message || 'Please try again later',
+        text2: error.message || 'Please try again',
       });
     }
   };
 
-  const goToStep = (step: DeleteStep) => {
-    animateStepChange(() => setCurrentStep(step));
+  const goToStep2 = () => {
+    setStep(2);
+    setCountdown(5);
+    setCanDelete(false);
   };
 
-  // Step indicator
-  const StepIndicator = () => {
-    const steps: DeleteStep[] = ['warning', 'confirm', 'final'];
-    const currentIndex = steps.indexOf(currentStep);
-
-    return (
-      <View className="flex-row items-center justify-center mb-6">
-        {steps.map((step, index) => (
-          <View key={step} className="flex-row items-center">
-            <View
-              className="w-2.5 h-2.5 rounded-full"
-              style={{
-                backgroundColor:
-                  index <= currentIndex
-                    ? '#ef4444'
-                    : isDark
-                      ? 'rgba(255,255,255,0.2)'
-                      : 'rgba(0,0,0,0.1)',
-              }}
-            />
-            {index < steps.length - 1 && (
-              <View
-                className="w-8 h-0.5 mx-1"
-                style={{
-                  backgroundColor:
-                    index < currentIndex
-                      ? '#ef4444'
-                      : isDark
-                        ? 'rgba(255,255,255,0.2)'
-                        : 'rgba(0,0,0,0.1)',
-                }}
-              />
-            )}
-          </View>
-        ))}
-      </View>
-    );
-  };
-
-  // Consequence Item Component
-  const ConsequenceItem = ({
-    icon,
-    title,
-    description,
-  }: {
-    icon: keyof typeof Ionicons.glyphMap;
-    title: string;
-    description: string;
-  }) => (
-    <View className="flex-row items-start mb-4">
-      <View
-        className="w-10 h-10 rounded-xl items-center justify-center mr-3"
-        style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)' }}
-      >
-        <Ionicons name={icon} size={18} color="#ef4444" />
-      </View>
-      <View className="flex-1">
-        <Text
-          className="font-semibold text-sm mb-0.5"
-          style={{ color: isDark ? '#ffffff' : '#1a1a2e' }}
-        >
-          {title}
-        </Text>
-        <Text
-          className="text-xs"
-          style={{ color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)' }}
-        >
-          {description}
-        </Text>
-      </View>
-    </View>
-  );
-
-  const renderStepContent = () => {
-    switch (currentStep) {
-      case 'warning':
-        return (
-          <Animated.View
-            style={{
-              opacity: fadeAnim,
-              transform: [{ translateY: slideAnim }],
-            }}
-          >
-            {/* Icon */}
-            <View className="items-center mb-5">
-              <View
-                className="w-20 h-20 rounded-full items-center justify-center"
-                style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)' }}
-              >
-                <Ionicons name="warning" size={40} color="#ef4444" />
-              </View>
-            </View>
-
-            {/* Title */}
-            <Text
-              className="text-2xl font-bold text-center mb-2"
-              style={{ color: isDark ? '#ffffff' : '#1a1a2e' }}
-            >
-              Delete Your Account?
-            </Text>
-
-            {/* Description */}
-            <Text
-              className="text-center text-base mb-6"
-              style={{ color: isDark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.5)' }}
-            >
-              This action is permanent and cannot be undone. All your data will be permanently removed.
-            </Text>
-
-            {/* Consequences Card */}
-            <View
-              className="rounded-2xl p-4 mb-6"
-              style={{
-                backgroundColor: isDark ? 'rgba(239,68,68,0.08)' : 'rgba(239,68,68,0.05)',
-                borderWidth: 1,
-                borderColor: 'rgba(239,68,68,0.2)',
-              }}
-            >
-              <ConsequenceItem
-                icon="wallet-outline"
-                title="Wallet Balance"
-                description="Any remaining balance will be lost"
-              />
-              <ConsequenceItem
-                icon="time-outline"
-                title="Transaction History"
-                description="All records permanently deleted"
-              />
-              <ConsequenceItem
-                icon="people-outline"
-                title="Saved Beneficiaries"
-                description="All contacts removed"
-              />
-              <ConsequenceItem
-                icon="shield-checkmark-outline"
-                title="Security Settings"
-                description="PINs and auth methods deleted"
-              />
-            </View>
-
-            {/* Buttons */}
-            <View className="gap-y-3">
-              <TouchableOpacity
-                onPress={() => goToStep('confirm')}
-                activeOpacity={0.9}
-              >
-                <View
-                  className="py-4 rounded-2xl items-center justify-center"
-                  style={{ backgroundColor: '#ef4444' }}
-                >
-                  <Text className="text-white font-bold text-base">
-                    I Understand, Continue
-                  </Text>
-                </View>
-              </TouchableOpacity>
-
-              <TouchableOpacity onPress={handleClose} activeOpacity={0.8}>
-                <View
-                  className="py-4 rounded-2xl items-center justify-center"
-                  style={{
-                    backgroundColor: isDark
-                      ? 'rgba(255,255,255,0.08)'
-                      : 'rgba(0,0,0,0.05)',
-                  }}
-                >
-                  <Text
-                    className="font-semibold text-base"
-                    style={{ color: isDark ? '#ffffff' : '#1a1a2e' }}
-                  >
-                    Cancel
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            </View>
-          </Animated.View>
-        );
-
-      case 'confirm':
-        return (
-          <Animated.View
-            style={{
-              opacity: fadeAnim,
-              transform: [{ translateY: slideAnim }],
-            }}
-          >
-            {/* Icon */}
-            <View className="items-center mb-5">
-              <View
-                className="w-20 h-20 rounded-full items-center justify-center"
-                style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)' }}
-              >
-                <Ionicons name="key-outline" size={40} color="#ef4444" />
-              </View>
-            </View>
-
-            {/* Title */}
-            <Text
-              className="text-2xl font-bold text-center mb-2"
-              style={{ color: isDark ? '#ffffff' : '#1a1a2e' }}
-            >
-              Confirm Deletion
-            </Text>
-
-            {/* Description */}
-            <Text
-              className="text-center text-base mb-6"
-              style={{ color: isDark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.5)' }}
-            >
-              To proceed, please type <Text className="font-bold text-red-500">DELETE</Text> below
-            </Text>
-
-            {/* Input */}
-            <View className="mb-5">
-              <TextInput
-                className="rounded-2xl px-5 py-4 text-center text-lg font-semibold"
-                style={{
-                  backgroundColor: isDark
-                    ? 'rgba(255,255,255,0.05)'
-                    : 'rgba(0,0,0,0.03)',
-                  borderWidth: 1.5,
-                  borderColor:
-                    confirmationText === 'DELETE'
-                      ? '#ef4444'
-                      : isDark
-                        ? 'rgba(255,255,255,0.1)'
-                        : 'rgba(0,0,0,0.08)',
-                  color: isDark ? '#ffffff' : '#1a1a2e',
-                }}
-                placeholder="Type DELETE"
-                placeholderTextColor={
-                  isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)'
-                }
-                value={confirmationText}
-                onChangeText={setConfirmationText}
-                autoCapitalize="characters"
-                autoCorrect={false}
-              />
-            </View>
-
-            {/* Checkbox */}
-            <TouchableOpacity
-              onPress={() => setIsChecked(!isChecked)}
-              className="flex-row items-center mb-6"
-              activeOpacity={0.7}
-            >
-              <View
-                className="w-6 h-6 rounded-lg mr-3 items-center justify-center"
-                style={{
-                  backgroundColor: isChecked
-                    ? '#ef4444'
-                    : isDark
-                      ? 'rgba(255,255,255,0.08)'
-                      : 'rgba(0,0,0,0.05)',
-                  borderWidth: isChecked ? 0 : 1.5,
-                  borderColor: isDark
-                    ? 'rgba(255,255,255,0.15)'
-                    : 'rgba(0,0,0,0.1)',
-                }}
-              >
-                {isChecked && <Ionicons name="checkmark" size={16} color="white" />}
-              </View>
-              <Text
-                className="flex-1 text-sm"
-                style={{ color: isDark ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)' }}
-              >
-                I understand this action is permanent and cannot be undone
-              </Text>
-            </TouchableOpacity>
-
-            {/* Buttons */}
-            <View className="gap-y-3">
-              <TouchableOpacity
-                onPress={() => goToStep('final')}
-                disabled={confirmationText !== 'DELETE' || !isChecked}
-                activeOpacity={0.9}
-              >
-                <View
-                  className="py-4 rounded-2xl items-center justify-center"
-                  style={{
-                    backgroundColor:
-                      confirmationText === 'DELETE' && isChecked
-                        ? '#ef4444'
-                        : isDark
-                          ? 'rgba(239,68,68,0.3)'
-                          : 'rgba(239,68,68,0.4)',
-                  }}
-                >
-                  <Text
-                    className="font-bold text-base"
-                    style={{
-                      color:
-                        confirmationText === 'DELETE' && isChecked
-                          ? '#ffffff'
-                          : isDark
-                            ? 'rgba(255,255,255,0.5)'
-                            : 'rgba(255,255,255,0.8)',
-                    }}
-                  >
-                    Proceed to Final Step
-                  </Text>
-                </View>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={() => goToStep('warning')}
-                activeOpacity={0.8}
-              >
-                <View
-                  className="py-4 rounded-2xl items-center justify-center"
-                  style={{
-                    backgroundColor: isDark
-                      ? 'rgba(255,255,255,0.08)'
-                      : 'rgba(0,0,0,0.05)',
-                  }}
-                >
-                  <Text
-                    className="font-semibold text-base"
-                    style={{ color: isDark ? '#ffffff' : '#1a1a2e' }}
-                  >
-                    Go Back
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            </View>
-          </Animated.View>
-        );
-
-      case 'final':
-        return (
-          <Animated.View
-            style={{
-              opacity: fadeAnim,
-              transform: [{ translateY: slideAnim }],
-            }}
-          >
-            {/* Icon */}
-            <View className="items-center mb-5">
-              <View
-                className="w-20 h-20 rounded-full items-center justify-center"
-                style={{ backgroundColor: 'rgba(239, 68, 68, 0.15)' }}
-              >
-                <Ionicons name="trash" size={40} color="#ef4444" />
-              </View>
-            </View>
-
-            {/* Title */}
-            <Text
-              className="text-2xl font-bold text-center mb-2"
-              style={{ color: isDark ? '#ffffff' : '#1a1a2e' }}
-            >
-              Final Confirmation
-            </Text>
-
-            {/* Warning Card */}
-            <View
-              className="rounded-2xl p-4 mb-6"
-              style={{
-                backgroundColor: 'rgba(239,68,68,0.1)',
-                borderWidth: 1,
-                borderColor: 'rgba(239,68,68,0.3)',
-              }}
-            >
-              <View className="flex-row items-center mb-3">
-                <Ionicons name="alert-circle" size={20} color="#ef4444" />
-                <Text className="text-red-500 font-bold text-base ml-2">
-                  Last Chance!
-                </Text>
-              </View>
-              <Text
-                className="text-sm leading-5"
-                style={{ color: isDark ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)' }}
-              >
-                Clicking the button below will immediately and permanently delete your account for{' '}
-                <Text className="font-semibold" style={{ color: isDark ? '#fff' : '#000' }}>
-                  {user?.email}
-                </Text>
-                . This cannot be reversed.
-              </Text>
-            </View>
-
-            {/* Buttons */}
-            <View className="gap-y-3">
-              <TouchableOpacity
-                onPress={handleDeleteAccount}
-                disabled={isPending}
-                activeOpacity={0.9}
-              >
-                <View
-                  className="py-4 rounded-2xl flex-row items-center justify-center"
-                  style={{
-                    backgroundColor: '#dc2626',
-                    opacity: isPending ? 0.7 : 1,
-                  }}
-                >
-                  {isPending ? (
-                    <ActivityIndicator color="white" size="small" />
-                  ) : (
-                    <>
-                      <Ionicons
-                        name="trash"
-                        size={18}
-                        color="white"
-                        style={{ marginRight: 8 }}
-                      />
-                      <Text className="text-white font-bold text-base">
-                        Delete My Account Forever
-                      </Text>
-                    </>
-                  )}
-                </View>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={handleClose}
-                disabled={isPending}
-                activeOpacity={0.8}
-              >
-                <View
-                  className="py-4 rounded-2xl items-center justify-center"
-                  style={{
-                    backgroundColor: isDark
-                      ? 'rgba(255,255,255,0.08)'
-                      : 'rgba(0,0,0,0.05)',
-                  }}
-                >
-                  <Text
-                    className="font-semibold text-base"
-                    style={{ color: isDark ? '#ffffff' : '#1a1a2e' }}
-                  >
-                    Keep My Account
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            </View>
-          </Animated.View>
-        );
-    }
-  };
+  if (!isVisible) return null;
 
   return (
-    <Modal
-      visible={isVisible}
-      transparent
-      animationType="none"
-      onRequestClose={handleClose}
-    >
+    <View className="absolute inset-0" style={{ zIndex: 1000 }}>
+      {/* Backdrop */}
       <Animated.View
-        className="flex-1 items-center justify-center px-5"
+        className="absolute inset-0"
         style={{
-          backgroundColor: 'rgba(0, 0, 0, 0.6)',
-          opacity: fadeAnim,
+          backgroundColor: 'rgba(0,0,0,0.7)',
+          opacity: backdropAnim,
         }}
       >
-        <Animated.View
-          className="w-full rounded-3xl p-6"
-          style={{
-            maxWidth: screenWidth - 40,
-            backgroundColor: isDark ? '#1a1a2e' : '#ffffff',
-            transform: [{ scale: scaleAnim }],
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 25 },
-            shadowOpacity: 0.4,
-            shadowRadius: 40,
-            elevation: 25,
-          }}
-        >
-          {/* Step Indicator */}
-          <StepIndicator />
-
-          {/* Content */}
-          {renderStepContent()}
-        </Animated.View>
+        <TouchableWithoutFeedback onPress={handleClose}>
+          <View className="flex-1" />
+        </TouchableWithoutFeedback>
       </Animated.View>
-    </Modal>
+
+      {/* Bottom Sheet */}
+      <Animated.View
+        className="absolute bottom-0 left-0 right-0"
+        style={{
+          transform: [{ translateY: slideAnim }],
+          maxHeight: screenHeight * 0.9,
+        }}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        >
+          <View
+            className="rounded-t-[32px] overflow-hidden"
+            style={{
+              backgroundColor: isDark ? '#0f0f1a' : '#ffffff',
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: -10 },
+              shadowOpacity: 0.3,
+              shadowRadius: 20,
+              elevation: 20,
+            }}
+          >
+            {/* Handle */}
+            <View className="items-center pt-3 pb-2">
+              <View
+                className="w-10 h-1 rounded-full"
+                style={{
+                  backgroundColor: isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)',
+                }}
+              />
+            </View>
+
+            <ScrollView
+              className="px-6"
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            >
+              {step === 1 ? (
+                /* ========== STEP 1: Warning ========== */
+                <View className="pb-8">
+                  {/* Header */}
+                  <View className="items-center py-6">
+                    <View
+                      className="w-24 h-24 rounded-full items-center justify-center mb-5"
+                      style={{
+                        backgroundColor: 'rgba(220, 38, 38, 0.1)',
+                      }}
+                    >
+                      <Ionicons name="skull-outline" size={48} color="#dc2626" />
+                    </View>
+
+                    <Text
+                      className="text-2xl font-bold text-center mb-2"
+                      style={{ color: isDark ? '#ffffff' : '#111' }}
+                    >
+                      This is permanent
+                    </Text>
+                    <Text
+                      className="text-base text-center px-4"
+                      style={{
+                        color: isDark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.5)',
+                        lineHeight: 22,
+                      }}
+                    >
+                      Deleting your account will erase everything and cannot be undone.
+                    </Text>
+                  </View>
+
+                  {/* What you'll lose */}
+                  <View
+                    className="rounded-2xl p-5 mb-6"
+                    style={{
+                      backgroundColor: isDark ? 'rgba(220,38,38,0.06)' : 'rgba(220,38,38,0.04)',
+                      borderWidth: 1,
+                      borderColor: 'rgba(220,38,38,0.15)',
+                    }}
+                  >
+                    <Text
+                      className="text-sm font-semibold mb-4"
+                      style={{ color: '#dc2626' }}
+                    >
+                      You will permanently lose:
+                    </Text>
+
+                    {[
+                      { icon: 'wallet', text: 'Your wallet balance' },
+                      { icon: 'receipt', text: 'All transaction history' },
+                      { icon: 'people', text: 'Saved beneficiaries' },
+                      { icon: 'key', text: 'Your PIN and security settings' },
+                    ].map((item, i) => (
+                      <View key={i} className="flex-row items-center mb-3 last:mb-0">
+                        <Ionicons
+                          name={item.icon as any}
+                          size={18}
+                          color="#dc2626"
+                          style={{ opacity: 0.8, marginRight: 12 }}
+                        />
+                        <Text
+                          className="text-sm"
+                          style={{
+                            color: isDark ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
+                          }}
+                        >
+                          {item.text}
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
+
+                  {/* Buttons */}
+                  <TouchableOpacity
+                    onPress={goToStep2}
+                    activeOpacity={0.9}
+                    className="mb-3"
+                  >
+                    <View
+                      className="py-4 rounded-2xl items-center"
+                      style={{ backgroundColor: '#dc2626' }}
+                    >
+                      <Text className="text-white font-bold text-base">
+                        Continue to Delete
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity onPress={handleClose} activeOpacity={0.8}>
+                    <View
+                      className="py-4 rounded-2xl items-center"
+                      style={{
+                        backgroundColor: isDark
+                          ? 'rgba(255,255,255,0.06)'
+                          : 'rgba(0,0,0,0.04)',
+                      }}
+                    >
+                      <Text
+                        className="font-semibold text-base"
+                        style={{ color: isDark ? '#fff' : '#111' }}
+                      >
+                        Keep My Account
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                /* ========== STEP 2: Confirm ========== */
+                <View className="pb-8">
+                  {/* Header */}
+                  <View className="items-center py-6">
+                    <View
+                      className="w-20 h-20 rounded-full items-center justify-center mb-4"
+                      style={{
+                        backgroundColor: 'rgba(220, 38, 38, 0.15)',
+                      }}
+                    >
+                      <Ionicons name="warning" size={40} color="#dc2626" />
+                    </View>
+
+                    <Text
+                      className="text-xl font-bold text-center mb-1"
+                      style={{ color: isDark ? '#ffffff' : '#111' }}
+                    >
+                      Final Step
+                    </Text>
+                    <Text
+                      className="text-sm text-center"
+                      style={{ color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)' }}
+                    >
+                      {user?.email}
+                    </Text>
+                  </View>
+
+                  {/* Type DELETE */}
+                  <View className="mb-5">
+                    <Text
+                      className="text-sm font-medium mb-3 text-center"
+                      style={{ color: isDark ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)' }}
+                    >
+                      Type <Text style={{ color: '#dc2626', fontWeight: '700' }}>DELETE</Text> to confirm
+                    </Text>
+                    <TextInput
+                      className="rounded-xl px-4 py-4 text-center text-lg font-bold tracking-widest"
+                      style={{
+                        backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
+                        borderWidth: 2,
+                        borderColor:
+                          confirmText === 'DELETE'
+                            ? '#22c55e'
+                            : isDark
+                              ? 'rgba(255,255,255,0.1)'
+                              : 'rgba(0,0,0,0.08)',
+                        color: confirmText === 'DELETE' ? '#22c55e' : isDark ? '#fff' : '#111',
+                      }}
+                      value={confirmText}
+                      onChangeText={(t) => {
+                        setConfirmText(t.toUpperCase());
+                        if (t.toUpperCase() !== 'DELETE') {
+                          setCountdown(5);
+                          setCanDelete(false);
+                        }
+                      }}
+                      placeholder="• • • • • •"
+                      placeholderTextColor={isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)'}
+                      autoCapitalize="characters"
+                      autoCorrect={false}
+                      maxLength={6}
+                    />
+                  </View>
+
+                  {/* Countdown or Ready */}
+                  {confirmText === 'DELETE' && (
+                    <View className="items-center mb-5">
+                      {countdown > 0 ? (
+                        <View className="flex-row items-center">
+                          <View
+                            className="w-8 h-8 rounded-full items-center justify-center mr-2"
+                            style={{ backgroundColor: 'rgba(220,38,38,0.1)' }}
+                          >
+                            <Text className="text-sm font-bold" style={{ color: '#dc2626' }}>
+                              {countdown}
+                            </Text>
+                          </View>
+                          <Text
+                            className="text-sm"
+                            style={{ color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)' }}
+                          >
+                            Please wait...
+                          </Text>
+                        </View>
+                      ) : (
+                        <View className="flex-row items-center">
+                          <Ionicons name="checkmark-circle" size={20} color="#22c55e" />
+                          <Text className="text-sm ml-2" style={{ color: '#22c55e' }}>
+                            Ready to delete
+                          </Text>
+                        </View>
+                      )}
+                    </View>
+                  )}
+
+                  {/* Delete Button */}
+                  <Animated.View
+                    style={{
+                      transform: [
+                        { translateX: shakeAnim },
+                        { scale: canDelete ? pulseAnim : 1 },
+                      ],
+                    }}
+                  >
+                    <TouchableOpacity
+                      onPress={handleDelete}
+                      activeOpacity={0.9}
+                      disabled={isPending}
+                      className="mb-3"
+                    >
+                      <View
+                        className="py-4 rounded-2xl flex-row items-center justify-center"
+                        style={{
+                          backgroundColor: canDelete ? '#dc2626' : isDark ? 'rgba(220,38,38,0.3)' : 'rgba(220,38,38,0.2)',
+                        }}
+                      >
+                        {isPending ? (
+                          <ActivityIndicator color="white" size="small" />
+                        ) : (
+                          <Text
+                            className="font-bold text-base"
+                            style={{
+                              color: canDelete ? '#fff' : isDark ? 'rgba(255,255,255,0.4)' : 'rgba(220,38,38,0.5)',
+                            }}
+                          >
+                            {canDelete ? 'Delete Forever' : 'Waiting...'}
+                          </Text>
+                        )}
+                      </View>
+                    </TouchableOpacity>
+                  </Animated.View>
+
+                  {/* Back / Cancel */}
+                  <View className="flex-row gap-x-3">
+                    <TouchableOpacity
+                      onPress={() => {
+                        setStep(1);
+                        setConfirmText('');
+                        setCountdown(5);
+                        setCanDelete(false);
+                      }}
+                      activeOpacity={0.8}
+                      className="flex-1"
+                    >
+                      <View
+                        className="py-3.5 rounded-2xl items-center"
+                        style={{
+                          backgroundColor: isDark
+                            ? 'rgba(255,255,255,0.06)'
+                            : 'rgba(0,0,0,0.04)',
+                        }}
+                      >
+                        <Text
+                          className="font-medium text-sm"
+                          style={{ color: isDark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.5)' }}
+                        >
+                          Go Back
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity onPress={handleClose} activeOpacity={0.8} className="flex-1">
+                      <View
+                        className="py-3.5 rounded-2xl items-center"
+                        style={{
+                          backgroundColor: isDark
+                            ? 'rgba(255,255,255,0.06)'
+                            : 'rgba(0,0,0,0.04)',
+                        }}
+                      >
+                        <Text
+                          className="font-semibold text-sm"
+                          style={{ color: isDark ? '#fff' : '#111' }}
+                        >
+                          Cancel
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              )}
+            </ScrollView>
+          </View>
+        </KeyboardAvoidingView>
+      </Animated.View>
+    </View>
   );
 };
 

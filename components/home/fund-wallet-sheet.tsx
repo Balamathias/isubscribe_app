@@ -213,6 +213,12 @@ const FundWalletBottomSheet: React.FC<FundWalletBottomSheetProps> = ({ isVisible
     setState(prev => ({ ...prev, flow: 'generate_account' }));
   }, []);
 
+  // Handle done (close sheet) - defined early so other handlers can use it
+  const handleDone = useCallback(() => {
+    setState(initialState);
+    onClose();
+  }, [onClose]);
+
   // Handle checkout form submission
   const handleProceedWithAmount = useCallback(async (fundAmount: number) => {
     try {
@@ -263,8 +269,16 @@ const FundWalletBottomSheet: React.FC<FundWalletBottomSheetProps> = ({ isVisible
 
   // Handle Monnify payment completion
   const handlePaymentComplete = useCallback((status: MonnifyPaymentStatus) => {
-    if (status === 'success' || status === 'pending') {
-      // Payment made or pending - start polling
+    if (status === 'success') {
+      // Payment successful - close modal immediately
+      // Wallet balance updates in real-time via Supabase subscription
+      Toast.show({ type: 'success', text1: 'Payment successful!' });
+      refetchBalance?.();
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.getWalletBalance] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.getLatestTransactions] });
+      handleDone();
+    } else if (status === 'pending') {
+      // Payment pending - start polling to confirm
       setState(prev => ({ ...prev, flow: 'processing' }));
     } else if (status === 'cancelled') {
       // User cancelled - go back to form
@@ -282,7 +296,7 @@ const FundWalletBottomSheet: React.FC<FundWalletBottomSheetProps> = ({ isVisible
         error: 'Payment was not completed',
       }));
     }
-  }, []);
+  }, [refetchBalance, queryClient, handleDone]);
 
   // Handle WebView close (user manually closes)
   const handleWebViewClose = useCallback(() => {
@@ -325,12 +339,6 @@ const FundWalletBottomSheet: React.FC<FundWalletBottomSheetProps> = ({ isVisible
       error: null,
     }));
   }, []);
-
-  // Handle done (close sheet)
-  const handleDone = useCallback(() => {
-    setState(initialState);
-    onClose();
-  }, [onClose]);
 
   // Handle generate account success
   const handleGenerateAccountSuccess = useCallback(() => {

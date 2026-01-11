@@ -19,8 +19,7 @@ const FundingProcessingView: React.FC<FundingProcessingViewProps> = ({
     <View className="items-center justify-center py-8">
       {/* Animated Loader */}
       <View
-        className="w-20 h-20 rounded-full items-center justify-center mb-6"
-        style={{ backgroundColor: colors.primary + '20' }}
+        className="w-20 h-20 rounded-full items-center justify-center mb-6 bg-primary/20"
       >
         <ActivityIndicator size="large" color={colors.primary} />
       </View>

@@ -116,14 +116,14 @@ const NumberButton = ({
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
         disabled={disabled}
-        className="w-1/3 aspect-square items-center justify-center"
+        className="w-1/3 aspect-square items-center justify-center mt-1.5"
         activeOpacity={0.7}
       >
         <Animated.View
           style={animatedStyle}
-          className="w-14 h-14 rounded-full items-center justify-center"
+          className="w-12 h-12 rounded-full items-center justify-center"
         >
-          <Ionicons name="backspace-outline" size={28} color={isDark ? '#fff' : '#111'} />
+          <Ionicons name="backspace-outline" size={24} color={isDark ? '#fff' : '#111'} />
         </Animated.View>
       </TouchableOpacity>
     );
@@ -135,16 +135,16 @@ const NumberButton = ({
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
       disabled={disabled}
-      className="w-1/3 aspect-square items-center justify-center mt-1"
+      className="w-1/3 aspect-square items-center justify-center"
       activeOpacity={0.7}
     >
       <Animated.View
         style={[
           animatedStyle,
           {
-            width: 64,
-            height: 64,
-            borderRadius: 32,
+            width: 50,
+            height: 50,
+            borderRadius: 25,
             alignItems: 'center',
             justifyContent: 'center',
             backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',

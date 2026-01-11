@@ -6,20 +6,30 @@ import React, { memo, useCallback, useEffect } from 'react';
 import { Text, TouchableOpacity, useColorScheme, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 
-const actions = [
-  { name: 'Data', icon: 'wifi-outline', href: `/services/data` },
-  { name: 'Airtime', icon: 'call-outline', href: `/services/airtime` },
-  { name: 'Electricity', icon: 'bulb-outline', href: `/services/electricity` },
-  { name: 'TV Cable', icon: 'tv-outline', href: `/services/tv-cable` },
-  { name: 'Education', icon: 'school-outline', href: `/services/education` },
-  { name: 'Inter-Send', icon: 'swap-vertical-outline', href: `/coming-soon` },
-  { name: 'Share & Earn', icon: 'gift-outline', href: `/coming-soon` },
-  { name: 'More', icon: 'ellipsis-horizontal-outline', href: `/subs` },
+interface Action {
+  name: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  href: string;
+  color: string;
+}
+
+const actions: Action[] = [
+  { name: 'Data', icon: 'cellular', href: `/services/data`, color: '#10b981' },
+  { name: 'Airtime', icon: 'call', href: `/services/airtime`, color: '#3b82f6' },
+  { name: 'Electricity', icon: 'bulb', href: `/services/electricity`, color: '#f59e0b' },
+  { name: 'TV Cable', icon: 'tv', href: `/services/tv-cable`, color: '#8b5cf6' },
+  { name: 'Education', icon: 'school', href: `/services/education`, color: '#ec4899' },
+  { name: 'Transfer', icon: 'swap-horizontal', href: `/coming-soon`, color: '#06b6d4' },
+  { name: 'Referral', icon: 'gift', href: `/coming-soon`, color: '#6366f1' },
+  { name: 'More', icon: 'grid', href: `/subs`, color: '#64748b' },
 ];
 
 const QuickActions = () => {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+
   useEffect(() => {
-    actions.forEach(a => {
+    actions.forEach((a) => {
       try {
         // @ts-ignore types allow only string; our hrefs are strings
         router.prefetch?.(a.href);
@@ -28,30 +38,55 @@ const QuickActions = () => {
   }, []);
 
   return (
-    <View className="mt-6 bg-background border border-primary/10 p-4 rounded-2xl shadow-sm flex flex-col gap-y-2 items-start">
-      <View className="flex-row items-center mb-4">
-        <Text className="text-foreground font-bold text-lg" style={{ fontFamily: 'Poppins' }}>Quick Actions</Text>
-        <View className="w-2 h-2 rounded-full bg-primary ml-2" />
+    <View
+      className="mt-5 p-4 rounded-3xl"
+      style={{
+        backgroundColor: isDark ? 'rgba(255,255,255,0.02)' : '#fff',
+        borderWidth: 1,
+        borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+      }}
+    >
+      {/* Header */}
+      <View className="flex-row items-center justify-between mb-5">
+        <View className="flex-row items-center">
+          <Text
+            className="font-bold text-base"
+            style={{ color: isDark ? '#fff' : '#111' }}
+          >
+            Quick Actions
+          </Text>
+        </View>
+        <TouchableOpacity
+          activeOpacity={0.7}
+          onPress={() => router.push('/subs' as any)}
+        >
+          <Text
+            className="text-xs font-medium"
+            style={{ color: isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.35)' }}
+          >
+            See all
+          </Text>
+        </TouchableOpacity>
       </View>
-      <View className="flex-row flex-wrap justify-between">
+
+      {/* Actions Grid */}
+      <View className="flex-row flex-wrap">
         {actions.map((action) => (
-          <MemoActionItem key={action.href} action={action} />
+          <MemoActionItem key={action.href + action.name} action={action} />
         ))}
       </View>
     </View>
-  )
-}
+  );
+};
 
 interface ActionItemProps {
-  action: { name: string; icon: any, href: any };
+  action: Action;
 }
 
 const ActionItem: React.FC<ActionItemProps> = ({ action }) => {
   const scale = useSharedValue(1);
-  const colorScheme = useColorScheme()
-
-  const theme = colorScheme === 'dark' ? 'dark' : 'light'
-  const colors = COLORS[theme]
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
 
   const animatedStyle = useAnimatedStyle(() => {
     return {
@@ -60,12 +95,12 @@ const ActionItem: React.FC<ActionItemProps> = ({ action }) => {
   });
 
   const handlePressIn = useCallback(() => {
-    scale.value = withSpring(0.95, { damping: 20, stiffness: 300 });
-  }, []);
+    scale.value = withSpring(0.92, { damping: 20, stiffness: 300 });
+  }, [scale]);
 
   const handlePressOut = useCallback(() => {
     scale.value = withSpring(1, { damping: 15, stiffness: 250 });
-  }, []);
+  }, [scale]);
 
   const go = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => { });
@@ -73,21 +108,39 @@ const ActionItem: React.FC<ActionItemProps> = ({ action }) => {
   }, [action.href]);
 
   return (
-    <Animated.View style={animatedStyle} className="flex flex-col w-1/4 items-center mb-4">
+    <Animated.View style={animatedStyle} className="w-1/4 items-center mb-4">
       <TouchableOpacity
-        className="bg-[#F3EFFB] dark:bg-secondary p-1 rounded-xl mb-2 items-center justify-center aspect-square w-10 h-10"
-        activeOpacity={0.7}
+        activeOpacity={0.9}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
         onPress={go}
+        className="items-center"
       >
-        <Ionicons name={action.icon} size={20} color={colors.primary} />
+        {/* Icon Container */}
+        <View
+          className="w-12 h-12 rounded-2xl items-center justify-center mb-2"
+          style={{
+            backgroundColor: action.color + (isDark ? '20' : '15'),
+          }}
+        >
+          <Ionicons name={action.icon} size={22} color={action.color} />
+        </View>
+
+        {/* Label */}
+        <Text
+          className="text-[11px] font-medium text-center"
+          style={{
+            color: isDark ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
+          }}
+          numberOfLines={1}
+        >
+          {action.name}
+        </Text>
       </TouchableOpacity>
-      <Text className="text-foreground text-xs font-medium text-center">{action.name}</Text>
     </Animated.View>
-  )
-}
+  );
+};
 
 const MemoActionItem = memo(ActionItem);
 
-export default QuickActions
+export default QuickActions;

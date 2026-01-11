@@ -21,11 +21,6 @@ const CustomerReviewsCard: React.FC<CustomerReviewsCardProps> = ({ onPress }) =>
                 backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.9)',
                 borderWidth: 1,
                 borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 8 },
-                shadowOpacity: isDark ? 0.3 : 0.08,
-                shadowRadius: 16,
-                elevation: 5,
             }}
         >
             <View className="p-5">

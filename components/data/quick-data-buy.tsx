@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Image, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Image, useColorScheme } from 'react-native';
 import { useGetRecentDataPurchases, useProcessTransaction, useVerifyPin, useGetWalletBalance } from '@/services/api-hooks';
 import { useSession } from '@/components/session-context';
 import { useLocalAuth } from '@/hooks/useLocalAuth';
 import { COLORS } from '@/constants/colors';
-import { useThemedColors } from '@/hooks/useThemedColors';
 import { Ionicons } from '@expo/vector-icons';
 import { formatNigerianNaira } from '@/utils/format-naira';
 import BottomSheet from '@/components/ui/bottom-sheet';
@@ -22,15 +21,26 @@ const NETWORK_LOGOS: Record<string, any> = {
     etisalat: require('@/assets/services/9mobile.png'),
 };
 
+const NETWORK_COLORS: Record<string, string> = {
+    mtn: '#FFCC00',
+    glo: '#00A651',
+    airtel: '#E40000',
+    '9mobile': '#006B53',
+    etisalat: '#006B53',
+};
+
 const QuickDataBuy = () => {
     const { data: recentPurchasesResponse, isLoading } = useGetRecentDataPurchases();
     const { mutateAsync: processTransaction, isPending: isProcessing, data: transactionData, error: transactionError } = useProcessTransaction();
     const { data: walletData } = useGetWalletBalance();
     const balance = walletData?.data?.balance || 0;
     const { mutateAsync: verifyPinMutation } = useVerifyPin();
-    const { refetchBalance, refetchTransactions, user } = useSession();
+    const { refetchBalance, refetchTransactions } = useSession();
     const { authenticate, isBiometricEnabled } = useLocalAuth();
-    const colors = useThemedColors().colors;
+
+    const colorScheme = useColorScheme();
+    const isDark = colorScheme === 'dark';
+    const colors = COLORS[isDark ? 'dark' : 'light'];
 
     const [selectedPurchase, setSelectedPurchase] = useState<RecentDataPurchase | null>(null);
     const [isConfirmModalVisible, setConfirmModalVisible] = useState(false);
@@ -39,11 +49,10 @@ const QuickDataBuy = () => {
     const [loadingText, setLoadingText] = useState('');
 
     const insufficientFunds = selectedPurchase ? balance < selectedPurchase.amount : false;
-
     const purchases = recentPurchasesResponse?.data || [];
 
     if (!isLoading && purchases.length === 0) {
-        return null; // Or render nothing if no history
+        return null;
     }
 
     const handleSelect = (purchase: RecentDataPurchase) => {
@@ -54,34 +63,27 @@ const QuickDataBuy = () => {
     const processPurchase = async () => {
         if (!selectedPurchase) return;
 
-        console.log("Processing purchase for:", selectedPurchase);
-
         const payload = {
             phone: selectedPurchase.phone,
-            payment_method: "wallet",
+            payment_method: 'wallet',
             category: selectedPurchase.category,
             plan_id: selectedPurchase.plan_id,
             channel: 'data_bundle',
         };
 
-        console.log("[process payload]: ", payload)
-
-        // Close confirmation modal before processing
         setConfirmModalVisible(false);
 
         await processTransaction(payload, {
             onSuccess: (data) => {
-                console.log("Transaction Success:", data);
                 setStatusModalVisible(true);
-                if (data?.data?.status === "success" || data?.data?.status === "pending") {
+                if (data?.data?.status === 'success' || data?.data?.status === 'pending') {
                     refetchBalance();
                     refetchTransactions();
                 }
             },
-            onError: (error: any) => {
-                console.error("Transaction Error:", error);
+            onError: () => {
                 setStatusModalVisible(true);
-            }
+            },
         });
     };
 
@@ -96,7 +98,7 @@ const QuickDataBuy = () => {
                 setLoadingText('Verification failed');
                 return false;
             }
-        } catch (error) {
+        } catch {
             setLoadingText('Verification failed');
             return false;
         }
@@ -106,7 +108,6 @@ const QuickDataBuy = () => {
         if (!selectedPurchase) return;
 
         if (isBiometricEnabled) {
-            // Close modal to show biometric prompt cleanly
             setConfirmModalVisible(false);
             try {
                 const authenticated = await authenticate();
@@ -115,8 +116,7 @@ const QuickDataBuy = () => {
                 } else {
                     setPinPadVisible(true);
                 }
-            } catch (error) {
-                console.error('Biometric auth failed:', error);
+            } catch {
                 setPinPadVisible(true);
             }
         } else {
@@ -125,13 +125,23 @@ const QuickDataBuy = () => {
         }
     };
 
+    // Loading skeleton
     if (isLoading) {
         return (
-            <View className="mb-6 px-4">
-                <View className="h-6 w-32 bg-muted rounded mb-3 animate-pulse" />
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row">
-                    {[1, 2, 3].map(i => (
-                        <View key={i} className="w-[160px] h-[120px] bg-card mr-3 rounded-xl p-3 border border-border/50 animate-pulse" />
+            <View className="mb-5 mt-4">
+                <View className="flex-row items-center justify-between mb-4">
+                    <View
+                        className="h-5 w-28 rounded-lg"
+                        style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' }}
+                    />
+                </View>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                    {[1, 2, 3].map((i) => (
+                        <View
+                            key={i}
+                            className="w-[150px] h-[130px] mr-3 rounded-2xl"
+                            style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)' }}
+                        />
                     ))}
                 </ScrollView>
             </View>
@@ -139,104 +149,247 @@ const QuickDataBuy = () => {
     }
 
     return (
-        <View className="mb-4 mt-4">
-            <Text className="text-foreground font-bold text-lg mb-2">One-Tap Buy</Text>
+        <View className="mb-5 mt-4">
+            {/* Header */}
+            <View className="flex-row items-center justify-between mb-4">
+                <View className="flex-row items-center">
+                    <Ionicons name="flash" size={16} color={colors.primary} style={{ marginRight: 6 }} />
+                    <Text className="font-bold text-base" style={{ color: isDark ? '#fff' : '#111' }}>
+                        Quick Buy
+                    </Text>
+                </View>
+                <TouchableOpacity
+                    activeOpacity={0.7}
+                    onPress={() => router.push('/services/data' as any)}
+                >
+                    <Text
+                        className="text-xs font-medium"
+                        style={{ color: isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.35)' }}
+                    >
+                        Buy new
+                    </Text>
+                </TouchableOpacity>
+            </View>
 
+            {/* Cards */}
             <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{ paddingHorizontal: 4, paddingBottom: 10 }}
+                contentContainerStyle={{ paddingRight: 16 }}
             >
-                {purchases.map((purchase) => (
-                    <TouchableOpacity
-                        key={purchase.id}
-                        onPress={() => handleSelect(purchase)}
-                        activeOpacity={0.7}
-                        className="w-[160px] bg-card p-3 rounded-2xl mr-3 border border-border/50 shadow-sm justify-between space-y-3"
-                    >
-                        <View className="flex-row justify-between items-start">
-                            <View className="w-8 h-8 rounded-full bg-white items-center justify-center overflow-hidden border border-gray-100">
-                                <Image
-                                    source={NETWORK_LOGOS[purchase.network.toLowerCase()] || NETWORK_LOGOS.mtn}
-                                    style={{ width: '100%', height: '100%' }}
-                                    resizeMode="cover"
-                                />
-                            </View>
-                            <View className="bg-primary/10 px-2 py-0.5 rounded-full">
-                                <Text className="text-[10px] font-bold text-primary uppercase">{purchase.network}</Text>
-                            </View>
-                        </View>
+                {purchases.map((purchase) => {
+                    const networkColor = NETWORK_COLORS[purchase.network.toLowerCase()] || colors.primary;
 
-                        <View>
-                            <Text className="text-foreground font-bold text-sm" numberOfLines={1}>
-                                {purchase.meta_data?.plan_name || purchase.plan_name || "Data Plan"}
-                            </Text>
-                            <Text className="text-muted-foreground text-xs" numberOfLines={1}>{purchase.phone}</Text>
-                        </View>
-
-                        <View className="pt-2 border-t border-border/30 flex-row justify-between items-center">
-                            <Text className="text-foreground font-bold text-sm">
-                                {formatNigerianNaira(purchase.amount)}
-                            </Text>
-                            <View className="w-6 h-6 rounded-full bg-primary/10 items-center justify-center">
-                                <Ionicons name="arrow-forward" size={12} color={colors.primary} />
+                    return (
+                        <TouchableOpacity
+                            key={purchase.id}
+                            onPress={() => handleSelect(purchase)}
+                            activeOpacity={0.85}
+                            className="w-[155px] mr-3 rounded-2xl p-4"
+                            style={{
+                                backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : '#fff',
+                                borderWidth: 1,
+                                borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+                            }}
+                        >
+                            {/* Top Row - Logo & Network Badge */}
+                            <View className="flex-row items-center justify-between mb-3">
+                                <View
+                                    className="w-9 h-9 rounded-xl items-center justify-center overflow-hidden"
+                                    style={{ backgroundColor: '#fff' }}
+                                >
+                                    <Image
+                                        source={NETWORK_LOGOS[purchase.network.toLowerCase()] || NETWORK_LOGOS.mtn}
+                                        style={{ width: 28, height: 28 }}
+                                        resizeMode="contain"
+                                    />
+                                </View>
+                                <View
+                                    className="px-2 py-1 rounded-full"
+                                    style={{ backgroundColor: networkColor + '15' }}
+                                >
+                                    <Text
+                                        className="text-[9px] font-bold uppercase"
+                                        style={{ color: networkColor }}
+                                    >
+                                        {purchase.network}
+                                    </Text>
+                                </View>
                             </View>
-                        </View>
-                    </TouchableOpacity>
-                ))}
+
+                            {/* Plan Info */}
+                            <View className="mb-3">
+                                <Text
+                                    className="font-bold text-sm mb-0.5"
+                                    style={{ color: isDark ? '#fff' : '#111' }}
+                                    numberOfLines={1}
+                                >
+                                    {purchase.meta_data?.plan_name || purchase.plan_name || 'Data Plan'}
+                                </Text>
+                                <Text
+                                    className="text-[11px]"
+                                    style={{ color: isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.4)' }}
+                                    numberOfLines={1}
+                                >
+                                    {purchase.phone}
+                                </Text>
+                            </View>
+
+                            {/* Bottom Row - Price & Arrow */}
+                            <View className="flex-row items-center justify-between">
+                                <Text className="font-bold text-sm" style={{ color: colors.primary }}>
+                                    {formatNigerianNaira(purchase.amount)}
+                                </Text>
+                                <View
+                                    className="w-7 h-7 rounded-full items-center justify-center"
+                                >
+                                    <Ionicons name="arrow-forward" size={12} color={colors.primary} />
+                                </View>
+                            </View>
+                        </TouchableOpacity>
+                    );
+                })}
             </ScrollView>
 
+            {/* Confirmation Bottom Sheet */}
             <BottomSheet
                 isVisible={isConfirmModalVisible}
                 onClose={() => setConfirmModalVisible(false)}
                 title="Confirm Purchase"
             >
                 {selectedPurchase && (
-                    <View className="gap-y-4 py-2">
-                        <Text className="text-muted-foreground text-sm">
-                            Are you sure you want to buy this data plan again?
-                        </Text>
+                    <View className="py-2">
+                        {/* Summary Card */}
+                        <View
+                            className="rounded-2xl p-4 mb-5"
+                            style={{
+                                backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
+                                borderWidth: 1,
+                                borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+                            }}
+                        >
+                            {/* Network Row */}
+                            <View className="flex-row items-center justify-between mb-4">
+                                <Text
+                                    className="text-sm"
+                                    style={{ color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.45)' }}
+                                >
+                                    Network
+                                </Text>
+                                <View className="flex-row items-center">
+                                    <View
+                                        className="w-6 h-6 rounded-lg items-center justify-center mr-2 overflow-hidden"
+                                        style={{ backgroundColor: '#fff' }}
+                                    >
+                                        <Image
+                                            source={NETWORK_LOGOS[selectedPurchase.network.toLowerCase()]}
+                                            style={{ width: 18, height: 18 }}
+                                            resizeMode="contain"
+                                        />
+                                    </View>
+                                    <Text
+                                        className="font-semibold text-sm capitalize"
+                                        style={{ color: isDark ? '#fff' : '#111' }}
+                                    >
+                                        {selectedPurchase.network}
+                                    </Text>
+                                </View>
+                            </View>
 
-                        <View className="flex-row justify-between items-center">
-                            <Text className="text-muted-foreground">Network</Text>
-                            <View className="flex-row items-center gap-2">
-                                <Image
-                                    source={NETWORK_LOGOS[selectedPurchase.network.toLowerCase()]}
-                                    style={{ width: 20, height: 20, borderRadius: 10 }}
-                                />
-                                <Text className="text-foreground font-medium capitalize">{selectedPurchase.network}</Text>
+                            {/* Plan Row */}
+                            <View className="flex-row items-center justify-between mb-4">
+                                <Text
+                                    className="text-sm"
+                                    style={{ color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.45)' }}
+                                >
+                                    Plan
+                                </Text>
+                                <Text
+                                    className="font-semibold text-sm"
+                                    style={{ color: isDark ? '#fff' : '#111' }}
+                                >
+                                    {selectedPurchase.plan_name}
+                                </Text>
+                            </View>
+
+                            {/* Phone Row */}
+                            <View className="flex-row items-center justify-between mb-4">
+                                <Text
+                                    className="text-sm"
+                                    style={{ color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.45)' }}
+                                >
+                                    Phone
+                                </Text>
+                                <Text
+                                    className="font-semibold text-sm"
+                                    style={{ color: isDark ? '#fff' : '#111' }}
+                                >
+                                    {selectedPurchase.phone}
+                                </Text>
+                            </View>
+
+                            {/* Amount Row */}
+                            <View
+                                className="flex-row items-center justify-between pt-4"
+                                style={{
+                                    borderTopWidth: 1,
+                                    borderTopColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+                                }}
+                            >
+                                <Text
+                                    className="text-sm"
+                                    style={{ color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.45)' }}
+                                >
+                                    Amount
+                                </Text>
+                                <Text className="font-bold text-lg" style={{ color: colors.primary }}>
+                                    {formatNigerianNaira(selectedPurchase.amount)}
+                                </Text>
                             </View>
                         </View>
 
-                        <View className="flex-row justify-between items-center">
-                            <Text className="text-muted-foreground">Plan</Text>
-                            <Text className="text-foreground font-medium">{selectedPurchase.plan_name}</Text>
-                        </View>
-
-                        <View className="flex-row justify-between items-center">
-                            <Text className="text-muted-foreground">Phone</Text>
-                            <Text className="text-foreground font-medium">{selectedPurchase.phone}</Text>
-                        </View>
-
-                        <View className="flex-row justify-between items-center">
-                            <Text className="text-muted-foreground">Amount</Text>
-                            <Text className="text-primary font-bold text-lg">{formatNigerianNaira(selectedPurchase.amount)}</Text>
-                        </View>
-
-                        <View className="flex-row gap-3 pt-4">
+                        {/* Buttons */}
+                        <View className="flex-row gap-x-3">
                             <TouchableOpacity
                                 onPress={() => setConfirmModalVisible(false)}
-                                className="flex-1 py-3 rounded-xl border border-border items-center justify-center"
+                                activeOpacity={0.8}
+                                className="flex-1 py-4 rounded-2xl items-center justify-center"
+                                style={{
+                                    backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+                                }}
                             >
-                                <Text className="text-foreground font-semibold">Cancel</Text>
+                                <Text
+                                    className="font-semibold text-sm"
+                                    style={{ color: isDark ? '#fff' : '#111' }}
+                                >
+                                    Cancel
+                                </Text>
                             </TouchableOpacity>
+
                             <TouchableOpacity
                                 onPress={handleConfirmPurchase}
                                 disabled={insufficientFunds}
-                                className={`flex-1 py-3 rounded-xl items-center justify-center ${insufficientFunds ? 'bg-muted' : 'bg-primary'}`}
+                                activeOpacity={0.9}
+                                className="flex-1 py-4 rounded-2xl items-center justify-center"
+                                style={{
+                                    backgroundColor: insufficientFunds
+                                        ? isDark
+                                            ? 'rgba(255,255,255,0.1)'
+                                            : 'rgba(0,0,0,0.08)'
+                                        : colors.primary,
+                                }}
                             >
-                                <Text className={`${insufficientFunds ? 'text-muted-foreground' : 'text-white'} font-semibold`}>
-                                    {insufficientFunds ? 'Insufficient Funds' : 'Confirm & Pay'}
+                                <Text
+                                    className="font-bold text-sm"
+                                    style={{
+                                        color: insufficientFunds
+                                            ? isDark
+                                                ? 'rgba(255,255,255,0.4)'
+                                                : 'rgba(0,0,0,0.3)'
+                                            : '#fff',
+                                    }}
+                                >
+                                    {insufficientFunds ? 'Low Balance' : 'Confirm'}
                                 </Text>
                             </TouchableOpacity>
                         </View>
@@ -244,6 +397,7 @@ const QuickDataBuy = () => {
                 )}
             </BottomSheet>
 
+            {/* PIN Pad */}
             <PinPad
                 isVisible={isPinPadVisible}
                 onClose={() => setPinPadVisible(false)}
@@ -254,29 +408,40 @@ const QuickDataBuy = () => {
                 }}
             />
 
+            {/* Status Modal */}
             <StatusModal
                 amount={transactionData?.data?.amount || 0}
                 quantity={(transactionData?.data as any)?.quantity}
                 data_bonus={(transactionData?.data as any)?.data_bonus}
                 status={
-                    (transactionData?.error || transactionError) ? 'error' : (transactionData?.data?.status as any || 'success')
+                    transactionData?.error || transactionError
+                        ? 'error'
+                        : ((transactionData?.data?.status as any) || 'success')
                 }
                 isVisible={isStatusModalVisible}
-                description={transactionData?.data?.description || transactionData?.message || transactionError?.message || ''}
-                actionText={
-                    (transactionData?.error || transactionError) ? 'Done' : 'View Receipt'
+                description={
+                    transactionData?.data?.description ||
+                    transactionData?.message ||
+                    transactionError?.message ||
+                    ''
                 }
-                onAction={(transactionData?.error || transactionError) ? undefined : () => {
-                    if (transactionData?.data?.id) {
-                        router.push({
-                            pathname: '/transactions/[id]',
-                            params: { id: String(transactionData.data.id) }
-                        });
-                    }
-                }}
+                actionText={transactionData?.error || transactionError ? 'Done' : 'View Receipt'}
+                onAction={
+                    transactionData?.error || transactionError
+                        ? undefined
+                        : () => {
+                            if (transactionData?.data?.id) {
+                                router.push({
+                                    pathname: '/transactions/[id]',
+                                    params: { id: String(transactionData.data.id) },
+                                });
+                            }
+                        }
+                }
                 onClose={() => setStatusModalVisible(false)}
                 transaction={transactionData?.data}
             />
+
             {isProcessing && <LoadingSpinner isPending={true} showBg={false} />}
         </View>
     );

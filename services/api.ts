@@ -757,3 +757,87 @@ export const getGuestTransactionStatus = async (
         }
     }
 }
+
+// ==============================================
+// Education (WAEC/JAMB/DE) Types & Functions
+// ==============================================
+
+export interface EducationService {
+    id: number
+    name: string
+    variation_code: string
+    price: number
+    total_price: number
+    display_price: string
+    service_type: 'jamb' | 'waec' | 'de'
+    is_active: boolean
+}
+
+export interface EducationServicesData {
+    jamb: EducationService[]
+    waec: EducationService[]
+    de: EducationService[]
+}
+
+export interface VerifyEducationMerchantRequest {
+    serviceID: 'jamb' | 'de'
+    billersCode: string  // Profile ID
+    variation_code: string
+}
+
+export interface VerifyEducationMerchantResponse {
+    Customer_Name?: string
+    Address?: string
+    error?: string
+}
+
+export interface EducationCard {
+    Serial: string
+    Pin: string
+}
+
+export interface EducationPurchaseResponse {
+    pins?: string[]
+    cards?: EducationCard[]
+    data_bonus?: number
+}
+
+/**
+ * List available education services grouped by type (jamb, waec, de)
+ */
+export const listEducationServices = async (): Promise<Response<EducationServicesData | null>> => {
+    try {
+        const { data, status } = await microservice.get('/mobile/list-education/')
+        return data
+    } catch (error: any) {
+        return {
+            data: null,
+            error: {
+                message: error?.response?.data?.message || error?.message
+            },
+            status: error?.response?.status,
+            message: error?.response?.data?.message || error?.message
+        }
+    }
+}
+
+/**
+ * Verify education merchant (Profile ID for JAMB/DE)
+ */
+export const verifyEducationMerchant = async (
+    request: VerifyEducationMerchantRequest
+): Promise<Response<VerifyEducationMerchantResponse | null>> => {
+    try {
+        const { data, status } = await microservice.post('/mobile/verify-education-merchant/', request)
+        return data
+    } catch (error: any) {
+        return {
+            data: null,
+            error: {
+                message: error?.response?.data?.message || error?.message
+            },
+            status: error?.response?.status,
+            message: error?.response?.data?.message || error?.message
+        }
+    }
+}

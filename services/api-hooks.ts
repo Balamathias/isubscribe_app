@@ -33,6 +33,10 @@ import {
     // Guest checkout / Wallet funding
     initiateGuestTransaction,
     getGuestTransactionStatus,
+    // Education
+    listEducationServices,
+    verifyEducationMerchant,
+    type VerifyEducationMerchantRequest,
 } from "./api";
 
 export const QUERY_KEYS = {
@@ -69,6 +73,9 @@ export const QUERY_KEYS = {
     // Guest checkout / Wallet funding
     initiateGuestTransaction: 'initiateGuestTransaction',
     guestTransactionStatus: 'guestTransactionStatus',
+    // Education
+    listEducationServices: 'listEducationServices',
+    verifyEducationMerchant: 'verifyEducationMerchant',
 } as const
 
 export const useGetAccount = (id?: string) => useQuery({
@@ -296,4 +303,25 @@ export const useGuestTransactionStatus = (
         // Poll every 3 seconds while pending/processing
         return 3000;
     },
+});
+
+// ==============================================
+// Education (WAEC/JAMB/DE) Hooks
+// ==============================================
+
+/**
+ * Query hook to list available education services (grouped by type)
+ */
+export const useListEducationServices = () => useQuery({
+    queryKey: [QUERY_KEYS.listEducationServices],
+    queryFn: listEducationServices,
+    staleTime: 5 * 60 * 1000, // Consider fresh for 5 minutes
+});
+
+/**
+ * Mutation hook to verify education merchant (Profile ID for JAMB/DE)
+ */
+export const useVerifyEducationMerchant = () => useMutation({
+    mutationKey: [QUERY_KEYS.verifyEducationMerchant],
+    mutationFn: (request: VerifyEducationMerchantRequest) => verifyEducationMerchant(request),
 });

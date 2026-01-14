@@ -104,7 +104,7 @@ const Header = () => {
                 colors={[colors.primary, '#f96ccf']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
-                className="absolute inset-0 rounded-2xl"
+                style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 16 }}
                           />
               <Ionicons name="logo-whatsapp" size={24} color="white" />
               <Text className="text-white font-semibold text-base">Join our WhatsApp group for updates</Text>

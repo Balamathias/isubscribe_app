@@ -23,7 +23,8 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
   const [isFocused, setIsFocused] = useState(false);
   const [showBeneficiaries, setShowBeneficiaries] = useState(false);
 
-  const { colors, isDark } = useThemedColors();
+  const { colors, theme } = useThemedColors();
+  const isDark = theme === 'dark';
 
   const { beneficiaries } = useSession();
 
@@ -160,17 +161,12 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
         style={{
           flexDirection: 'row',
           alignItems: 'center',
-          backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : '#fff',
+          backgroundColor: colors.input,
           borderWidth: 1.5,
           borderColor: getBorderColor(),
           borderRadius: 12,
           paddingHorizontal: 14,
           paddingVertical: 12,
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 1 },
-          shadowOpacity: isDark ? 0 : 0.04,
-          shadowRadius: 3,
-          elevation: 1,
         }}
       >
         <View

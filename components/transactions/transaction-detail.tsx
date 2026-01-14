@@ -300,7 +300,7 @@ const TransactionDetail = () => {
                 colors={[colors.primary, '#a855f7']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
-                className="px-8 py-4 flex-row items-center"
+                style={{ paddingHorizontal: 32, paddingVertical: 16, flexDirection: 'row', alignItems: 'center' }}
               >
                 <Ionicons name="arrow-back" color="white" size={18} />
                 <Text className="text-white font-semibold ml-2 text-base">Go Back</Text>
@@ -878,7 +878,7 @@ const TransactionDetail = () => {
               colors={[colors.primary, '#a855f7']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
-              className="py-4 flex-row items-center justify-center"
+              style={{ paddingVertical: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}
             >
               <Ionicons name="copy-outline" size={20} color="white" />
               <Text className="text-white font-bold text-base ml-2">Copy Details</Text>

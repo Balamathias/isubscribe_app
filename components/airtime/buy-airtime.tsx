@@ -307,7 +307,7 @@ const BuyAirtimeScreen = () => {
               }
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
-              className="py-4 items-center justify-center"
+              style={{ paddingVertical: 16, alignItems: 'center', justifyContent: 'center' }}
             >
               <Text
                 className="text-base font-bold"

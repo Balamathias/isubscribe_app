@@ -1,15 +1,15 @@
 import { SettingsList } from '@/components/settings/settings-list'
-import Header from '@/components/transactions/header'
+import TabHeader from '@/components/ui/tab-header'
+import { useThemedColors } from '@/hooks/useThemedColors'
 import React from 'react'
-import { useColorScheme, View } from 'react-native'
+import { View } from 'react-native'
 
 const Settings = () => {
-  const colorScheme = useColorScheme()
-  const theme = colorScheme === 'dark' ? 'dark' : 'light'
+  const { theme } = useThemedColors()
 
   return (
     <View className={'flex-1 bg-background/60 min-h-full' + ` ${theme}`}>
-      <Header title="Settings" />
+      <TabHeader title="Settings" />
       <SettingsList />
     </View>
   )

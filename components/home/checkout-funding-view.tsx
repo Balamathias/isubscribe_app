@@ -5,8 +5,6 @@ import {
   TextInput,
   TouchableOpacity,
   ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
   ScrollView,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -77,15 +75,12 @@ const CheckoutFundingView: React.FC<CheckoutFundingViewProps> = ({
   const isValid = numAmount >= MIN_AMOUNT && numAmount <= MAX_AMOUNT;
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={{ flex: 1 }}
+    <ScrollView
+      showsVerticalScrollIndicator={false}
+      keyboardShouldPersistTaps="handled"
+      contentContainerStyle={{ paddingBottom: 20 }}
+      nestedScrollEnabled
     >
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-        contentContainerStyle={{ paddingBottom: 20 }}
-      >
         {/* Header with Back Button */}
         <View className="flex-row items-center mb-4">
           <TouchableOpacity
@@ -242,7 +237,6 @@ const CheckoutFundingView: React.FC<CheckoutFundingViewProps> = ({
           </LinearGradient>
         </TouchableOpacity>
       </ScrollView>
-    </KeyboardAvoidingView>
   );
 };
 

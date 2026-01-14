@@ -69,7 +69,7 @@ export const CreditCard: React.FC<CreditCardProps> = ({
       colors={colors as any}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
-      className="rounded-2xl p-5 w-full md:w-1/2 min-h-[180px] overflow-hidden"
+      style={{ borderRadius: 16, padding: 20, width: '100%', minHeight: 180, overflow: 'hidden' }}
     >
       <View className="flex-row justify-between items-center mb-4">
         <View className="flex-row items-center flex-1 mr-2">
@@ -415,7 +415,7 @@ const FundWalletBottomSheet: React.FC<FundWalletBottomSheetProps> = ({ isVisible
             colors={['#740faa', '#a13ae1']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
-            className="py-4 flex-row items-center justify-center"
+            style={{ paddingVertical: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}
           >
             <Ionicons name="flash" size={20} color="#fff" />
             <Text className="text-white font-semibold text-base ml-2">

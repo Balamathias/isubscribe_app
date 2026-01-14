@@ -309,7 +309,7 @@ const RatingModal: React.FC<RatingModalProps> = ({
               }
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
-              className="absolute inset-0"
+              style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
             />
             <View className="flex-row items-center justify-center">
               {isPending ? (

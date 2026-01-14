@@ -119,7 +119,7 @@ const PromoCarousel = () => {
                 <LinearGradient
                     colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.7)', 'rgba(0,0,0,0.9)']}
                     locations={[0, 0.6, 1]}
-                    className="absolute inset-0"
+                    style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
                 />
 
                 {/* Content */}

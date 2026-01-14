@@ -1,9 +1,9 @@
-import Header from '@/components/transactions/header';
-import { COLORS } from '@/constants/colors';
+import TabHeader from '@/components/ui/tab-header';
+import { useThemedColors } from '@/hooks/useThemedColors';
 import { FontAwesome5, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useRef } from 'react';
-import { Animated, ScrollView, Text, TouchableOpacity, useColorScheme, View } from 'react-native';
+import { Animated, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface Service {
@@ -78,9 +78,8 @@ const services: Service[] = [
 
 const Subs = () => {
   const router = useRouter();
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
-  const colors = COLORS[isDark ? 'dark' : 'light'];
+  const { colors, theme } = useThemedColors();
+  const isDark = theme === 'dark';
 
   // Staggered animation for cards
   const animatedValues = useRef(services.map(() => new Animated.Value(0))).current;
@@ -114,7 +113,7 @@ const Subs = () => {
 
   return (
     <SafeAreaView edges={['bottom']} className={`flex-1 bg-background ${isDark ? 'dark' : 'light'}`}>
-      <Header title="Services" />
+      <TabHeader title="Services" />
       <ScrollView
         contentContainerStyle={{ padding: 20, paddingBottom: 40 }}
         showsVerticalScrollIndicator={false}

@@ -157,7 +157,7 @@ const EmptyState = ({ isAuthenticated, colors }: { isAuthenticated: boolean, col
             colors={[colors.primary, '#e65bf8']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
-            className="absolute inset-0 rounded-xl"
+            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 12 }}
           />
           <Ionicons name='log-in-outline' color={'white'} size={18} />
           <Text className="text-white font-semibold">Sign In</Text>

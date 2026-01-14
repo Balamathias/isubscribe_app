@@ -1,17 +1,16 @@
 import React from 'react';
-import { View, Text, ActivityIndicator, Dimensions, TouchableOpacity } from 'react-native';
+import { View, Text, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { useGetAnalytics } from '@/services/api-hooks';
 import { BarChart, PieChart } from 'react-native-gifted-charts';
 import { Ionicons } from '@expo/vector-icons';
 import { useThemedColors } from '@/hooks/useThemedColors';
 
-const { width } = Dimensions.get('window');
-
 const TransactionAnalytics = () => {
-    const { data: response, isLoading, refetch } = useGetAnalytics();
+    const { colors } = useThemedColors();
+
+    const { data: response, isLoading } = useGetAnalytics();
     const analytics = response?.data;
     const [chartType, setChartType] = React.useState<'category' | 'trend'>('category');
-    const { colors } = useThemedColors()
 
     if (isLoading) {
         return (
@@ -34,7 +33,7 @@ const TransactionAnalytics = () => {
         shiftTextY: -5,
     }));
 
-    const barData = analytics.monthly_trend.map((item, index) => ({
+    const barData = analytics.monthly_trend.map((item) => ({
         value: item.value,
         label: item.label,
         spacing: 2,

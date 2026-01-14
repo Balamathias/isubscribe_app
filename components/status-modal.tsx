@@ -369,7 +369,7 @@ const StatusModal: React.FC<StatusModalProps> = ({
                       colors={config?.gradient || [colors.primary, colors.primary]}
                       start={{ x: 0, y: 0 }}
                       end={{ x: 1, y: 0 }}
-                      className="py-4 items-center justify-center"
+                      style={{ paddingVertical: 16, alignItems: 'center', justifyContent: 'center' }}
                     >
                       <Text className="text-white font-bold text-base">{actionText}</Text>
                     </LinearGradient>
@@ -397,7 +397,7 @@ const StatusModal: React.FC<StatusModalProps> = ({
                     colors={config?.gradient || [colors.primary, colors.primary]}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
-                    className="py-4 items-center justify-center"
+                    style={{ paddingVertical: 16, alignItems: 'center', justifyContent: 'center' }}
                   >
                     <Text className="text-white font-bold text-base">{actionText}</Text>
                   </LinearGradient>

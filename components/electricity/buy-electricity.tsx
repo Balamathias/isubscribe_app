@@ -446,7 +446,7 @@ const BuyElectricityScreen = () => {
             colors={['#f59e0b', '#ef4444', '#ec4899']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
-            className="rounded-3xl p-6 relative overflow-hidden"
+            style={{ borderRadius: 24, padding: 24, position: 'relative', overflow: 'hidden' }}
           >
             {/* Decorative circles */}
             <View className="absolute -top-8 -right-8 w-32 h-32 bg-white/10 rounded-full" />
@@ -725,7 +725,7 @@ const BuyElectricityScreen = () => {
           >
             <LinearGradient
               colors={['rgba(245, 158, 11, 0.05)', 'rgba(249, 115, 22, 0.05)']}
-              className="rounded-2xl p-5 border border-amber-500/20"
+              style={{ borderRadius: 16, padding: 20, borderWidth: 1, borderColor: 'rgba(245, 158, 11, 0.2)' }}
             >
               <Text className="text-sm font-bold text-foreground mb-3">
                 Transaction Summary
@@ -785,7 +785,7 @@ const BuyElectricityScreen = () => {
               colors={['#f59e0b', '#ef4444', '#ec4899']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
-              className="py-5 items-center justify-center"
+              style={{ paddingVertical: 20, alignItems: 'center', justifyContent: 'center' }}
             >
               <View className="flex-row items-center gap-x-3">
                 <Ionicons name="flash" size={22} color="white" />

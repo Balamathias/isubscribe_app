@@ -253,7 +253,7 @@ const TransferMoney = () => {
             colors={['#7c3aed', '#e65bf8']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
-            className="p-6 relative"
+            style={{ padding: 24, position: 'relative' }}
           >
             {/* Decorative circles */}
             <View className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
@@ -513,7 +513,7 @@ const TransferMoney = () => {
               colors={['rgba(124, 58, 237, 0.05)', 'rgba(230, 91, 248, 0.05)']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
-              className="p-5 rounded-2xl border border-primary/20"
+              style={{ padding: 20, borderRadius: 16, borderWidth: 1, borderColor: 'rgba(124, 58, 237, 0.2)' }}
             >
               <Text className="text-sm font-bold text-foreground mb-3">Transfer Summary</Text>
               <View className="gap-y-2">
@@ -561,7 +561,7 @@ const TransferMoney = () => {
               }
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
-              className="py-5 items-center justify-center"
+              style={{ paddingVertical: 20, alignItems: 'center', justifyContent: 'center' }}
             >
               <View className="flex-row items-center">
                 {isLookingUp ? (

@@ -214,7 +214,7 @@ const BuyTvCableScreen = () => {
               colors={['#7B2FF2', '#F357A8', '#FF6B9D']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
-              className="py-5 items-center justify-center"
+              style={{ paddingVertical: 20, alignItems: 'center', justifyContent: 'center' }}
             >
               <View className="flex-row items-center">
                 {isPending ? (

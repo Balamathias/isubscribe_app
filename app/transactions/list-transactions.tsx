@@ -105,7 +105,7 @@ const ListTransactions = () => {
               colors={[colors.primary, '#e65bf8']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
-              className="px-8 py-4 flex-row items-center"
+              style={{ paddingHorizontal: 32, paddingVertical: 16, flexDirection: 'row', alignItems: 'center' }}
             >
               <Ionicons name='log-in-outline' color={'white'} size={20} />
               <Text className="text-white font-semibold ml-2.5 text-base">Sign In</Text>

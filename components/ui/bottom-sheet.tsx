@@ -1,7 +1,7 @@
 import { useThemedColors } from '@/hooks/useThemedColors';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { Modal, Pressable, Text, TouchableOpacity, TouchableWithoutFeedback, useColorScheme, View } from 'react-native';
+import { KeyboardAvoidingView, Modal, Platform, Pressable, Text, TouchableOpacity, useColorScheme, View } from 'react-native';
 
 interface BottomSheetProps {
   isVisible: boolean;
@@ -23,39 +23,36 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
   const colors = useThemedColors().colors
 
   return (
-    <View style={{ flex: 1 }} className={`${theme} bg-background`}>
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={isVisible}
-        onRequestClose={onClose}
+    <Modal
+      animationType="slide"
+      transparent={true}
+      visible={isVisible}
+      onRequestClose={onClose}
+      statusBarTranslucent
+    >
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
       >
-        <Pressable onPress={onClose} style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)' }}>
-          <View  />
-        </Pressable>
-        
-        <View
-          className="flex-1 justify-end bg-black/50"
-          style={{ flex: 1 }}
-        >
+        <View className="flex-1 justify-end bg-black/50">
+          {/* Backdrop */}
+          <Pressable
+            onPress={onClose}
+            className="absolute inset-0"
+          />
+
+          {/* Sheet content */}
           <View
-            className="bg-background rounded-t-[28px] p-6 max-h-[80vh] w-full"
-            style={{ position: 'absolute', bottom: 0, width: '100%' }}
+            className={`${theme} bg-background rounded-t-3xl p-6`}
+            style={{ maxHeight: '80%' }}
           >
-            {/* {(title || true) && (
-              <View className="flex-row justify-between items-center mb-4 sm:mb-6">
-                {title && <Text className="text-foreground font-bold text-lg sm:text-xl flex-1 mr-2" numberOfLines={1}>{title}</Text>}
-                <TouchableOpacity onPress={onClose} className="p-2">
-                  <Ionicons name="close-circle-outline" size={30} color={colors.foreground} />
-                </TouchableOpacity>
-              </View>
-            )} */}
             {(title || true) && (
               <View className="flex-row items-center justify-between pb-4">
                 <Text className="text-xl font-bold text-foreground">{title}</Text>
                 <TouchableOpacity
                   onPress={onClose}
-                  className="w-10 h-10 rounded-full bg-muted/30 items-center justify-center"
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  className="w-10 h-10 rounded-full bg-gray-500/20 items-center justify-center"
                 >
                   <Ionicons name="close" size={20} color={colors.foreground} />
                 </TouchableOpacity>
@@ -64,8 +61,8 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
             {children}
           </View>
         </View>
-      </Modal>
-    </View>
+      </KeyboardAvoidingView>
+    </Modal>
   );
 };
 

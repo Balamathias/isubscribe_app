@@ -380,7 +380,7 @@ const FundWalletBottomSheet: React.FC<FundWalletBottomSheetProps> = ({ isVisible
 
   // Render accounts view with "Fund Now" button
   const renderAccountsView = () => (
-    <ScrollView showsVerticalScrollIndicator={false}>
+    <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
       <View className="space-y-4">
         {/* Account Cards */}
         <View className="flex-col md:flex-row justify-center items-center gap-4">

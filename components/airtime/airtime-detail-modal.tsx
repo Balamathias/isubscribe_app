@@ -98,23 +98,24 @@ const AirtimeDetailsModal: React.FC<AirtimeDetailsModalProps> = ({
     }
   };
 
-  const handleProceed = async () => {
+  const handleProceed = () => {
     if (!user) {
       router.push(`/auth/login`);
       return;
     }
 
     if (isBiometricEnabled) {
-      try {
-        const authenticated = await authenticate();
-        if (authenticated) {
-          await handleProcessRequest();
-        } else {
+      authenticate(() => setPinPadVisible(true))
+        .then((authenticated) => {
+          if (authenticated) {
+            handleProcessRequest();
+          } else {
+            setPinPadVisible(true);
+          }
+        })
+        .catch(() => {
           setPinPadVisible(true);
-        }
-      } catch {
-        setPinPadVisible(true);
-      }
+        });
     } else {
       setPinPadVisible(true);
     }
@@ -126,7 +127,7 @@ const AirtimeDetailsModal: React.FC<AirtimeDetailsModalProps> = ({
 
   return (
     <>
-      <BottomSheet isVisible={isVisible} onClose={onClose} title="Confirm Purchase">
+      <BottomSheet isVisible={isVisible && !isPinPadVisible} onClose={onClose} title="Confirm Purchase">
         {(verifyingPin || isPending) && <LoadingSpinner isPending={verifyingPin || isPending} />}
 
         <View className="py-2">
@@ -268,10 +269,9 @@ const AirtimeDetailsModal: React.FC<AirtimeDetailsModalProps> = ({
 
           {/* Proceed Button */}
           <TouchableOpacity
-            className="rounded-2xl overflow-hidden"
             onPress={handleProceed}
-            activeOpacity={0.9}
             disabled={insufficientFunds && !!user}
+            activeOpacity={0.8}
           >
             <LinearGradient
               colors={
@@ -283,12 +283,20 @@ const AirtimeDetailsModal: React.FC<AirtimeDetailsModalProps> = ({
               }
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
-              className="py-4 flex-row items-center justify-center"
+              style={{
+                borderRadius: 16,
+                paddingVertical: 16,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
             >
               {!user && <Ionicons size={18} name="log-in-outline" color="white" />}
               <Text
-                className="font-bold text-base ml-1"
                 style={{
+                  fontWeight: '700',
+                  fontSize: 16,
+                  marginLeft: 4,
                   color:
                     insufficientFunds && user
                       ? isDark

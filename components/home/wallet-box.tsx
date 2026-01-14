@@ -203,29 +203,45 @@ const WalletBox = ({}: Props) => {
       colors={['#740faa', '#a13ae1']}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
-      className={"rounded-2xl p-5  flex-row justify-between items-start min-h-[120px] overflow-hidden shadow-sm"}
+      style={{
+        borderRadius: 16,
+        padding: 20,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        minHeight: 120,
+        overflow: 'hidden',
+      }}
     >
-      <View className="flex-1">
-        <Text className="text-white/80 text-xs mb-1">Wallet Balance</Text>
-        <View className="flex-row items-center mb-4">
+      <View style={{ flex: 1 }}>
+        <Text style={{ color: 'rgba(255,255,255,0.8)', fontSize: 12, marginBottom: 4 }}>Wallet Balance</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
           {isPending ? (
-            <ActivityIndicator size={13} color="#fff" style={{ marginRight: 2}} />
+            <ActivityIndicator size={13} color="#fff" style={{ marginRight: 2 }} />
           ) : (
-            <Text className="text-white font-bold text-2xl mr-1">{formatNumber(user ? (localWalletBalance !== null ? localWalletBalance : (wallet?.balance || 0)) : 0)}</Text>
+            <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16, marginRight: 4 }}>
+              {formatNumber(user ? (localWalletBalance !== null ? localWalletBalance : (wallet?.balance || 0)) : 0)}
+            </Text>
           )}
           <TouchableOpacity onPress={toggleBalance}>
-            <Ionicons 
-              name={showBalance ? "eye-outline" : "eye-off-outline"} 
-              size={18} 
-              color="#fff" 
-              style={{ opacity: 0.7 }} 
+            <Ionicons
+              name={showBalance ? "eye-outline" : "eye-off-outline"}
+              size={18}
+              color="#fff"
+              style={{ opacity: 0.7 }}
             />
           </TouchableOpacity>
         </View>
         <TouchableOpacity
-          className="bg-white rounded-full px-4 py-2 flex-row items-center self-start"
           activeOpacity={0.6}
           style={{
+            backgroundColor: '#fff',
+            borderRadius: 9999,
+            paddingHorizontal: 16,
+            paddingVertical: 8,
+            flexDirection: 'row',
+            alignItems: 'center',
+            alignSelf: 'flex-start',
             shadowColor: '#000',
             shadowOpacity: 0.08,
             shadowRadius: 2,
@@ -233,55 +249,60 @@ const WalletBox = ({}: Props) => {
           }}
           onPress={
             user
-              ? handleFundWalletPress  // Sheet handles users with/without accounts
+              ? handleFundWalletPress
               : () => router.push('/auth/login')
           }
         >
           <Ionicons name={user ? "add-outline" : "log-in-outline"} size={18} color="#7B2FF2" style={{ marginRight: 2 }} />
-          <Text className="text-[#7B2FF2] font-semibold text-base">{user ? 'Fund Wallet' : 'Login'}</Text>
+          <Text style={{ color: '#7B2FF2', fontWeight: '600', fontSize: 16 }}>{user ? 'Fund Wallet' : 'Login'}</Text>
         </TouchableOpacity>
       </View>
 
-      <View className="flex-1 items-end justify-between">
-        <Text className="text-white/80 text-xs mb-1">Data Bonus</Text>
-        <View className="flex-row items-center mb-4">
+      <View style={{ flex: 1, alignItems: 'flex-end', justifyContent: 'space-between' }}>
+        <Text style={{ color: 'rgba(255,255,255,0.8)', fontSize: 12, marginBottom: 4 }}>Data Bonus</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
           {isPending ? (
-            <ActivityIndicator size={13} color="#fff" style={{marginRight: 2}}/>
+            <ActivityIndicator size={13} color="#fff" style={{ marginRight: 2 }} />
           ) : (
-            <Text className="text-white font-bold text-xl mr-1">{formatBonus(user ? wallet?.data_bonus ?? '0.00 MB' : '0.00 MB')}</Text>
+            <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16, marginRight: 4 }}>
+              {formatBonus(user ? wallet?.data_bonus ?? '0.00 MB' : '0.00 MB')}
+            </Text>
           )}
           <TouchableOpacity onPress={toggleBonus}>
-            <Ionicons 
-              name={showBonus ? "eye-outline" : "eye-off-outline"} 
-              size={18} 
-              color="#fff" 
-              style={{ opacity: 0.7 }} 
+            <Ionicons
+              name={showBonus ? "eye-outline" : "eye-off-outline"}
+              size={18}
+              color="#fff"
+              style={{ opacity: 0.7 }}
             />
           </TouchableOpacity>
         </View>
 
-        {
-            user ? (
-                <TouchableOpacity
-                    className="rounded-full px-4 py-2 flex-row items-center self-end"
-                    style={{
-                        backgroundColor: 'rgba(255,255,255,0.18)',
-                    }}
-                    disabled={!wallet || !wallet?.balance}
-                    onPress={() => router.push(`/services/data?use_bonus=true`)}
-                    >
-                    <Text className="text-white font-semibold text-base">Use bonus</Text>
-                    <Ionicons name="chevron-forward-outline" size={18} color="#fff" style={{ marginLeft: 2 }} />
-                </TouchableOpacity>
-            ): (
-                <Link 
-                    href={`/auth/register`}
-                    className='self-end mt-2 text-white font-medium'
-                >
-                    Register
-                </Link>
-            )
-        }
+        {user ? (
+          <TouchableOpacity
+            style={{
+              borderRadius: 9999,
+              paddingHorizontal: 16,
+              paddingVertical: 8,
+              flexDirection: 'row',
+              alignItems: 'center',
+              alignSelf: 'flex-end',
+              backgroundColor: 'rgba(255,255,255,0.18)',
+            }}
+            disabled={!wallet || !wallet?.balance}
+            onPress={() => router.push(`/services/data?use_bonus=true`)}
+          >
+            <Text style={{ color: '#fff', fontWeight: '600', fontSize: 16 }}>Use bonus</Text>
+            <Ionicons name="chevron-forward-outline" size={18} color="#fff" style={{ marginLeft: 2 }} />
+          </TouchableOpacity>
+        ) : (
+          <Link
+            href={`/auth/register`}
+            style={{ alignSelf: 'flex-end', marginTop: 8, color: '#fff', fontWeight: '500' }}
+          >
+            Register
+          </Link>
+        )}
       </View>
 
       <FundWalletBottomSheet isVisible={showFundWalletBottomSheet} onClose={handleCloseBottomSheet} />

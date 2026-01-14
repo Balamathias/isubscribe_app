@@ -171,7 +171,7 @@ const ElectricityConfirmationModal: React.FC<ElectricityConfirmationModalProps> 
         {isPending && (
           <LoadingSpinner isPending={isPending} />
         )}
-        <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+        <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
           <View className="flex flex-col gap-4 w-full pb-4">
 
             {/* Animated Electricity Icon */}
@@ -401,21 +401,25 @@ const ElectricityConfirmationModal: React.FC<ElectricityConfirmationModalProps> 
 
             {/* Proceed Button */}
             <TouchableOpacity
-              className="rounded-2xl overflow-hidden"
+              style={{ opacity: (!user || isInsufficientFunds) ? 0.5 : 1 }}
               onPress={handleProceed}
               activeOpacity={0.8}
               disabled={!user || isInsufficientFunds}
-              style={{ opacity: (!user || isInsufficientFunds) ? 0.5 : 1 }}
             >
               <LinearGradient
                 colors={['#f59e0b', '#ef4444', '#ec4899']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
-                className="py-4 items-center justify-center"
+                style={{
+                  borderRadius: 16,
+                  paddingVertical: 16,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
               >
-                <View className="flex-row items-center gap-x-2">
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                   {!user && <Ionicons size={18} name='log-in-outline' color={'white'} />}
-                  <Text className="text-white text-lg font-bold">
+                  <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700' }}>
                     {user ? 'Proceed to Pay' : 'Login to Continue'}
                   </Text>
                   <Ionicons name="chevron-forward" size={20} color="white" />

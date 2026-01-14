@@ -2,7 +2,6 @@ import React, { useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, useColorScheme, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '@/constants/colors';
-import { LinearGradient } from 'expo-linear-gradient';
 
 interface FundingMethodSelectorProps {
   onSelectCheckout: () => void;
@@ -45,135 +44,136 @@ const FundingMethodSelector: React.FC<FundingMethodSelectorProps> = ({
       }}
     >
       {/* Header */}
-      <View className="items-center mb-8">
+      <View style={{ alignItems: 'center', marginBottom: 32 }}>
         <View
-          className="w-14 h-14 rounded-2xl items-center justify-center mb-4"
+          style={{
+            width: 56,
+            height: 56,
+            borderRadius: 16,
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: 16,
+            backgroundColor: isDark ? 'rgba(139, 92, 246, 0.15)' : 'rgba(139, 92, 246, 0.1)',
+          }}
         >
           <Ionicons name="wallet" size={26} color={colors.primary} />
         </View>
         <Text
-          className="text-2xl font-bold text-center"
-          style={{ color: isDark ? '#ffffff' : '#111' }}
+          style={{
+            fontSize: 24,
+            fontWeight: '700',
+            textAlign: 'center',
+            color: isDark ? '#ffffff' : '#111',
+          }}
         >
           Add Money
         </Text>
         <Text
-          className="text-sm text-center mt-1"
-          style={{ color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.45)' }}
+          style={{
+            fontSize: 14,
+            textAlign: 'center',
+            marginTop: 4,
+            color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.45)',
+          }}
         >
           Select a funding method
         </Text>
       </View>
 
       {/* Options */}
-      <View className="gap-y-4">
-        {/* Primary Option - Fund Now */}
+      <View style={{ gap: 16 }}>
+        {/* Primary Option - Quick Fund */}
         <TouchableOpacity
           onPress={onSelectCheckout}
-          activeOpacity={0.9}
-          className="rounded-3xl overflow-hidden"
+          activeOpacity={0.8}
           style={{
+            backgroundColor: colors.primary,
+            borderRadius: 16,
+            padding: 20,
             shadowColor: colors.primary,
-            shadowOffset: { width: 0, height: 12 },
-            shadowOpacity: 0.35,
-            shadowRadius: 20,
-            elevation: 10,
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.2,
+            shadowRadius: 12,
+            elevation: 6,
           }}
         >
-          <LinearGradient
-            colors={isDark ? ['#8B5CF6', '#7C3AED'] : ['#8B5CF6', '#7C3AED']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            className="p-5"
-          >
-            {/* Main Content */}
-            <View className="flex-row items-center">
-              <View
-                className="w-12 h-12 rounded-2xl items-center justify-center mr-4"
-                style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}
-              >
-                <Ionicons name="wallet" size={24} color="#fff" />
-              </View>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <View
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: 12,
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginRight: 14,
+                backgroundColor: 'rgba(255,255,255,0.2)',
+              }}
+            >
+              <Ionicons name="flash" size={22} color="#fff" />
+            </View>
 
-              <View className="flex-1">
-                <View className="flex-row items-center">
-                  <Text className="text-white font-bold text-lg mr-2">
-                    Quick Fund
-                  </Text>
-                  <View
-                    className="px-2 py-0.5 rounded-full"
-                    style={{ backgroundColor: 'rgba(255,255,255,0.25)' }}
-                  >
-                    <Text className="text-white text-[10px] font-semibold">
-                      INSTANT
-                    </Text>
-                  </View>
-                </View>
-                <Text className="text-white/80 text-sm mt-1">
-                  Pay with card, transfer, or USSD
+            <View style={{ flex: 1 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Text style={{ color: '#fff', fontWeight: '600', fontSize: 17 }}>
+                  Quick Fund
                 </Text>
+                <View
+                  style={{
+                    marginLeft: 8,
+                    paddingHorizontal: 8,
+                    paddingVertical: 2,
+                    borderRadius: 6,
+                    backgroundColor: 'rgba(255,255,255,0.2)',
+                  }}
+                >
+                  <Text style={{ color: '#fff', fontSize: 10, fontWeight: '600' }}>
+                    INSTANT
+                  </Text>
+                </View>
               </View>
-
-              <View
-                className="w-10 h-10 rounded-full items-center justify-center"
-                style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}
-              >
-                <Ionicons name="arrow-forward" size={18} color="#fff" />
-              </View>
+              <Text style={{ color: 'rgba(255,255,255,0.8)', fontSize: 13, marginTop: 2 }}>
+                Card, transfer, or USSD
+              </Text>
             </View>
 
-            {/* Payment Icons */}
-            <View className="flex-row items-center mt-5 pt-4 border-t border-white/20">
-              <View className="flex-row items-center flex-1">
-                {[
-                  { icon: 'card', label: 'Card' },
-                  { icon: 'swap-horizontal', label: 'Transfer' },
-                  { icon: 'keypad', label: 'USSD' },
-                ].map((item, index) => (
-                  <View
-                    key={item.label}
-                    className="flex-row items-center mr-5"
-                  >
-                    <Ionicons
-                      name={item.icon as any}
-                      size={14}
-                      color="rgba(255,255,255,0.8)"
-                    />
-                    <Text className="text-white/70 text-xs ml-1.5 font-medium">
-                      {item.label}
-                    </Text>
-                  </View>
-                ))}
-              </View>
-              <Ionicons name="shield-checkmark" size={14} color="rgba(255,255,255,0.6)" />
+            <View
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: 18,
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: 'rgba(255,255,255,0.2)',
+              }}
+            >
+              <Ionicons name="arrow-forward" size={18} color="#fff" />
             </View>
-          </LinearGradient>
+          </View>
         </TouchableOpacity>
 
         {/* Divider */}
-        <View className="flex-row items-center py-2">
+        <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 4 }}>
           <View
-            className="flex-1 h-px"
             style={{
+              flex: 1,
+              height: 1,
               backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
             }}
           />
-          <View
-            className="w-8 h-8 rounded-full items-center justify-center mx-4"
+          <Text
             style={{
-              backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
+              marginHorizontal: 16,
+              fontSize: 12,
+              fontWeight: '500',
+              color: isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.25)',
             }}
           >
-            <Text
-              className="text-xs font-semibold"
-              style={{ color: isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.25)' }}
-            >
-              OR
-            </Text>
-          </View>
+            OR
+          </Text>
           <View
-            className="flex-1 h-px"
             style={{
+              flex: 1,
+              height: 1,
               backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
             }}
           />
@@ -182,86 +182,60 @@ const FundingMethodSelector: React.FC<FundingMethodSelectorProps> = ({
         {/* Secondary Option - Virtual Account */}
         <TouchableOpacity
           onPress={onSelectCreateAccount}
-          activeOpacity={0.85}
-          className="rounded-3xl p-5"
+          activeOpacity={0.7}
           style={{
-            backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : '#fafafa',
-            borderWidth: 1.5,
-            borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+            borderRadius: 16,
+            padding: 20,
+            backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : '#fff',
+            borderWidth: 1,
+            borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
           }}
         >
-          <View className="flex-row items-center">
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <View
-              className="w-12 h-12 rounded-2xl items-center justify-center mr-4"
               style={{
-                backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+                width: 44,
+                height: 44,
+                borderRadius: 12,
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginRight: 14,
+                backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
               }}
             >
               <Ionicons
-                name="business"
+                name="business-outline"
                 size={22}
                 color={isDark ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.5)'}
               />
             </View>
 
-            <View className="flex-1">
+            <View style={{ flex: 1 }}>
               <Text
-                className="font-bold text-base"
-                style={{ color: isDark ? '#fff' : '#111' }}
+                style={{
+                  fontWeight: '600',
+                  fontSize: 17,
+                  color: isDark ? '#fff' : '#111',
+                }}
               >
                 Virtual Account
               </Text>
               <Text
-                className="text-sm mt-0.5"
-                style={{ color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.45)' }}
+                style={{
+                  fontSize: 13,
+                  marginTop: 2,
+                  color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.45)',
+                }}
               >
                 Get your own bank account number
               </Text>
             </View>
 
-            <View
-              className="w-8 h-8 rounded-full items-center justify-center"
-              style={{
-                backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
-              }}
-            >
-              <Ionicons
-                name="chevron-forward"
-                size={16}
-                color={isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.3)'}
-              />
-            </View>
-          </View>
-
-          {/* Requirements Note */}
-          <View
-            className="flex-row items-center mt-4 pt-4"
-            style={{
-              borderTopWidth: 1,
-              borderTopColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
-            }}
-          >
-            <View
-              className="flex-row items-center px-3 py-1.5 rounded-full"
-              style={{
-                backgroundColor: isDark ? 'rgba(251,191,36,0.1)' : 'rgba(251,191,36,0.08)',
-              }}
-            >
-              <Ionicons name="finger-print" size={12} color="#fbbf24" />
-              <Text
-                className="text-[11px] ml-1.5 font-medium"
-                style={{ color: '#fbbf24' }}
-              >
-                Requires BVN/NIN
-              </Text>
-            </View>
-            <View className="flex-1" />
-            <Text
-              className="text-[11px]"
-              style={{ color: isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.3)' }}
-            >
-              One-time setup
-            </Text>
+            <Ionicons
+              name="chevron-forward"
+              size={20}
+              color={isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.3)'}
+            />
           </View>
         </TouchableOpacity>
       </View>

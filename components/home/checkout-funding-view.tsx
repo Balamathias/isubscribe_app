@@ -207,7 +207,6 @@ const CheckoutFundingView: React.FC<CheckoutFundingViewProps> = ({
           onPress={handleProceed}
           disabled={!amount || numAmount < MIN_AMOUNT || isLoading}
           activeOpacity={0.8}
-          className="overflow-hidden rounded-2xl"
         >
           <LinearGradient
             colors={
@@ -217,19 +216,25 @@ const CheckoutFundingView: React.FC<CheckoutFundingViewProps> = ({
             }
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
-            className="py-4 flex-row items-center justify-center"
+            style={{
+              borderRadius: 16,
+              paddingVertical: 16,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
           >
             {isLoading ? (
               <>
                 <ActivityIndicator size="small" color="#fff" />
-                <Text className="text-white font-semibold text-base ml-2">
+                <Text style={{ color: '#fff', fontWeight: '600', fontSize: 16, marginLeft: 8 }}>
                   Initializing...
                 </Text>
               </>
             ) : (
               <>
                 <Ionicons name="card-outline" size={20} color="#fff" />
-                <Text className="text-white font-semibold text-base ml-2">
+                <Text style={{ color: '#fff', fontWeight: '600', fontSize: 16, marginLeft: 8 }}>
                   {isValid ? `Fund ${formatNigerianNaira(numAmount)}` : 'Enter Amount'}
                 </Text>
               </>

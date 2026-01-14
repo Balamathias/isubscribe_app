@@ -13,20 +13,18 @@ interface PhoneNumberInputProps {
   onChange: (text: string) => void;
   error?: string;
   onSelectContact: (phoneNumber: string) => void;
-  className?: string;
-  style?: React.CSSProperties;
 }
 
 type Beneficiary = Tables<'beneficiaries'>;
 
 const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
-  value, onChange, error, onSelectContact, className, style
+  value, onChange, error, onSelectContact
 }) => {
   const [isFocused, setIsFocused] = useState(false);
   const [showBeneficiaries, setShowBeneficiaries] = useState(false);
 
-  const { colors } = useThemedColors()
-  
+  const { colors, isDark } = useThemedColors();
+
   const { beneficiaries } = useSession();
 
   const getNetworkInfo = (networkId: string) => {
@@ -35,9 +33,9 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
 
   const parsePhoneNumber = (phoneNumber: string): string => {
     if (!phoneNumber) return '';
-    
+
     let cleaned = phoneNumber.replace(/[^\d+]/g, '');
-    
+
     if (cleaned.startsWith('+234')) {
       cleaned = '0' + cleaned.substring(4);
     } else if (cleaned.startsWith('234')) {
@@ -48,15 +46,15 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
         cleaned = '0' + cleaned.substring(cleaned.length - 10);
       }
     }
-    
+
     if (!cleaned.startsWith('0') && cleaned.length === 10) {
       cleaned = '0' + cleaned;
     }
-    
+
     if (cleaned.length > 11) {
       cleaned = cleaned.substring(0, 11);
     }
-    
+
     return cleaned;
   };
 
@@ -78,7 +76,7 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
             onSelectContact(phoneNumber);
           } else {
             // Handle multiple phone numbers
-            const phoneOptions = contact.phoneNumbers.map(phone => 
+            const phoneOptions = contact.phoneNumbers.map(phone =>
               `${parsePhoneNumber(phone.number || '')} ${phone.label ? `(${phone.label})` : ''}`
             );
 
@@ -140,16 +138,61 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
     }
   };
 
+  const getBorderColor = () => {
+    if (error) return '#ef4444';
+    if (isFocused) return colors.primary;
+    return isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)';
+  };
+
   return (
-    <View className="w-full max-w-sm mb-4 mt-4">
-      <Text className="text-foreground text-base font-semibold mb-2">Phone Number</Text>
-      <View
-        className={`flex-row items-center bg-input border rounded-xl px-4 py-2 shadow-sm
-          ${error ? 'border-destructive' : isFocused ? 'border-primary' : 'border-secondary'} ${className || ''}`}
+    <View style={{ width: '100%', marginBottom: 16, marginTop: 16 }}>
+      <Text
+        style={{
+          fontSize: 15,
+          fontWeight: '600',
+          marginBottom: 8,
+          color: colors.foreground,
+        }}
       >
-        <Ionicons name="call-outline" size={20} color={colors.mutedForeground} className="mr-3" />
+        Phone Number
+      </Text>
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : '#fff',
+          borderWidth: 1.5,
+          borderColor: getBorderColor(),
+          borderRadius: 12,
+          paddingHorizontal: 14,
+          paddingVertical: 12,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 1 },
+          shadowOpacity: isDark ? 0 : 0.04,
+          shadowRadius: 3,
+          elevation: 1,
+        }}
+      >
+        <View
+          style={{
+            width: 36,
+            height: 36,
+            borderRadius: 10,
+            backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginRight: 12,
+          }}
+        >
+          <Ionicons name="call-outline" size={18} color={colors.mutedForeground} />
+        </View>
         <TextInput
-          className="flex-1 text-base text-foreground"
+          style={{
+            flex: 1,
+            fontSize: 16,
+            color: colors.foreground,
+            paddingVertical: 0,
+          }}
           placeholder="e.g., 08012345678"
           placeholderTextColor={colors.mutedForeground}
           onChangeText={onChange}
@@ -159,15 +202,48 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
           onBlur={() => setIsFocused(false)}
         />
         {beneficiaries && beneficiaries.length > 0 && (
-          <TouchableOpacity onPress={() => setShowBeneficiaries(true)} className="p-1 ml-2">
-            <Ionicons name="chevron-down-outline" size={18} color={colors.mutedForeground} />
+          <TouchableOpacity
+            onPress={() => setShowBeneficiaries(true)}
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: 10,
+              backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginLeft: 8,
+            }}
+          >
+            <Ionicons name="chevron-down" size={18} color={colors.mutedForeground} />
           </TouchableOpacity>
         )}
-        <TouchableOpacity onPress={handleContactPicking} className="p-1 ml-2">
-          <Ionicons name="person-add-outline" size={20} color={colors.mutedForeground} />
+        <TouchableOpacity
+          onPress={handleContactPicking}
+          style={{
+            width: 36,
+            height: 36,
+            borderRadius: 10,
+            backgroundColor: isDark ? 'rgba(139, 92, 246, 0.15)' : 'rgba(139, 92, 246, 0.1)',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginLeft: 8,
+          }}
+        >
+          <Ionicons name="person-add-outline" size={18} color={colors.primary} />
         </TouchableOpacity>
       </View>
-      {error && <Text className="text-destructive text-sm mt-1 ml-2">{error}</Text>}
+      {error && (
+        <Text
+          style={{
+            color: '#ef4444',
+            fontSize: 13,
+            marginTop: 6,
+            marginLeft: 4,
+          }}
+        >
+          {error}
+        </Text>
+      )}
 
       {/* Beneficiaries Bottom Sheet */}
       <BottomSheet
@@ -175,21 +251,43 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
         onClose={() => setShowBeneficiaries(false)}
         title="Select Beneficiary"
       >
-        <ScrollView className="max-h-96" showsVerticalScrollIndicator={false}>
+        <ScrollView style={{ maxHeight: 400 }} showsVerticalScrollIndicator={false}>
           {beneficiaries?.map((beneficiary) => {
             const networkInfo = getNetworkInfo(beneficiary.network || '');
             return (
               <TouchableOpacity
                 key={beneficiary.id}
                 onPress={() => handleSelectBeneficiary(beneficiary)}
-                className="flex-row items-center justify-between p-4 border-b border-border"
+                activeOpacity={0.7}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  paddingVertical: 14,
+                  paddingHorizontal: 16,
+                  borderBottomWidth: 1,
+                  borderBottomColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)',
+                }}
               >
-                <View className="flex-1">
-                  <Text className="text-foreground font-medium text-base">
+                <View style={{ flex: 1 }}>
+                  <Text
+                    style={{
+                      color: colors.foreground,
+                      fontWeight: '500',
+                      fontSize: 16,
+                    }}
+                  >
                     {beneficiary.phone}
                   </Text>
                   {beneficiary.network && (
-                    <Text className="text-muted-foreground text-sm mt-1 capitalize">
+                    <Text
+                      style={{
+                        color: colors.mutedForeground,
+                        fontSize: 13,
+                        marginTop: 2,
+                        textTransform: 'capitalize',
+                      }}
+                    >
                       {beneficiary.network}
                     </Text>
                   )}
@@ -197,11 +295,21 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
                 {networkInfo ? (
                   <Image
                     source={networkInfo.logo}
-                    className="w-8 h-8 ml-3"
+                    style={{ width: 32, height: 32, marginLeft: 12 }}
                     resizeMode="contain"
                   />
                 ) : beneficiary.network ? (
-                  <View className="w-8 h-8 ml-3 bg-secondary rounded-full items-center justify-center">
+                  <View
+                    style={{
+                      width: 32,
+                      height: 32,
+                      marginLeft: 12,
+                      backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
+                      borderRadius: 16,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
                     <Ionicons name="cellular-outline" size={16} color={colors.mutedForeground} />
                   </View>
                 ) : null}
@@ -209,9 +317,27 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
             );
           })}
           {(!beneficiaries || beneficiaries.length === 0) && (
-            <View className="p-8 items-center">
-              <Ionicons name="people-outline" size={48} color={colors.mutedForeground} />
-              <Text className="text-muted-foreground text-center mt-4">
+            <View style={{ padding: 32, alignItems: 'center' }}>
+              <View
+                style={{
+                  width: 64,
+                  height: 64,
+                  borderRadius: 32,
+                  backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: 16,
+                }}
+              >
+                <Ionicons name="people-outline" size={28} color={colors.mutedForeground} />
+              </View>
+              <Text
+                style={{
+                  color: colors.mutedForeground,
+                  textAlign: 'center',
+                  fontSize: 14,
+                }}
+              >
                 No beneficiaries found
               </Text>
             </View>

@@ -109,7 +109,7 @@ const DataBundleDetailsModal: React.FC<DataBundleDetailsModalProps> = ({
     }
   };
 
-  const handleProceed = async () => {
+  const handleProceed = () => {
     if (!user) {
       router.push(`/auth/login`);
       return;
@@ -121,16 +121,17 @@ const DataBundleDetailsModal: React.FC<DataBundleDetailsModalProps> = ({
     }
 
     if (isBiometricEnabled) {
-      try {
-        const authenticated = await authenticate(() => setPinPadVisible(true));
-        if (authenticated) {
-          await handleProcessRequest();
-        } else {
+      authenticate(() => setPinPadVisible(true))
+        .then((authenticated) => {
+          if (authenticated) {
+            handleProcessRequest();
+          } else {
+            setPinPadVisible(true);
+          }
+        })
+        .catch(() => {
           setPinPadVisible(true);
-        }
-      } catch {
-        setPinPadVisible(true);
-      }
+        });
     } else {
       setPinPadVisible(true);
     }
@@ -138,7 +139,7 @@ const DataBundleDetailsModal: React.FC<DataBundleDetailsModalProps> = ({
 
   return (
     <>
-      <BottomSheet isVisible={isVisible} onClose={onClose} title="Confirm Purchase">
+      <BottomSheet isVisible={isVisible && !isPinPadVisible} onClose={onClose} title="Confirm Purchase">
         {isPending && <LoadingSpinner isPending={isPending} />}
 
         <View className="py-1">
@@ -307,10 +308,9 @@ const DataBundleDetailsModal: React.FC<DataBundleDetailsModalProps> = ({
 
           {/* Proceed Button */}
           <TouchableOpacity
-            className="rounded-xl overflow-hidden"
             onPress={handleProceed}
-            activeOpacity={0.9}
             disabled={isPending}
+            activeOpacity={0.8}
           >
             <LinearGradient
               colors={
@@ -320,10 +320,16 @@ const DataBundleDetailsModal: React.FC<DataBundleDetailsModalProps> = ({
               }
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
-              className="py-3.5 flex-row items-center justify-center"
+              style={{
+                borderRadius: 12,
+                paddingVertical: 14,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
             >
               {!user && <Ionicons size={16} name="log-in-outline" color="white" />}
-              <Text className="text-white font-bold text-sm ml-1">
+              <Text style={{ color: '#fff', fontWeight: '700', fontSize: 14, marginLeft: 4 }}>
                 {!user ? 'Login to Continue' : isInsufficientFunds ? 'Fund Wallet' : 'Proceed'}
               </Text>
             </LinearGradient>

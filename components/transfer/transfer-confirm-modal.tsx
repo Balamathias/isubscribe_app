@@ -184,7 +184,7 @@ const TransferConfirmModal: React.FC<TransferConfirmModalProps> = ({
         title="Confirm Transfer"
       >
         {isPending && <LoadingSpinner isPending={isPending} />}
-        <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+        <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
           <View className="flex flex-col gap-4 w-full py-2">
             {/* Header with recipient info */}
             <View className="items-center mb-2">
@@ -378,7 +378,7 @@ const TransferConfirmModal: React.FC<TransferConfirmModalProps> = ({
 
             {/* Proceed Button */}
             <TouchableOpacity
-              className="rounded-2xl overflow-hidden mt-2"
+              style={{ marginTop: 8 }}
               onPress={handleProceed}
               activeOpacity={0.8}
               disabled={!user || isInsufficientFunds}
@@ -391,11 +391,16 @@ const TransferConfirmModal: React.FC<TransferConfirmModalProps> = ({
                 }
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
-                className="py-4 items-center justify-center"
+                style={{
+                  borderRadius: 16,
+                  paddingVertical: 16,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
               >
-                <View className="flex-row items-center">
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                   {!user && <Ionicons size={18} name="log-in-outline" color="white" />}
-                  <Text className="text-white font-bold text-lg ml-2">
+                  <Text style={{ color: '#fff', fontWeight: '700', fontSize: 18, marginLeft: 8 }}>
                     {!user
                       ? 'Login to Continue'
                       : isInsufficientFunds

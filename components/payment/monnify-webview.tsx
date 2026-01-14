@@ -9,7 +9,7 @@ import {
   StatusBar,
   Platform,
 } from 'react-native';
-import { WebView, WebViewNavigation } from 'react-native-webview';
+import { WebView, WebViewNavigation, WebViewMessageEvent } from 'react-native-webview';
 import { Ionicons } from '@expo/vector-icons';
 import { useThemedColors } from '@/hooks/useThemedColors';
 
@@ -39,6 +39,93 @@ const MonnifyWebView: React.FC<MonnifyWebViewProps> = ({
   const [error, setError] = useState<string | null>(null);
   const webViewRef = useRef<WebView>(null);
 
+  // JavaScript to inject into the WebView to listen for Monnify SDK events
+  const injectedJavaScript = `
+    (function() {
+      // Listen for postMessage events from Monnify iframe
+      window.addEventListener('message', function(event) {
+        try {
+          var data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+          if (data && (
+            data.type === 'monnify' ||
+            data.source === 'monnify' ||
+            data.event === 'TRANSACTION_COMPLETED' ||
+            data.event === 'PAYMENT_COMPLETED' ||
+            data.paymentStatus ||
+            data.transactionStatus
+          )) {
+            window.ReactNativeWebView.postMessage(JSON.stringify({
+              type: 'monnify_event',
+              data: data
+            }));
+          }
+        } catch(e) {}
+      });
+
+      // Intercept Monnify SDK callbacks if available
+      var checkMonnify = setInterval(function() {
+        if (window.MonnifySDK) {
+          clearInterval(checkMonnify);
+          var originalComplete = window.MonnifySDK.onComplete;
+          var originalClose = window.MonnifySDK.onClose;
+
+          window.MonnifySDK.onComplete = function(response) {
+            window.ReactNativeWebView.postMessage(JSON.stringify({
+              type: 'monnify_complete',
+              data: response
+            }));
+            if (originalComplete) originalComplete(response);
+          };
+
+          window.MonnifySDK.onClose = function(response) {
+            window.ReactNativeWebView.postMessage(JSON.stringify({
+              type: 'monnify_close',
+              data: response
+            }));
+            if (originalClose) originalClose(response);
+          };
+        }
+      }, 500);
+
+      // Clear interval after 30 seconds to prevent memory leak
+      setTimeout(function() { clearInterval(checkMonnify); }, 30000);
+
+      true;
+    })();
+  `;
+
+  // Handle messages from WebView (Monnify events)
+  const handleMessage = useCallback((event: WebViewMessageEvent) => {
+    try {
+      const message = JSON.parse(event.nativeEvent.data);
+
+      if (message.type === 'monnify_complete' || message.type === 'monnify_event') {
+        const data = message.data;
+        const status = data?.status || data?.paymentStatus || data?.transactionStatus;
+
+        // Check for success statuses
+        if (status === 'PAID' || status === 'SUCCESS' || status === 'COMPLETED' ||
+            status === 'paid' || status === 'success' || status === 'completed') {
+          onPaymentComplete('success');
+          return;
+        }
+
+        // Check for failed statuses
+        if (status === 'FAILED' || status === 'failed' || status === 'EXPIRED' || status === 'expired') {
+          onPaymentComplete('failed');
+          return;
+        }
+      }
+
+      if (message.type === 'monnify_close') {
+        // User closed the Monnify modal - treat as pending and let balance monitor handle
+        onPaymentComplete('pending');
+      }
+    } catch (e) {
+      // Silently ignore parsing errors
+    }
+  }, [onPaymentComplete]);
+
   // Reset state when modal opens
   React.useEffect(() => {
     if (isVisible) {
@@ -50,34 +137,48 @@ const MonnifyWebView: React.FC<MonnifyWebViewProps> = ({
   // Detect payment completion from URL changes
   const handleNavigationStateChange = useCallback((navState: WebViewNavigation) => {
     const { url } = navState;
+    const urlLower = url.toLowerCase();
 
-    // Monnify redirects to these URLs after payment
-    // Success: Contains transactionReference and paymentReference in query params
-    // Also check for common success patterns
-
-    if (url.includes('payment-complete') || url.includes('payment-success')) {
-      // Payment completed successfully
+    // Success patterns - check various payment gateway success indicators
+    if (urlLower.includes('payment-complete') ||
+        urlLower.includes('payment-success') ||
+        urlLower.includes('status=paid') ||
+        urlLower.includes('status=successful') ||
+        urlLower.includes('paymentstatus=paid') ||
+        urlLower.includes('paymentstatus=success') ||
+        urlLower.includes('transaction_status=success') ||
+        urlLower.includes('/success')) {
       onPaymentComplete('success');
       return;
     }
 
-    if (url.includes('payment-failed') || url.includes('payment-error')) {
-      // Payment failed
+    // Failed patterns
+    if (urlLower.includes('payment-failed') ||
+        urlLower.includes('payment-error') ||
+        urlLower.includes('status=failed') ||
+        urlLower.includes('paymentstatus=failed') ||
+        urlLower.includes('transaction_status=failed') ||
+        urlLower.includes('/failed') ||
+        urlLower.includes('/error')) {
       onPaymentComplete('failed');
       return;
     }
 
-    if (url.includes('payment-cancelled') || url.includes('payment-cancel')) {
-      // User cancelled
+    // Cancelled patterns
+    if (urlLower.includes('payment-cancelled') ||
+        urlLower.includes('payment-cancel') ||
+        urlLower.includes('status=cancelled') ||
+        urlLower.includes('status=canceled') ||
+        urlLower.includes('/cancelled') ||
+        urlLower.includes('/canceled')) {
       onPaymentComplete('cancelled');
       return;
     }
 
-    // Check for Monnify's redirect URL patterns
-    // When payment is complete, Monnify redirects with transactionReference param
+    // Monnify's redirect URL with transaction references
+    // When payment completes, Monnify redirects with these params
+    // We treat this as 'pending' to let the balance monitor or polling confirm success
     if (url.includes('transactionReference=') && url.includes('paymentReference=')) {
-      // Payment was made - status depends on the page content
-      // For now, treat as success and let polling confirm
       onPaymentComplete('pending');
       return;
     }
@@ -237,6 +338,8 @@ const MonnifyWebView: React.FC<MonnifyWebViewProps> = ({
                 ref={webViewRef}
                 source={{ uri: checkoutUrl }}
                 onNavigationStateChange={handleNavigationStateChange}
+                onMessage={handleMessage}
+                injectedJavaScript={injectedJavaScript}
                 onLoadStart={() => setIsLoading(true)}
                 onLoadEnd={() => setIsLoading(false)}
                 onError={handleError}

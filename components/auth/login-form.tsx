@@ -323,11 +323,6 @@ const LoginForm = () => {
                   backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.7)',
                   borderWidth: 1,
                   borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
-                  shadowColor: '#000',
-                  shadowOffset: { width: 0, height: 10 },
-                  shadowOpacity: isDark ? 0.3 : 0.1,
-                  shadowRadius: 30,
-                  elevation: 10,
                 }}
               >
                 {/* Google Sign In */}
@@ -340,10 +335,6 @@ const LoginForm = () => {
                     borderRadius: 14,
                     borderWidth: 1,
                     borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
-                    shadowOffset: { width: 0, height: 2 },
-                    shadowOpacity: 0.05,
-                    shadowRadius: 8,
-                    elevation: 2,
                   }}
                 >
                   <View className="flex-row items-center justify-center py-3.5">
@@ -423,11 +414,6 @@ const LoginForm = () => {
                       paddingVertical: 16,
                       alignItems: 'center',
                       justifyContent: 'center',
-                      shadowColor: '#7B2FF2',
-                      shadowOffset: { width: 0, height: 8 },
-                      shadowOpacity: isPending ? 0 : 0.4,
-                      shadowRadius: 16,
-                      elevation: isPending ? 0 : 10,
                     }}
                   >
                     {isPending ? (

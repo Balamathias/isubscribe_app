@@ -5,8 +5,8 @@
   "scripts": {
     "start": "expo start",
     "reset-project": "node ./scripts/reset-project.js",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
     "web": "expo start --web",
     "lint": "expo lint",
     "generate": "npx supabase gen types typescript --project-id youoemwgqrmvpjfcvzua --schema public > types/database.ts"
@@ -40,7 +40,6 @@
     "expo-linear-gradient": "~15.0.8",
     "expo-linking": "~8.0.8",
     "expo-local-authentication": "~17.0.7",
-    "expo-media-library": "~18.2.1",
     "expo-notifications": "~0.32.11",
     "expo-router": "~6.0.8",
     "expo-splash-screen": "~31.0.10",

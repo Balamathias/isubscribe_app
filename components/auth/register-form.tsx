@@ -294,7 +294,7 @@ const RegisterForm = () => {
       <FloatingOrb size={120} color={isDark ? 'rgba(243,87,168,0.12)' : 'rgba(243,87,168,0.08)'} initialX={width - 80} initialY={150} delay={400} />
       <FloatingOrb size={90} color={isDark ? 'rgba(123,47,242,0.08)' : 'rgba(123,47,242,0.06)'} initialX={30} initialY={height - 250} delay={800} />
 
-      <SafeAreaView className="flex-1">
+      <SafeAreaView className="flex-1 px-2.5">
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
           <ScrollView
             contentContainerStyle={{ flexGrow: 1 }}
@@ -326,11 +326,6 @@ const RegisterForm = () => {
                   backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.75)',
                   borderWidth: 1,
                   borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
-                  shadowColor: '#000',
-                  shadowOffset: { width: 0, height: 8 },
-                  shadowOpacity: isDark ? 0.25 : 0.08,
-                  shadowRadius: 24,
-                  elevation: 8,
                 }}
               >
                 {/* Google */}
@@ -458,11 +453,6 @@ const RegisterForm = () => {
                       paddingVertical: 15,
                       alignItems: 'center',
                       justifyContent: 'center',
-                      shadowColor: '#7B2FF2',
-                      shadowOffset: { width: 0, height: 6 },
-                      shadowOpacity: isPending ? 0 : 0.35,
-                      shadowRadius: 14,
-                      elevation: isPending ? 0 : 8,
                     }}
                   >
                     {isPending ? (

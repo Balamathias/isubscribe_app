@@ -2,7 +2,7 @@ import { COLORS } from '@/constants/colors';
 import { useGetAccount, useInitiateGuestTransaction, useGuestTransactionStatus, QUERY_KEYS } from '@/services/api-hooks';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { ActivityIndicator, Clipboard, Platform, Text, ToastAndroid, TouchableOpacity, View, ScrollView } from 'react-native';
 import Toast from 'react-native-toast-message';
 import { useQueryClient } from '@tanstack/react-query';
@@ -113,7 +113,7 @@ interface FundWalletBottomSheetProps {
 
 const FundWalletBottomSheet: React.FC<FundWalletBottomSheetProps> = ({ isVisible, onClose }) => {
   const queryClient = useQueryClient();
-  const { profile, refetchBalance } = useSession();
+  const { profile, refetchBalance, walletBalance } = useSession();
 
   // Account data
   const { data: accountData, isPending: isLoadingAccount, refetch: refetchAccount } = useGetAccount();
@@ -125,6 +125,9 @@ const FundWalletBottomSheet: React.FC<FundWalletBottomSheetProps> = ({ isVisible
   // Funding state
   const [state, setState] = useState<FundingState>(initialState);
   const { flow, amount, paymentReference, checkoutUrl, error } = state;
+
+  // Track wallet balance to detect successful payment
+  const previousBalanceRef = useRef<number | null>(null);
 
   // API hooks
   const { mutateAsync: initiateCheckout, isPending: isInitiating } = useInitiateGuestTransaction();
@@ -181,6 +184,28 @@ const FundWalletBottomSheet: React.FC<FundWalletBottomSheetProps> = ({ isVisible
       }
     }
   }, [txStatusData, flow, refetchBalance, queryClient]);
+
+  // Monitor wallet balance changes while WebView is open
+  // This is the PRIMARY detection method for successful payments
+  // since wallet balance updates in real-time via Supabase subscription
+  useEffect(() => {
+    if (flow === 'webview' && walletBalance?.balance !== undefined) {
+      const currentBalance = walletBalance.balance;
+      const previousBalance = previousBalanceRef.current;
+
+      // If balance increased while WebView is open, payment was successful
+      if (previousBalance !== null && currentBalance > previousBalance) {
+        // Payment successful - close immediately
+        Toast.show({ type: 'success', text1: 'Payment successful!' });
+        refetchBalance?.();
+        queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.getWalletBalance] });
+        queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.getLatestTransactions] });
+        // Reset state and close
+        setState(initialState);
+        onClose();
+      }
+    }
+  }, [flow, walletBalance?.balance, refetchBalance, queryClient, onClose]);
 
   // ==============================================
   // Handlers
@@ -250,6 +275,9 @@ const FundWalletBottomSheet: React.FC<FundWalletBottomSheetProps> = ({ isVisible
         return;
       }
 
+      // Store current balance before opening WebView to detect changes
+      previousBalanceRef.current = walletBalance?.balance ?? null;
+
       setState(prev => ({
         ...prev,
         flow: 'webview',
@@ -265,7 +293,7 @@ const FundWalletBottomSheet: React.FC<FundWalletBottomSheetProps> = ({ isVisible
         text2: err?.message || 'An error occurred',
       });
     }
-  }, [initiateCheckout, profile?.email]);
+  }, [initiateCheckout, profile?.email, walletBalance?.balance]);
 
   // Handle Monnify payment completion
   const handlePaymentComplete = useCallback((status: MonnifyPaymentStatus) => {

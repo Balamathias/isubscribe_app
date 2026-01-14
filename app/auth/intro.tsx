@@ -336,13 +336,6 @@ const IntroScreen = () => {
                     >
                         {/* Logo with glow effect */}
                         <View
-                            style={{
-                                shadowColor: '#7B2FF2',
-                                shadowOffset: { width: 0, height: 0 },
-                                shadowOpacity: isDark ? 0.5 : 0.3,
-                                shadowRadius: 30,
-                                elevation: 10,
-                            }}
                         >
                             <Image
                                 source={require('@/assets/images/logo-icon.png')}
@@ -409,11 +402,6 @@ const IntroScreen = () => {
                                 borderColor: isDark
                                     ? 'rgba(255,255,255,0.08)'
                                     : 'rgba(123, 47, 242, 0.1)',
-                                shadowColor: '#000',
-                                shadowOffset: { width: 0, height: 10 },
-                                shadowOpacity: isDark ? 0.3 : 0.08,
-                                shadowRadius: 30,
-                                elevation: 5,
                             }}
                         >
                             <FeatureItem
@@ -480,11 +468,6 @@ const IntroScreen = () => {
                                     flexDirection: 'row',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    shadowColor: '#7B2FF2',
-                                    shadowOffset: { width: 0, height: 8 },
-                                    shadowOpacity: 0.4,
-                                    shadowRadius: 16,
-                                    elevation: 10,
                                 }}
                             >
                                 <Text className="text-white font-bold text-lg mr-2">

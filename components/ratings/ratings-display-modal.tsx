@@ -1,14 +1,12 @@
 import { useListRatings } from '@/services/api-hooks';
 import { Tables } from '@/types/database';
 import { Ionicons } from '@expo/vector-icons';
-import { format } from 'date-fns';
-import React, { useState } from 'react';
+import React from 'react';
 import {
   ActivityIndicator,
   FlatList,
   RefreshControl,
   Text,
-  useColorScheme,
   View
 } from 'react-native';
 import Animated, {
@@ -75,7 +73,7 @@ const RatingCard = ({ item, index }: { item: Tables<'ratings'> & { profile: Tabl
 
   return (
     <Animated.View style={animatedStyle}>
-      <View className="bg-card rounded-xl p-4 mb-3 shadow-sm">
+      <View className="bg-card rounded-xl p-4 mb-3">
         <View className="flex-row items-start justify-between mb-3">
           <View className="flex-row items-center flex-1">
             <Avatar size={40} fallback={item?.profile?.full_name?.at(0)?.toUpperCase()} source={ item?.profile?.avatar ? { uri: item?.profile?.avatar as string }: undefined } />
@@ -201,43 +199,41 @@ const RatingsDisplayModal: React.FC<RatingsDisplayModalProps> = ({
       onClose={onClose}
       title="Customer Reviews"
     >
-      {isPending ? (
-        renderLoading()
-      ) : (
-        <FlatList
-          data={ratings}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item, index }) => (
-            <RatingCard item={item} index={index} />
-          )}
-          ListHeaderComponent={ratings.length > 0 ? renderHeader : null}
-          ListEmptyComponent={renderEmpty}
-          nestedScrollEnabled
-          showsVerticalScrollIndicator={true}
-          bounces={true}
-          scrollEnabled={true}
-          keyboardShouldPersistTaps="handled"
-          refreshControl={
-            <RefreshControl
-              refreshing={isPending}
-              onRefresh={refetch}
-              colors={['#7B2FF2']}
-            />
-          }
-          contentContainerStyle={{
-            flexGrow: 1,
-            paddingBottom: 20
-          }}
-          style={{
-            flex: 1
-          }}
-          removeClippedSubviews={false}
-          initialNumToRender={10}
-          maxToRenderPerBatch={10}
-          windowSize={10}
-          getItemLayout={undefined}
-        />
-      )}
+      <View style={{ minHeight: 450 }}>
+        {isPending ? (
+          renderLoading()
+        ) : (
+          <FlatList
+            data={ratings}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item, index }) => (
+              <RatingCard item={item} index={index} />
+            )}
+            ListHeaderComponent={ratings.length > 0 ? renderHeader : null}
+            ListEmptyComponent={renderEmpty}
+            nestedScrollEnabled
+            showsVerticalScrollIndicator={true}
+            bounces={true}
+            scrollEnabled={true}
+            keyboardShouldPersistTaps="handled"
+            refreshControl={
+              <RefreshControl
+                refreshing={isPending}
+                onRefresh={refetch}
+                colors={['#7B2FF2']}
+              />
+            }
+            contentContainerStyle={{
+              flexGrow: 1,
+              paddingBottom: 20
+            }}
+            removeClippedSubviews={false}
+            initialNumToRender={10}
+            maxToRenderPerBatch={10}
+            windowSize={10}
+          />
+        )}
+      </View>
     </BottomSheet>
   );
 };

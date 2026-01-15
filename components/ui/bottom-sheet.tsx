@@ -1,7 +1,7 @@
 import { useThemedColors } from '@/hooks/useThemedColors';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { KeyboardAvoidingView, Modal, Platform, Pressable, Text, TouchableOpacity, useColorScheme, View } from 'react-native';
+import { KeyboardAvoidingView, Modal, Platform, Pressable, Text, TouchableOpacity, View } from 'react-native';
 
 interface BottomSheetProps {
   isVisible: boolean;
@@ -18,9 +18,7 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
   children,
   height = 600
 }) => {
-  const colorScheme = useColorScheme()
-  const theme = colorScheme === 'dark' ? 'dark' : 'light'
-  const colors = useThemedColors().colors
+  const { colors, theme } = useThemedColors();
 
   return (
     <Modal
@@ -44,7 +42,7 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
           {/* Sheet content */}
           <View
             className={`${theme} bg-background rounded-t-3xl p-6`}
-            style={{ maxHeight: '80%' }}
+            style={{ maxHeight: '85%', minHeight: 200 }}
           >
             {(title || true) && (
               <View className="flex-row items-center justify-between pb-4">
